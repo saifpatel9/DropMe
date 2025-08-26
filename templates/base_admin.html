@@ -1,0 +1,66 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-pc-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{% block title %}Admin Panel{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="{% static 'fonts/phosphor/duotone/style.css' %}" />
+    <link rel="stylesheet" href="{% static 'fonts/tabler-icons.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'fonts/feather.css' %}" />
+    <link rel="stylesheet" href="{% static 'fonts/fontawesome.css' %}" />
+    <link rel="stylesheet" href="{% static 'fonts/material.css' %}" />
+
+    <!-- Main Styles -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" id="main-style-link" />
+
+    <!-- Tailwind compiled file (MOVED LAST so it overrides others) -->
+    <link href="{% static 'src/output.css' %}" rel="stylesheet">
+
+    {% block extrahead %}{% endblock %}
+  </head>
+  <body>
+    <!-- Preloader -->
+    <div class="loader-bg fixed inset-0 bg-white z-[1034]">
+      <div class="loader-track h-[5px] w-full absolute top-0">
+        <div class="loader-fill w-[300px] h-[5px] bg-primary-500 absolute top-0 left-0 animate-[hitZak_0.6s_ease-in-out_infinite_alternate]"></div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    {% include 'sidebar.html' %}
+
+    <!-- Header -->
+    <div class="ml-[250px]">
+      {% include 'header.html' %}
+
+      <!-- Main Content -->
+      <div class="pc-container">
+        <div class="pc-content">
+          {% block content %}
+          <!-- Page-specific content here -->
+          {% endblock %}
+        </div>
+      </div>
+
+      <!-- Footer -->
+      {% include 'footer.html' %}
+    </div>
+
+    <!-- Scripts -->
+    <script src="{% static 'js/plugins/simplebar.min.js' %}"></script>
+    <script src="{% static 'js/plugins/popper.min.js' %}"></script>
+    <script src="{% static 'js/icon/custom-icon.js' %}"></script>
+    <script src="{% static 'js/plugins/feather.min.js' %}"></script>
+    <script src="{% static 'js/component.js' %}"></script>
+    <script src="{% static 'js/theme.js' %}"></script>
+    <script src="{% static 'js/script.js' %}"></script>
+
+    {% block extrajs %}{% endblock %}
+  </body>
+</html>

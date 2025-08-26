@@ -1,0 +1,116 @@
+{% load static %}
+<!-- [ Sidebar Menu ] start -->
+<nav class="pc-sidebar">
+  <div class="navbar-wrapper">
+    <div class="m-header flex items-center py-4 px-6 h-header-height">
+      <a href="{% url 'adminpanel_dashboard' %}" class="b-brand flex items-center gap-3">
+        <!-- Logo images -->
+        <img src="{% static 'images/logo-white.svg' %}" class="img-fluid logo logo-lg" alt="logo" />
+        <img src="{% static 'images/favicon.svg' %}" class="img-fluid logo logo-sm" alt="logo" />
+      </a>
+    </div>
+
+    <div class="navbar-content h-[calc(100vh_-_74px)] py-2.5">
+      <ul class="pc-navbar">
+        <li class="pc-item pc-caption">
+          <h5 class="sidebar-heading text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Navigation
+          </h5>
+        </li>
+        <li class="pc-item">
+          <a href="{% url 'adminpanel_dashboard' %}" class="pc-link">
+            <span class="pc-micon"><i data-feather="home"></i></span>
+            <span class="pc-mtext">Dashboard</span>
+          </a>
+        </li>
+
+        <li class="pc-item pc-caption">
+          <h5 class="sidebar-heading text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Manage
+          </h5>
+          <i data-feather="settings"></i>
+        </li>
+
+        <li class="pc-item">
+          <a href="{% url 'admin_passengers' %}" class="pc-link">
+            <span class="pc-micon"><i data-feather="users"></i></span>
+            <span class="pc-mtext">Passengers</span>
+          </a>
+        </li>
+        <li class="pc-item">
+          <a href="{% url 'admin_drivers' %}" class="pc-link">
+            <span class="pc-micon"><i data-feather="user-check"></i></span>
+            <span class="pc-mtext">Drivers</span>
+          </a>
+        </li>
+        <li class="pc-item">
+          <a href="{% url 'admin_bookings' %}" class="pc-link">
+            <span class="pc-micon"><i data-feather="calendar"></i></span>
+            <span class="pc-mtext">Bookings</span>
+          </a>
+        </li>
+        <li class="pc-item">
+          <a href="{% url 'vehicle_dashboard' %}" class="pc-link">
+            <span class="pc-micon"><i data-feather="truck"></i></span>
+            <span class="pc-mtext">Vehicles</span>
+          </a>
+        </li>
+        <li class="pc-item">
+          <a href="{% url 'service_dashboard' %}" class="pc-link">
+            <span class="pc-micon"><i data-feather="settings"></i></span>
+            <span class="pc-mtext">Services</span>
+          </a>
+        </li>
+        <li class="pc-item">
+          <a href="{% url 'rental_dashboard' %}" class="pc-link">
+            <span class="pc-micon"><i data-feather="clock"></i></span>
+            <span class="pc-mtext">Rental</span>
+          </a>
+        </li>
+        <li class="pc-item">
+          <a href="{% url 'promo:promo_dashboard' %}" class="pc-link">
+            <span class="pc-micon"><i data-feather="percent"></i></span>
+            <span class="pc-mtext">Promos</span>
+          </a>
+        </li>
+        <li class="pc-item">
+          <a href="{% url 'wallet_dashboard' %}" class="pc-link">
+            <span class="pc-micon"><i data-feather="credit-card"></i></span>
+            <span class="pc-mtext">Wallet</span>
+          </a>
+        </li>
+        <li class="pc-item">
+          <a href="{% url 'payment_dashboard' %}" class="pc-link">
+            <span class="pc-micon"><i data-feather="dollar-sign"></i></span>
+            <span class="pc-mtext">Payments</span>
+          </a>
+        </li>
+        <li class="pc-item">
+          <a href="{% url 'rating_dashboard' %}" class="pc-link">
+            <span class="pc-micon"><i data-feather="star"></i></span>
+            <span class="pc-mtext">Ratings</span>
+          </a>
+        </li>
+        <li class="pc-item">
+          <a href="{% url 'faq_dashboard' %}" class="pc-link">
+            <span class="pc-micon"><i data-feather="help-circle"></i></span>
+            <span class="pc-mtext">FAQs</span>
+          </a>
+        </li>
+        <li class="pc-item">
+          <a href="{% url 'feedback_dashboard' %}" class="pc-link">
+            <span class="pc-micon"><i data-feather="message-square"></i></span>
+            <span class="pc-mtext">Feedback</span>
+          </a>
+        </li>
+        <li class="pc-item">
+          <a href="{% url 'login' %}" class="pc-link">
+            <span class="pc-micon"><i data-feather="log-out"></i></span>
+            <span class="pc-mtext">Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<!-- [ Sidebar Menu ] end -->

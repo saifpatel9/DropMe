@@ -1,0 +1,109 @@
+{% extends "base_admin.html" %}
+{% load static %}
+
+{% block title %}Vehicle Master{% endblock %}
+
+{% block content %}
+<div class="p-6 max-w-7xl mx-auto">
+  <!-- Page Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-semibold text-gray-800">Vehicle Master</h1>
+    <a href="{% url 'add_vehicle' %}" class="bg-teal-600 text-white text-sm px-5 py-2 rounded hover:bg-teal-700">Add Vehicle</a>
+  </div>
+
+  <!-- Vehicle Table -->
+  <div class="bg-white shadow rounded-xl overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-lg font-medium text-gray-700">Vehicle List</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full table-auto text-sm text-center text-gray-700">
+        <thead class="bg-[#131C44] text-white">
+          <tr>
+            <th class="py-3 px-4">S/N</th>
+            <th class="py-3 px-4">Manufacturer</th>
+            <th class="py-3 px-4">Color</th>
+            <th class="py-3 px-4">Model Name</th>
+            <th class="py-3 px-4">Manufacturing Year</th>
+            <th class="py-3 px-4">Seats</th>
+            <th class="py-3 px-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for vehicle in vehicles %}
+          <tr>
+            <td class="py-3 px-4">{{ forloop.counter }}</td>
+            <td class="py-3 px-4">{{ vehicle.manufacturer }}</td>
+            <td class="py-3 px-4">{{ vehicle.color }}</td>
+            <td class="py-3 px-4">{{ vehicle.model_name }}</td>
+            <td class="py-3 px-4">{{ vehicle.manufacturing_year }}</td>
+            <td class="py-3 px-4">{{ vehicle.seat_arrangement }}</td>
+            <td class="py-3 px-4 relative">
+              <div class="relative inline-block text-left">
+                <button onclick="toggleDropdown(this)" class="inline-flex items-center justify-center bg-white border border-gray-300 rounded-md shadow-sm px-3 py-1 text-sm font-medium hover:bg-gray-50">
+                  Actions
+                  <svg class="ml-2 w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.23 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+
+                <!-- Dropdown -->
+                <div class="dropdown-menu absolute right-0 mt-2 w-40 bg-white border border-gray-200 shadow-xl rounded-md hidden z-50">
+                  <a href="{% url 'view_vehicle' vehicle.vehicle_id %}" class="block px-4 py-2 text-sm hover:bg-gray-100">View</a>
+                  <a href="{% url 'edit_vehicle' vehicle.vehicle_id %}" class="block px-4 py-2 text-sm text-green-600 hover:bg-gray-100">Edit</a>
+                  <button onclick="openModal('deleteModal{{ vehicle.vehicle_id }}')" class="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Delete</button>
+                </div>
+              </div>
+
+              <!-- Delete Modal -->
+              <div id="deleteModal{{ vehicle.vehicle_id }}" class="fixed inset-0 bg-black bg-opacity-40 hidden z-40 flex items-center justify-center">
+                <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                  <h2 class="text-xl font-semibold text-red-600 mb-3">Confirm Delete</h2>
+                  <p class="text-gray-700 mb-6">Are you sure you want to delete <strong>{{ vehicle.model_name }}</strong>?</p>
+                  <form method="POST" action="{% url 'delete_vehicle' vehicle.vehicle_id %}" class="flex justify-end gap-3">
+                    {% csrf_token %}
+                    <button type="button" onclick="closeModal('deleteModal{{ vehicle.vehicle_id }}')" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
+                  </form>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="py-6 text-gray-500 text-center">No vehicles found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Dropdown Scripts -->
+<script>
+  function toggleDropdown(button) {
+    const menu = button.closest('td').querySelector('.dropdown-menu');
+    document.querySelectorAll('.dropdown-menu').forEach(el => {
+      if (el !== menu) el.classList.add('hidden');
+    });
+    menu.classList.toggle('hidden');
+  }
+
+  document.addEventListener('click', function (e) {
+    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+      if (!menu.parentElement.contains(e.target)) {
+        menu.classList.add('hidden');
+      }
+    });
+  });
+
+  function openModal(id) {
+    document.getElementById(id).classList.remove('hidden');
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+  }
+</script>
+{% endblock %}

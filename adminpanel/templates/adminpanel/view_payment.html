@@ -1,0 +1,79 @@
+{% extends "base_admin.html" %}
+{% block title %}Payment Details{% endblock %}
+
+{% block content %}
+
+<div class="page-header flex justify-between items-center mb-6">
+
+<a href="{% url 'payment_dashboard' %}" class="btn bg-blue-600 text-white hover:bg-blue-700 rounded-md px-4 py-2 text-sm font-medium">
+&larr; Back to Payments
+</a>
+</div>
+
+<div class="card bg-white shadow-lg rounded-lg p-6 mb-6">
+<div class="card-header border-b pb-4 mb-4">
+<h1 class="text-3xl font-semibold text-gray-800">Payment Details</h1>
+</div>
+
+<div class="card-body grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
+<div class="detail-item">
+<p class="font-medium text-gray-600">Serial Number:</p>
+<p class="text-lg font-semibold">{{ payment.payment_id }}</p>
+</div>
+<div class="detail-item">
+<p class="font-medium text-gray-600">Passenger Name:</p>
+<p class="text-lg">{{ passenger_name }}</p>
+</div>
+<div class="detail-item">
+<p class="font-medium text-gray-600">Driver Name:</p>
+<p class="text-lg">{{ driver_name }}</p>
+</div>
+<div class="detail-item">
+<p class="font-medium text-gray-600">Payment ID:</p>
+<p class="text-lg font-semibold">{{ payment.payment_id }}</p>
+</div>
+<div class="detail-item">
+<p class="font-medium text-gray-600">Payment Mode:</p>
+<p class="text-lg">
+{% if payment.payment_mode == 'credit_card' %}
+<span class="badge bg-blue-500 text-white text-xs px-2 py-1 rounded">Credit Card</span>
+{% elif payment.payment_mode == 'debit_card' %}
+<span class="badge bg-green-500 text-white text-xs px-2 py-1 rounded">Debit Card</span>
+{% elif payment.payment_mode == 'upi' %}
+<span class="badge bg-purple-500 text-white text-xs px-2 py-1 rounded">UPI</span>
+{% elif payment.payment_mode == 'net_banking' %}
+<span class="badge bg-orange-500 text-white text-xs px-2 py-1 rounded">Net Banking</span>
+{% elif payment.payment_mode == 'wallet' %}
+<span class="badge bg-pink-500 text-white text-xs px-2 py-1 rounded">Wallet</span>
+{% else %}
+<span class="badge bg-gray-500 text-white text-xs px-2 py-1 rounded">{{ payment.payment_mode|title }}</span>
+{% endif %}
+</p>
+</div>
+<div class="detail-item">
+<p class="font-medium text-gray-600">Total Amount:</p>
+<p class="text-lg font-semibold">₹{{ payment.amount }}</p>
+</div>
+<div class="detail-item">
+<p class="font-medium text-gray-600">Paid At:</p>
+<p class="text-lg">{{ payment.paid_at }}</p>
+</div>
+<div class="detail-item">
+<p class="font-medium text-gray-600">Status:</p>
+<p class="text-lg">
+{% if payment.status == 'completed' %}
+<span class="badge bg-green-500 text-white text-xs px-2 py-1 rounded">Completed</span>
+{% elif payment.status == 'pending' %}
+<span class="badge bg-yellow-500 text-white text-xs px-2 py-1 rounded">Pending</span>
+{% elif payment.status == 'failed' %}
+<span class="badge bg-red-500 text-white text-xs px-2 py-1 rounded">Failed</span>
+{% elif payment.status == 'refunded' %}
+<span class="badge bg-indigo-500 text-white text-xs px-2 py-1 rounded">Refunded</span>
+{% else %}
+<span class="badge bg-gray-300 text-gray-800 text-xs px-2 py-1 rounded">{{ payment.status|title }}</span>
+{% endif %}
+</p>
+</div>
+</div>
+</div>
+{% endblock %}

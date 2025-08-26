@@ -1,0 +1,585 @@
+{% load static %}
+
+{% block extra_css %}
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Fonts and Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #0f766e 0%, #0891b2 50%, #7c3aed 100%);
+        --glass-bg: rgba(255, 255, 255, 0.95);
+        --glass-border: rgba(255, 255, 255, 0.2);
+        --shadow-soft: 0 20px 40px rgba(0, 0, 0, 0.08);
+        --shadow-hover: 0 25px 50px rgba(0, 0, 0, 0.12);
+        --teal-gradient: linear-gradient(135deg, #0f766e 0%, #0891b2 100%);
+        --purple-gradient: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+    }
+
+    * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+        background: var(--primary-gradient);
+        background-attachment: fixed;
+        min-height: 100vh;
+        position: relative;
+    }
+
+    /* Animated background */
+    body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            radial-gradient(circle at 25% 75%, rgba(120, 119, 198, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 75% 25%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.08) 0%, transparent 50%);
+        pointer-events: none;
+        z-index: -1;
+    }
+
+    /* Glass morphism containers */
+    .glass-container {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--shadow-soft);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .glass-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(15, 118, 110, 0.3), transparent);
+    }
+
+    /* Enhanced back button */
+    .back-btn {
+        background: var(--teal-gradient);
+        color: white;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 12px 24px;
+        border-radius: 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 15px rgba(15, 118, 110, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .back-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .back-btn:hover::before {
+        left: 100%;
+    }
+
+    .back-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(15, 118, 110, 0.4);
+    }
+
+    /* Profile sidebar enhancements */
+    .profile-sidebar {
+        background: var(--glass-bg);
+        backdrop-filter: blur(15px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 2rem;
+        box-shadow: var(--shadow-soft);
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .profile-sidebar:hover {
+        box-shadow: var(--shadow-hover);
+        transform: translateY(-2px);
+    }
+
+    /* Profile avatar */
+    .profile-avatar {
+        width: 80px;
+        height: 80px;
+        background: var(--teal-gradient);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        position: relative;
+        box-shadow: 0 8px 32px rgba(15, 118, 110, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .profile-avatar:hover {
+        transform: scale(1.05);
+        box-shadow: 0 12px 40px rgba(15, 118, 110, 0.4);
+    }
+
+    .profile-avatar::after {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        padding: 2px;
+        background: var(--teal-gradient);
+        border-radius: 50%;
+        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        mask-composite: subtract;
+    }
+
+    /* Profile info */
+    .profile-name {
+        font-family: 'Poppins', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(135deg, #1e293b, #0f766e);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .profile-email {
+        color: #64748b;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    /* Navigation menu enhancements */
+    .profile-nav {
+        margin-top: 2rem;
+        space-y: 0.75rem;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 20px;
+        border-radius: 16px;
+        color: #475569;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 8px;
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(15, 118, 110, 0.1);
+    }
+
+    .nav-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--teal-gradient);
+        transform: scaleY(0);
+        transition: transform 0.3s ease;
+    }
+
+    .nav-item:hover {
+        background: rgba(15, 118, 110, 0.1);
+        color: #0f766e;
+        transform: translateX(8px);
+        border-color: rgba(15, 118, 110, 0.3);
+        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.15);
+    }
+
+    .nav-item:hover::before {
+        transform: scaleY(1);
+    }
+
+    .nav-item.active {
+        background: var(--teal-gradient);
+        color: white;
+        box-shadow: 0 4px 15px rgba(15, 118, 110, 0.3);
+    }
+
+    .nav-item.active::before {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scaleY(1);
+    }
+
+    .nav-item.delete-account {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+        border-color: rgba(239, 68, 68, 0.2);
+    }
+
+    .nav-item.delete-account:hover {
+        background: rgba(239, 68, 68, 0.15);
+        color: #b91c1c;
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .nav-item.delete-account::before {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+
+    .nav-icon {
+        font-size: 1.1rem;
+        width: 20px;
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+
+    .nav-item:hover .nav-icon {
+        transform: scale(1.1);
+    }
+
+    /* Main content area */
+    .main-content {
+        background: var(--glass-bg);
+        backdrop-filter: blur(15px);
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 2.5rem;
+        box-shadow: var(--shadow-soft);
+        position: relative;
+        min-height: 500px;
+        transition: all 0.3s ease;
+    }
+
+    .main-content:hover {
+        box-shadow: var(--shadow-hover);
+    }
+
+    /* Welcome content */
+    .welcome-content {
+        text-align: center;
+        padding: 3rem 2rem;
+        position: relative;
+    }
+
+    .welcome-title {
+        font-family: 'Poppins', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #1e293b, #0f766e, #7c3aed);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+    }
+
+    .welcome-subtitle {
+        font-size: 1.2rem;
+        color: #64748b;
+        font-weight: 500;
+        margin-bottom: 2rem;
+    }
+
+    .welcome-icon {
+        font-size: 4rem;
+        background: var(--teal-gradient);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    /* Quick stats cards */
+    .quick-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .stat-card {
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(15, 118, 110, 0.1);
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--teal-gradient);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover::before {
+        transform: scaleX(1);
+    }
+
+    .stat-card:hover {
+        background: rgba(255, 255, 255, 0.9);
+        border-color: rgba(15, 118, 110, 0.3);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(15, 118, 110, 0.15);
+    }
+
+    .stat-icon {
+        font-size: 2rem;
+        background: var(--teal-gradient);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+        color: #64748b;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    /* Loading state */
+    .loading-spinner {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        border: 3px solid rgba(15, 118, 110, 0.2);
+        border-radius: 50%;
+        border-top-color: #0f766e;
+        animation: spin 1s linear infinite;
+        margin-right: 8px;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* Error state */
+    .error-message {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        color: #dc2626;
+        padding: 1rem;
+        border-radius: 12px;
+        text-align: center;
+        margin: 2rem 0;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .profile-sidebar {
+            padding: 1.5rem;
+        }
+
+        .main-content {
+            padding: 2rem 1.5rem;
+        }
+
+        .welcome-title {
+            font-size: 2rem;
+        }
+
+        .profile-avatar {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+        }
+
+        .quick-stats {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Smooth transitions for dynamic content */
+    #profile-content {
+        transition: opacity 0.3s ease;
+    }
+
+    .content-loading {
+        opacity: 0.5;
+    }
+
+    /* Enhanced scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--teal-gradient);
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--purple-gradient);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <!-- Enhanced back button -->
+    <div class="mb-8">
+        <a href="{% url 'homepage' %}" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Back to Homepage
+        </a>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        
+        <!-- Enhanced Sidebar -->
+        <aside class="glass-container profile-sidebar">
+            <!-- Profile Header -->
+            <div class="flex flex-col items-center text-center mb-8">
+                <div class="profile-avatar mb-4">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div>
+                    <h3 class="profile-name">{{ user.first_name }} {{ user.last_name }}</h3>
+                    <p class="profile-email">{{ user.email }}</p>
+                </div>
+            </div>
+
+            <!-- Navigation Menu -->
+            <nav class="profile-nav">
+                <a href="{% url 'profile_section' 'personal_info' %}" id="personal_info_link" class="nav-item">
+                    <i class="fas fa-id-card-alt nav-icon"></i>
+                    <span>Personal Info</span>
+                </a>
+                <a href="{% url 'profile_section' 'my_rides' %}" class="nav-item">
+                    <i class="fas fa-car nav-icon"></i>
+                    <span>My Rides</span>
+                </a>
+                <a href="{% url 'profile_section' 'payment' %}" class="nav-item">
+                    <i class="fas fa-wallet nav-icon"></i>
+                    <span>Payment</span>
+                </a>
+                <a href="{% url 'profile_section' 'safety' %}" class="nav-item">
+                    <i class="fas fa-shield-alt nav-icon"></i>
+                    <span>Safety</span>
+                </a>
+                <a href="{% url 'profile_section' 'rating_and_feedback' %}" class="nav-item">
+                    <i class="fas fa-star-half-alt nav-icon"></i>
+                    <span>Rating & Feedback</span>
+                </a>
+                <a href="{% url 'profile_section' 'emergency_contact' %}" class="nav-item">
+                    <i class="fas fa-phone-alt nav-icon"></i>
+                    <span>Emergency Contact</span>
+                </a>
+                <a href="{% url 'profile_section' 'delete_account' %}" class="nav-item delete-account">
+                    <i class="fas fa-trash-alt nav-icon"></i>
+                    <span>Delete Account</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Enhanced Main Content Area -->
+        <section class="lg:col-span-3 glass-container main-content">
+            <div id="profile-content">
+                {% if section_template %}
+                    {% include section_template %}
+                {% else %}
+                    <div class="welcome-content">
+                        <i class="fas fa-user-circle welcome-icon"></i>
+                        <h2 class="welcome-title">Welcome to Your Profile</h2>
+                        <p class="welcome-subtitle">Manage your account settings and preferences from the sidebar menu</p>
+                        
+                        <!-- Quick Stats -->
+                        <div class="quick-stats">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-car"></i>
+                                </div>
+                                <div class="stat-value">--</div>
+                                <div class="stat-label">Total Rides</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="stat-value">--</div>
+                                <div class="stat-label">Average Rating</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </div>
+                                <div class="stat-value">--</div>
+                                <div class="stat-label">Total Spent</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-calendar"></i>
+                                </div>
+                                <div class="stat-value">--</div>
+                                <div class="stat-label">Member Since</div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="mt-8 flex flex-wrap justify-center gap-4">
+                            <a href="{% url 'profile_section' 'my_rides' %}" class="nav-item inline-flex items-center" style="margin-bottom: 0;">
+                                <i class="fas fa-car nav-icon"></i>
+                                <span>View My Rides</span>
+                            </a>
+                            <a href="{% url 'profile_section' 'payment' %}" class="nav-item inline-flex items-center" style="margin-bottom: 0;">
+                                <i class="fas fa-wallet nav-icon"></i>
+                                <span>Manage Payments</span>
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+</div>
+
+{% endblock %}

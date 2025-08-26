@@ -1,0 +1,45 @@
+{% extends "base_admin.html" %}
+{% load static %}
+{% block title %}View Vehicle{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+  <div class="card">
+    <div class="card-header">
+      <h2 class="text-2xl font-semibold text-gray-800">Vehicle Details</h2>
+    </div>
+
+    <div class="card-body">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 text-gray-700">
+        <div>
+          <label class="block text-sm font-medium mb-1">Manufacturer</label>
+          <p class="text-base text-gray-900">{{ vehicle.manufacturer }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Model Name</label>
+          <p class="text-base text-gray-900">{{ vehicle.model_name }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Color</label>
+          <p class="text-base text-gray-900">{{ vehicle.color }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Manufacturing Year</label>
+          <p class="text-base text-gray-900">{{ vehicle.manufacturing_year }}</p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Seat Arrangement</label>
+          <p class="text-base text-gray-900">{{ vehicle.seat_arrangement }}</p>
+        </div>
+      </div>
+
+      <!-- Back Button -->
+      <div class="mt-8">
+        <a href="{% url 'vehicle_dashboard' %}" class="btn btn-sm bg-gray-200 hover:bg-gray-300 text-gray-800">
+          ← Back to Vehicles
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

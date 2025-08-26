@@ -1,0 +1,14 @@
+{% extends "base_admin.html" %}
+{% block content %}
+<div class="max-w-lg mx-auto mt-12 bg-white shadow p-6 rounded">
+  <h2 class="text-xl font-semibold mb-4">Decline Service</h2>
+  <p>Are you sure you want to decline the service <strong>{{ service.name }}</strong>?</p>
+  <form method="post">
+    {% csrf_token %}
+    <div class="mt-6 flex gap-4">
+      <button type="submit" class="btn btn-danger">Yes, Decline</button>
+      <a href="{% url 'service_dashboard' %}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

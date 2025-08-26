@@ -1,0 +1,318 @@
+<style>
+  .ride-card {
+    transition: all 0.3s ease;
+  }
+  
+  .ride-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  }
+  
+  .status-badge {
+    transition: all 0.3s ease;
+  }
+  
+  .status-completed {
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    color: #065f46;
+    border: 1px solid #34d399;
+  }
+  
+  .status-pending {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #92400e;
+    border: 1px solid #f59e0b;
+  }
+  
+  .status-cancelled {
+    background: linear-gradient(135deg, #fecaca, #fca5a5);
+    color: #991b1b;
+    border: 1px solid #ef4444;
+  }
+  
+  .status-ongoing {
+    background: linear-gradient(135deg, #dbeafe, #93c5fd);
+    color: #1e40af;
+    border: 1px solid #3b82f6;
+  }
+  
+  .empty-state {
+    animation: fadeInUp 0.6s ease-out;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .table-hover tr:hover {
+    background: linear-gradient(90deg, rgba(20, 184, 166, 0.05), rgba(6, 182, 212, 0.05));
+    transform: scale(1.01);
+    transition: all 0.2s ease;
+  }
+  
+  .filter-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .filter-tab {
+    padding: 0.5rem 1rem;
+    border-radius: 0.75rem;
+    border: 2px solid #e5e7eb;
+    background: white;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+  }
+  
+  .filter-tab:hover, .filter-tab.active {
+    border-color: #14b8a6;
+    background: #14b8a6;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+  }
+  
+  .ride-meta {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+  
+  .fade-in {
+    animation: fadeIn 0.5s ease-in;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+</style>
+
+<div class="bg-gradient-to-br from-white to-teal-50 rounded-2xl shadow-xl p-8 border border-teal-100">
+  <!-- Header Section -->
+  <div class="flex items-center justify-between mb-8">
+    <div class="flex items-center">
+      <div class="bg-teal-100 p-4 rounded-full mr-4">
+        <svg class="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+      </div>
+      <div>
+        <h2 class="text-3xl font-bold text-gray-800 mb-2">My Rides</h2>
+        <p class="text-teal-600 text-lg">Track your ride history and upcoming trips</p>
+      </div>
+    </div>
+    
+    <!-- Stats Summary -->
+    <div class="hidden md:flex space-x-4">
+      <div class="text-center bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+        <div class="text-2xl font-bold text-teal-600">{{ rides|length }}</div>
+        <div class="text-sm text-gray-500">Total Rides</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="w-full h-1 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full mb-8"></div>
+
+  {% if rides %}
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+      <div class="filter-tab active" onclick="filterRides('all')">All Rides</div>
+      <div class="filter-tab" onclick="filterRides('completed')">Completed</div>
+      <div class="filter-tab" onclick="filterRides('pending')">Pending</div>
+      <div class="filter-tab" onclick="filterRides('ongoing')">Ongoing</div>
+      <div class="filter-tab" onclick="filterRides('cancelled')">Cancelled</div>
+    </div>
+
+    <!-- Desktop Table View -->
+    <div class="hidden lg:block overflow-hidden rounded-xl border border-gray-200 shadow-lg">
+      <table class="min-w-full divide-y divide-gray-200 table-hover">
+        <thead class="bg-gradient-to-r from-teal-600 to-teal-700 text-white">
+          <tr>
+            <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wide">Ride Details</th>
+            <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wide">Route</th>
+            <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wide">Fare</th>
+            <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wide">Status</th>
+            <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wide">Scheduled</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-100">
+          {% for ride in rides %}
+            <tr class="ride-row hover:bg-gray-50 transition-colors duration-200" data-status="{{ ride.status|lower }}">
+              <td class="px-6 py-4">
+                <div class="flex items-center">
+                  <div class="bg-teal-100 p-2 rounded-lg mr-3">
+                    <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="font-bold text-gray-900">{{ ride.booking_id }}</div>
+                    <div class="text-sm text-gray-500">Booking ID</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="space-y-2">
+                  <div class="flex items-center text-sm">
+                    <div class="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
+                    <span class="font-medium text-gray-700">{{ ride.pickup_location }}</span>
+                  </div>
+                  <div class="flex items-center text-sm">
+                    <div class="w-3 h-3 bg-red-400 rounded-full mr-2"></div>
+                    <span class="font-medium text-gray-700">{{ ride.dropoff_location }}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="text-xl font-bold text-gray-900">₹{{ ride.fare }}</div>
+              </td>
+              <td class="px-6 py-4">
+                <span class="status-badge px-3 py-1 rounded-full text-xs font-semibold status-{{ ride.status|lower }}">
+                  {{ ride.status|title }}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <div class="font-medium text-gray-900">{{ ride.scheduled_time|date:"d M Y" }}</div>
+                <div class="text-sm text-gray-500">{{ ride.scheduled_time|date:"h:i A" }}</div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile Card View -->
+    <div class="lg:hidden space-y-4">
+      {% for ride in rides %}
+        <div class="ride-card bg-white rounded-xl shadow-lg p-6 border border-gray-100" data-status="{{ ride.status|lower }}">
+          <div class="flex justify-between items-start mb-4">
+            <div class="flex items-center">
+              <div class="bg-teal-100 p-2 rounded-lg mr-3">
+                <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+              <div>
+                <div class="font-bold text-gray-900">{{ ride.booking_id }}</div>
+                <div class="text-sm text-gray-500">{{ ride.scheduled_time|date:"d M Y, h:i A" }}</div>
+              </div>
+            </div>
+            <span class="status-badge px-3 py-1 rounded-full text-xs font-semibold status-{{ ride.status|lower }}">
+              {{ ride.status|title }}
+            </span>
+          </div>
+          
+          <div class="space-y-3 mb-4">
+            <div class="flex items-start">
+              <div class="w-3 h-3 bg-green-400 rounded-full mr-3 mt-1"></div>
+              <div>
+                <div class="text-sm text-gray-500">Pickup</div>
+                <div class="font-medium text-gray-900">{{ ride.pickup_location }}</div>
+              </div>
+            </div>
+            <div class="flex items-start">
+              <div class="w-3 h-3 bg-red-400 rounded-full mr-3 mt-1"></div>
+              <div>
+                <div class="text-sm text-gray-500">Dropoff</div>
+                <div class="font-medium text-gray-900">{{ ride.dropoff_location }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="flex justify-between items-center pt-4 border-t border-gray-100">
+            <div class="text-2xl font-bold text-teal-600">₹{{ ride.fare }}</div>
+            <button class="text-teal-600 text-sm font-medium hover:text-teal-700 transition-colors duration-200">
+              View Details
+            </button>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    
+  {% else %}
+    <!-- Empty State -->
+    <div class="empty-state text-center py-16">
+      <div class="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
+        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+      </div>
+      <h3 class="text-2xl font-bold text-gray-800 mb-3">No rides yet!</h3>
+      <p class="text-gray-500 mb-8 max-w-md mx-auto">
+        You haven't booked any rides yet. Start your journey by booking your first ride with us.
+      </p>
+      <button class="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-teal-300">
+        <span class="flex items-center">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          Book Your First Ride
+        </span>
+      </button>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+  function filterRides(status) {
+    const tabs = document.querySelectorAll('.filter-tab');
+    const rows = document.querySelectorAll('.ride-row');
+    const cards = document.querySelectorAll('.ride-card');
+    
+    // Update active tab
+    tabs.forEach(tab => {
+      tab.classList.remove('active');
+      if (tab.textContent.toLowerCase().includes(status) || status === 'all') {
+        if ((status === 'all' && tab.textContent === 'All Rides') ||
+            (status !== 'all' && tab.textContent.toLowerCase().includes(status))) {
+          tab.classList.add('active');
+        }
+      }
+    });
+    
+    // Filter table rows
+    rows.forEach(row => {
+      if (status === 'all' || row.dataset.status === status) {
+        row.style.display = '';
+        row.classList.add('fade-in');
+      } else {
+        row.style.display = 'none';
+        row.classList.remove('fade-in');
+      }
+    });
+    
+    // Filter cards
+    cards.forEach(card => {
+      if (status === 'all' || card.dataset.status === status) {
+        card.style.display = '';
+        card.classList.add('fade-in');
+      } else {
+        card.style.display = 'none';
+        card.classList.remove('fade-in');
+      }
+    });
+  }
+  
+  // Add click handlers for mobile cards
+  document.addEventListener('DOMContentLoaded', function() {
+    const viewDetailsButtons = document.querySelectorAll('.ride-card button');
+    viewDetailsButtons.forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        // Add your view details logic here
+        console.log('View details clicked');
+      });
+    });
+  });
+</script>

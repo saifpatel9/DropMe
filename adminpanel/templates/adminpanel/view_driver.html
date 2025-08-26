@@ -1,0 +1,60 @@
+{% extends "base_admin.html" %}
+{% block title %}Driver Profile{% endblock %}
+
+{% block content %}
+<div class="p-6 max-w-2xl mx-auto">
+  <!-- Page Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-semibold text-gray-800">Driver Profile</h1>
+    <a href="{% url 'admin_drivers' %}" class="btn btn-sm bg-gray-200 hover:bg-gray-300 text-gray-800">← Back to Drivers</a>
+  </div>
+
+  <!-- Driver Info Card -->
+  <div class="bg-white shadow rounded-xl p-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4 text-sm text-gray-700">
+      <div><strong>Name:</strong> {{ driver.first_name }} {{ driver.last_name }}</div>
+      <div><strong>Email:</strong> {{ driver.email }}</div>
+      <div><strong>Phone:</strong> {{ driver.phone }}</div>
+      <div><strong>Gender:</strong> {{ driver.gender }}</div>
+      <div><strong>Vehicle Type:</strong> {{ driver.vehicle_type }}</div>
+      <div><strong>Plate Number:</strong> {{ driver.plate_number }}</div>
+      <div><strong>Manufacturer:</strong> {{ driver.manufacturer }}</div>
+      <div><strong>Color:</strong> {{ driver.color }}</div>
+      <div><strong>Year:</strong> {{ driver.manufacturing_year }}</div>
+      <div><strong>Seats:</strong> {{ driver.seat_arrangement }}</div>
+      <div class="sm:col-span-2"><strong>Address:</strong> {{ driver.full_address }}</div>
+      <div><strong>Availability:</strong> 
+        {% if driver.availability %}
+          <span class="badge bg-success-500 text-white text-xs">Yes</span>
+        {% else %}
+          <span class="badge bg-gray-300 text-gray-800 text-xs">No</span>
+        {% endif %}
+      </div>
+      <div><strong>Rating:</strong> 
+        {% if driver_average_rating is not None %}
+          {{ driver_average_rating|floatformat:2 }}
+        {% else %}
+          N/A
+        {% endif %}
+      </div>
+      <div><strong>Status:</strong> 
+        {% if driver.status == 'Active' %}
+          <span class="badge bg-success-500 text-white text-xs">Active</span>
+        {% else %}
+          <span class="badge bg-gray-300 text-gray-800 text-xs">Inactive</span>
+        {% endif %}
+      </div>
+      <div><strong>Bank Name:</strong> {{ driver.bank_name }}</div>
+      <div><strong>UPI ID:</strong> {{ driver.upi_id }}</div>
+      <div><strong>IFSC Code:</strong> {{ driver.ifsc_code }}</div>
+      <div><strong>Account Number:</strong> {{ driver.account_number }}</div>
+      <div class="sm:col-span-2"><strong>Services:</strong>
+        {% if driver.daily_services %} <span class="badge bg-primary-500 text-white text-xs mr-1">Daily</span>{% endif %}
+        {% if driver.rental_services %} <span class="badge bg-purple-500 text-white text-xs mr-1">Rental</span>{% endif %}
+        {% if driver.outstation_services %} <span class="badge bg-indigo-500 text-white text-xs">Outstation</span>{% endif %}
+      </div>
+      <div class="sm:col-span-2"><strong>Created At:</strong> {{ driver.created_at|date:"d M Y, h:i A" }}</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% load static %}
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'css/global.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto mt-12 bg-white p-6 rounded shadow">
+  <h2 class="text-2xl font-bold text-teal-700 mb-4">🚖 Ride Started</h2>
+
+  <div class="text-gray-700 mb-2">
+    <strong>Booking ID:</strong> {{ booking.booking_id }}
+  </div>
+
+  <div class="text-gray-700 mb-2">
+    <strong>Status:</strong> {{ booking.status }}
+  </div>
+
+  <div class="text-gray-700 mb-2">
+    <strong>Start Time:</strong> {{ start_time }}
+  </div>
+
+  <hr class="my-4">
+
+  <div class="text-gray-700 mb-2">
+    <strong>Pickup:</strong> {{ booking.pickup_location }}
+  </div>
+  <div class="text-gray-700 mb-2">
+    <strong>Dropoff:</strong> {{ booking.dropoff_location }}
+  </div>
+  <div class="text-gray-700 mb-2">
+    <strong>Service:</strong> {{ booking.service_type.name }}
+  </div>
+  <div class="text-gray-700 mb-2">
+    <strong>Fare:</strong> ₹{{ booking.fare }}
+  </div>
+
+  <hr class="my-4">
+
+  <div class="text-gray-700 mb-2">
+    <strong>Driver:</strong> {{ booking.driver.first_name }} {{ booking.driver.last_name }}
+  </div>
+  <div class="text-gray-700 mb-2">
+    <strong>Vehicle Plate:</strong> {{ booking.driver.vehicle_number }}
+  </div>
+  <div class="text-gray-700 mb-2">
+    <strong>Contact:</strong>
+    <a href="tel:{{ booking.driver.phone }}" 
+       class="ml-2 inline-block btn-primary text-white px-4 py-2 rounded text-sm"
+       aria-label="Call Driver">
+       <i class="fas fa-phone"></i> Call
+    </a>
+  </div>
+
+  <div class="flex justify-center mt-6 space-x-4">
+    <form action="{% url 'cancel_booking' %}" method="post">
+      {% csrf_token %}
+      <input type="hidden" name="booking_id" value="{{ booking.booking_id }}">
+      <button type="submit" 
+              class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+        Cancel Ride
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

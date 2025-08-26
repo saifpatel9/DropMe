@@ -1,0 +1,234 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1e40af;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#131C44;stop-opacity:1" />
+    </linearGradient>
+    
+    <radialGradient id="cityGlow" cx="50%" cy="80%" r="60%">
+      <stop offset="0%" style="stop-color:#00A59E;stop-opacity:0.3" />
+      <stop offset="50%" style="stop-color:#0EB9D3;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:#131C44;stop-opacity:0.1" />
+    </radialGradient>
+    
+    <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#f5f5dc;stop-opacity:0.8" />
+      <stop offset="70%" style="stop-color:#e6e6fa;stop-opacity:0.4" />
+      <stop offset="100%" style="stop-color:#e6e6fa;stop-opacity:0.1" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Sky background -->
+  <rect width="1920" height="1080" fill="url(#skyGradient)"/>
+  
+  <!-- City glow effect -->
+  <rect width="1920" height="1080" fill="url(#cityGlow)"/>
+  
+  <!-- Stars -->
+  <g fill="white" opacity="0.8">
+    <circle cx="300" cy="150" r="2"/>
+    <circle cx="500" cy="120" r="1.5"/>
+    <circle cx="700" cy="180" r="1"/>
+    <circle cx="900" cy="100" r="2"/>
+    <circle cx="1100" cy="160" r="1.5"/>
+    <circle cx="1300" cy="130" r="1"/>
+    <circle cx="1500" cy="170" r="2"/>
+    <circle cx="1700" cy="140" r="1.5"/>
+    <circle cx="400" cy="200" r="1"/>
+    <circle cx="600" cy="80" r="1"/>
+    <circle cx="800" cy="220" r="1"/>
+    <circle cx="1000" cy="90" r="1"/>
+    <circle cx="1200" cy="190" r="1"/>
+    <circle cx="1400" cy="110" r="1"/>
+    <circle cx="1600" cy="200" r="1"/>
+    <circle cx="250" cy="250" r="1"/>
+    <circle cx="750" cy="300" r="1"/>
+    <circle cx="1050" cy="280" r="1"/>
+    <circle cx="1350" cy="320" r="1"/>
+    <circle cx="1650" cy="290" r="1"/>
+  </g>
+  
+  
+  
+  <!-- City skyline -->
+  <g fill="#1a1a1a" opacity="0.8">
+    <!-- Buildings with varying heights -->
+    <rect x="100" y="500" width="80" height="400"/>
+    <rect x="200" y="450" width="60" height="450"/>
+    <rect x="280" y="550" width="90" height="350"/>
+    <rect x="390" y="480" width="70" height="420"/>
+    <rect x="480" y="520" width="85" height="380"/>
+    <rect x="590" y="440" width="95" height="460"/>
+    <rect x="710" y="490" width="75" height="410"/>
+    <rect x="810" y="510" width="80" height="390"/>
+    <rect x="920" y="470" width="70" height="430"/>
+    <rect x="1020" y="540" width="85" height="360"/>
+    <rect x="1130" y="460" width="90" height="440"/>
+    <rect x="1250" y="500" width="75" height="400"/>
+    <rect x="1350" y="480" width="80" height="420"/>
+    <rect x="1460" y="520" width="70" height="380"/>
+    <rect x="1560" y="450" width="85" height="450"/>
+    <rect x="1670" y="490" width="75" height="410"/>
+    <rect x="1770" y="510" width="80" height="390"/>
+  </g>
+  
+  <!-- Building windows (lights) - Most lit up with some dark -->
+  <g fill="#ffeb3b" opacity="0.9">
+    <!-- Building 1 -->
+    <rect x="110" y="520" width="8" height="8"/>
+    <rect x="130" y="520" width="8" height="8"/>
+    <rect x="150" y="520" width="8" height="8"/>
+    <rect x="110" y="550" width="8" height="8"/>
+    <rect x="150" y="550" width="8" height="8"/>
+    <rect x="110" y="580" width="8" height="8"/>
+    <rect x="130" y="580" width="8" height="8"/>
+    <rect x="150" y="610" width="8" height="8"/>
+    <rect x="110" y="640" width="8" height="8"/>
+    <rect x="130" y="670" width="8" height="8"/>
+    
+    <!-- Building 2 -->
+    <rect x="210" y="470" width="8" height="8"/>
+    <rect x="230" y="470" width="8" height="8"/>
+    <rect x="210" y="500" width="8" height="8"/>
+    <rect x="230" y="530" width="8" height="8"/>
+    <rect x="210" y="560" width="8" height="8"/>
+    <rect x="230" y="590" width="8" height="8"/>
+    <rect x="210" y="620" width="8" height="8"/>
+    <rect x="230" y="650" width="8" height="8"/>
+    <rect x="210" y="680" width="8" height="8"/>
+    
+    <!-- Building 3 (some windows dark) -->
+    <rect x="290" y="570" width="8" height="8"/>
+    <rect x="310" y="570" width="8" height="8"/>
+    <rect x="330" y="570" width="8" height="8"/>
+    <rect x="350" y="570" width="8" height="8"/>
+    <rect x="290" y="600" width="8" height="8"/>
+    <!-- Dark window: x="310" y="600" -->
+    <rect x="330" y="600" width="8" height="8"/>
+    <rect x="350" y="600" width="8" height="8"/>
+    <rect x="290" y="630" width="8" height="8"/>
+    <rect x="310" y="630" width="8" height="8"/>
+    <!-- Dark window: x="330" y="630" -->
+    <rect x="350" y="630" width="8" height="8"/>
+    
+    <!-- Building 6 (tallest) -->
+    <rect x="600" y="460" width="8" height="8"/>
+    <rect x="620" y="460" width="8" height="8"/>
+    <rect x="640" y="460" width="8" height="8"/>
+    <rect x="660" y="460" width="8" height="8"/>
+    <rect x="600" y="490" width="8" height="8"/>
+    <rect x="640" y="490" width="8" height="8"/>
+    <rect x="620" y="520" width="8" height="8"/>
+    <rect x="660" y="520" width="8" height="8"/>
+    <rect x="600" y="550" width="8" height="8"/>
+    <rect x="620" y="580" width="8" height="8"/>
+    <rect x="640" y="610" width="8" height="8"/>
+    <rect x="660" y="640" width="8" height="8"/>
+    <rect x="600" y="670" width="8" height="8"/>
+    <rect x="620" y="700" width="8" height="8"/>
+    <rect x="640" y="730" width="8" height="8"/>
+    <rect x="660" y="760" width="8" height="8"/>
+    
+    <!-- More buildings with scattered lit windows -->
+    <rect x="720" y="510" width="8" height="8"/>
+    <rect x="740" y="510" width="8" height="8"/>
+    <rect x="760" y="510" width="8" height="8"/>
+    <rect x="720" y="540" width="8" height="8"/>
+    <rect x="760" y="540" width="8" height="8"/>
+    <rect x="740" y="570" width="8" height="8"/>
+    
+    <rect x="930" y="490" width="8" height="8"/>
+    <rect x="950" y="490" width="8" height="8"/>
+    <rect x="970" y="490" width="8" height="8"/>
+    <rect x="930" y="520" width="8" height="8"/>
+    <rect x="970" y="520" width="8" height="8"/>
+    <rect x="950" y="550" width="8" height="8"/>
+    <rect x="930" y="580" width="8" height="8"/>
+    <rect x="970" y="610" width="8" height="8"/>
+    
+    <rect x="1140" y="480" width="8" height="8"/>
+    <rect x="1160" y="480" width="8" height="8"/>
+    <rect x="1180" y="480" width="8" height="8"/>
+    <rect x="1200" y="480" width="8" height="8"/>
+    <rect x="1140" y="510" width="8" height="8"/>
+    <rect x="1180" y="510" width="8" height="8"/>
+    <rect x="1200" y="510" width="8" height="8"/>
+    <rect x="1160" y="540" width="8" height="8"/>
+    <rect x="1140" y="570" width="8" height="8"/>
+    <rect x="1200" y="570" width="8" height="8"/>
+    
+    <rect x="1570" y="470" width="8" height="8"/>
+    <rect x="1590" y="470" width="8" height="8"/>
+    <rect x="1610" y="470" width="8" height="8"/>
+    <rect x="1630" y="470" width="8" height="8"/>
+    <rect x="1570" y="500" width="8" height="8"/>
+    <rect x="1610" y="500" width="8" height="8"/>
+    <rect x="1630" y="500" width="8" height="8"/>
+    <rect x="1590" y="530" width="8" height="8"/>
+    <rect x="1570" y="560" width="8" height="8"/>
+    <rect x="1610" y="590" width="8" height="8"/>
+    <rect x="1630" y="620" width="8" height="8"/>
+  </g>
+  
+  <!-- Glowing lights effect -->
+  <g fill="#0EB9D3" opacity="0.3">
+    <ellipse cx="600" cy="460" rx="15" ry="8"/>
+    <ellipse cx="640" cy="490" rx="12" ry="6"/>
+    <ellipse cx="660" cy="520" rx="10" ry="5"/>
+    <ellipse cx="1140" cy="480" rx="12" ry="6"/>
+    <ellipse cx="1200" cy="510" rx="10" ry="5"/>
+  </g>
+  
+  <!-- Road -->
+  <polygon points="0,900 1920,900 1920,1080 0,1080" fill="#2d2d2d"/>
+  <polygon points="0,920 1920,920 1920,940 0,940" fill="#404040"/>
+  
+  <!-- Road lines -->
+  <g stroke="white" stroke-width="3" opacity="0.6">
+    <line x1="200" y1="930" x2="300" y2="930"/>
+    <line x1="400" y1="930" x2="500" y2="930"/>
+    <line x1="600" y1="930" x2="700" y2="930"/>
+    <line x1="800" y1="930" x2="900" y2="930"/>
+    <line x1="1000" y1="930" x2="1100" y2="930"/>
+    <line x1="1200" y1="930" x2="1300" y2="930"/>
+    <line x1="1400" y1="930" x2="1500" y2="930"/>
+    <line x1="1600" y1="930" x2="1700" y2="930"/>
+  </g>
+  
+  <!-- Yellow Taxi Cab -->
+  <g transform="translate(400, 850)">
+    <!-- Main body -->
+    <rect x="0" y="0" width="180" height="60" rx="8" fill="#ffd700"/>
+    <!-- Roof -->
+    <rect x="30" y="-30" width="120" height="35" rx="5" fill="#ffd700"/>
+    <!-- Taxi sign -->
+    <rect x="60" y="-45" width="60" height="20" rx="3" fill="#000000"/>
+    <text x="90" y="-30" fill="#ffd700" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle">TAXI</text>
+    
+    <!-- Windows -->
+    <rect x="35" y="-25" width="25" height="20" fill="#87ceeb" opacity="0.7"/>
+    <rect x="65" y="-25" width="50" height="20" fill="#87ceeb" opacity="0.7"/>
+    <rect x="120" y="-25" width="25" height="20" fill="#87ceeb" opacity="0.7"/>
+    
+    <!-- Side windows -->
+    <rect x="15" y="10" width="30" height="18" fill="#87ceeb" opacity="0.7"/>
+    <rect x="135" y="10" width="30" height="18" fill="#87ceeb" opacity="0.7"/>
+    
+    <!-- Wheels -->
+    <circle cx="35" cy="70" r="18" fill="#2c2c2c"/>
+    <circle cx="35" cy="70" r="12" fill="#4a4a4a"/>
+    <circle cx="145" cy="70" r="18" fill="#2c2c2c"/>
+    <circle cx="145" cy="70" r="12" fill="#4a4a4a"/>
+    
+    <!-- Headlights -->
+    <circle cx="185" cy="20" r="6" fill="#ffffff" opacity="0.9"/>
+    <circle cx="185" cy="40" r="4" fill="#ff6b6b" opacity="0.8"/>
+    
+    <!-- Front bumper -->
+    <rect x="180" y="10" width="8" height="40" rx="3" fill="#e6c200"/>
+    
+    <!-- Door handle -->
+    <rect x="90" y="25" width="8" height="3" rx="1" fill="#b8860b"/>
+  </g>
+</svg>

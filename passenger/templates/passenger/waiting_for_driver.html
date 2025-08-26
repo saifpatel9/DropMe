@@ -1,0 +1,68 @@
+{% load static %}
+
+{% block extra_css %}
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Fonts and Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-center px-4">
+  <div class="bg-white shadow-md rounded-xl p-6 max-w-md w-full">
+    <div id="status-container">
+      <h2 id="status-message" class="text-2xl font-semibold mb-4 text-gray-800">Searching for a Driver...</h2>
+      <p id="ride-details" class="text-gray-600 mb-6">We’re looking for a driver for your ride from
+        <strong>{{ pickup }}</strong> to <strong>{{ dropoff }}</strong> using a <strong>{{ selected_service }}</strong>.</p>
+
+      <div class="flex items-center justify-center space-x-2 mb-4">
+        <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+        <p class="text-sm text-gray-500">Waiting for a driver to accept your request...</p>
+      </div>
+
+      <p class="text-sm text-gray-400">Ride Fare: ₹{{ fare }}</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const rideRequestId = "{{ ride_request_id }}";
+
+  function checkRideStatus() {
+    console.log(`Polling for ride request ID: ${rideRequestId}`);
+    fetch("{% url 'check_ride_status' ride_request_id %}")
+      .then(response => response.json())
+      .then(data => {
+        console.log("Ride status response:", data);
+        if (data.status === 'Confirmed' && data.booking_id) {
+          window.location.href = "{% url 'booking_confirmed' 0 %}".replace('/0/', '/' + data.booking_id + '/');
+        } else if (["Rejected", "Expired", "Cancelled"].includes(data.status)) {
+          alert(`Your ride request was ${data.status.toLowerCase()}. Redirecting to homepage.`);
+          window.location.href = "/";
+        } else if (data.status === 'Not Found') {
+          console.error('Ride request not found on the server.');
+          document.getElementById('status-message').innerText = "Ride request not found.";
+          document.getElementById('status-message').classList.remove('text-gray-800');
+          document.getElementById('status-message').classList.add('text-red-500');
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching ride status:', error);
+      });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    if (rideRequestId && rideRequestId !== 'None') {
+      setInterval(checkRideStatus, 3000); // poll every 3 seconds
+    } else {
+      console.error('Ride request ID not found.');
+      document.getElementById('status-message').innerText = "Error: Ride request ID is missing.";
+      document.getElementById('status-message').classList.remove('text-gray-800');
+      document.getElementById('status-message').classList.add('text-red-500');
+    }
+  });
+</script>
+{% endblock %}

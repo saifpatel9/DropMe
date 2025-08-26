@@ -1,0 +1,99 @@
+{% extends "base_admin.html" %}
+
+{% block content %}
+<div class="page-header flex justify-between items-center mb-6">
+  <h1 class="text-3xl font-semibold text-gray-800">Booking Dashboard</h1>
+</div>
+
+<div class="grid grid-cols-12 gap-6">
+  <!-- Total Requests -->
+  <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+    <div class="card">
+      <div class="card-header !pb-0 !border-b-0">
+        <h5>Total Requests</h5>
+      </div>
+      <div class="card-body">
+        <h3 class="font-light text-[1.7rem]">{{ total_requests }}</h3>
+        <div class="w-full bg-blue-100 rounded-lg h-1.5 mt-6">
+          <div class="bg-blue-500 h-full rounded-lg" style="width: 100%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ongoing Requests -->
+  <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+    <div class="card">
+      <div class="card-header !pb-0 !border-b-0">
+        <h5>Ongoing Requests</h5>
+      </div>
+      <div class="card-body">
+        <h3 class="font-light text-[1.7rem]">{{ ongoing_requests }}</h3>
+        <div class="w-full bg-yellow-100 rounded-lg h-1.5 mt-6">
+          <div class="bg-yellow-500 h-full rounded-lg" style="width: 100%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Completed Requests -->
+  <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+    <div class="card">
+      <div class="card-header !pb-0 !border-b-0">
+        <h5>Completed Requests</h5>
+      </div>
+      <div class="card-body">
+        <h3 class="font-light text-[1.7rem]">{{ completed_requests }}</h3>
+        <div class="w-full bg-green-100 rounded-lg h-1.5 mt-6">
+          <div class="bg-green-500 h-full rounded-lg" style="width: 100%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cancelled Requests -->
+  <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+    <div class="card">
+      <div class="card-header !pb-0 !border-b-0">
+        <h5>Cancelled Requests</h5>
+      </div>
+      <div class="card-body">
+        <h3 class="font-light text-[1.7rem]">{{ cancelled_requests }}</h3>
+        <div class="w-full bg-red-100 rounded-lg h-1.5 mt-6">
+          <div class="bg-red-500 h-full rounded-lg" style="width: 100%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rental Rides -->
+  <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+    <div class="card">
+      <div class="card-header !pb-0 !border-b-0">
+        <h5>Rental Rides</h5>
+      </div>
+      <div class="card-body">
+        <h3 class="font-light text-[1.7rem]">{{ rental_rides }}</h3>
+        <div class="w-full bg-gray-300 rounded-lg h-1.5 mt-6">
+          <div class="bg-gray-800 h-full rounded-lg" style="width: 100%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scheduled Rides -->
+  <div class="col-span-12 sm:col-span-6 lg:col-span-4">
+    <div class="card">
+      <div class="card-header !pb-0 !border-b-0">
+        <h5>Scheduled Rides</h5>
+      </div>
+      <div class="card-body">
+        <h3 class="font-light text-[1.7rem]">{{ scheduled_rides }}</h3>
+        <div class="w-full bg-cyan-100 rounded-lg h-1.5 mt-6">
+          <div class="bg-cyan-500 h-full rounded-lg" style="width: 100%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

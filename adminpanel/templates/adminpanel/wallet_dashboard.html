@@ -1,0 +1,149 @@
+{% extends "base_admin.html" %}
+{% load static %}
+{% block title %}Wallet Management{% endblock %}
+
+{% block content %}
+<div class="p-6 max-w-7xl mx-auto">
+  <!-- Page Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-semibold text-gray-800">Wallet Management</h1>
+  </div>
+
+  <!-- User Wallet Section -->
+  <div class="bg-white shadow rounded-xl overflow-hidden mb-10">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-lg font-medium text-gray-700">User Wallets</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full table-auto text-sm text-center text-gray-700">
+        <thead class="bg-[#131C44] text-white">
+          <tr>
+            <th class="py-3 px-4">S/N</th>
+            <th class="py-3 px-4">Name</th>
+            <th class="py-3 px-4">Total Amount</th>
+            <th class="py-3 px-4">Remaining</th>
+            <th class="py-3 px-4">Used</th>
+            <th class="py-3 px-4">Last Updated</th>
+            <th class="py-3 px-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for wallet in wallets %}
+          <tr>
+            <td class="py-3 px-4">{{ forloop.counter }}</td>
+            <td class="py-3 px-4">{{ wallet.user.first_name }} {{ wallet.user.last_name }}</td>
+            <td class="py-3 px-4">₹{{ wallet.total_amount }}</td>
+            <td class="py-3 px-4">₹{{ wallet.remaining_amount }}</td>
+            <td class="py-3 px-4">₹{{ wallet.used_amount }}</td>
+            <td class="py-3 px-4">{{ wallet.last_updated|date:"Y-m-d H:i" }}</td>
+            <td class="py-3 px-4 relative">
+              <div class="relative inline-block text-left">
+                <button onclick="showWalletDropdown(this)" class="inline-flex items-center justify-center bg-white border border-gray-300 rounded-md shadow-sm px-3 py-1 text-sm font-medium hover:bg-gray-50" data-actions='[{"label": "Transactions", "url": "{% url "wallet_transactions" wallet.wallet_id %}", "color": "text-blue-600"}, {"label": "Redeems", "url": "{% url "wallet_redeems" wallet.wallet_id %}", "color": "text-purple-600"}]'>
+                  Actions
+                  <svg class="ml-2 w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.23 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="py-6 text-gray-500 text-center">No wallet records found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Wallet Payments Section -->
+  <div class="bg-white shadow rounded-xl overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-lg font-medium text-gray-700">Wallet Payments</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full table-auto text-sm text-center text-gray-700">
+        <thead class="bg-[#131C44] text-white">
+          <tr>
+            <th class="py-3 px-4">S/N</th>
+            <th class="py-3 px-4">Passenger</th>
+            <th class="py-3 px-4">Title</th>
+            <th class="py-3 px-4">Payment ID</th>
+            <th class="py-3 px-4">Payment Mode</th>
+            <th class="py-3 px-4">Amount</th>
+            <th class="py-3 px-4">Paid At</th>
+            <th class="py-3 px-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for payment in wallet_payments %}
+          <tr>
+            <td class="py-3 px-4">{{ forloop.counter }}</td>
+            <td class="py-3 px-4">{{ payment.user.first_name }} {{ payment.user.last_name }}</td>
+            <td class="py-3 px-4">{{ payment.title }}</td>
+            <td class="py-3 px-4">{{ payment.payment_id }}</td>
+            <td class="py-3 px-4">{{ payment.payment_mode }}</td>
+            <td class="py-3 px-4">₹{{ payment.amount }}</td>
+            <td class="py-3 px-4">{{ payment.paid_at|date:"Y-m-d H:i" }}</td>
+            <td class="py-3 px-4 relative">
+              <div class="relative inline-block text-left">
+                <button onclick="showWalletDropdown(this)" class="inline-flex items-center justify-center bg-white border border-gray-300 rounded-md shadow-sm px-3 py-1 text-sm font-medium hover:bg-gray-50" data-actions='[{"label": "View", "url": "{% url "view_wallet_payment" payment.wallet_payment_id %}", "color": "text-blue-600"}]'>
+                  Actions
+                  <svg class="ml-2 w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.23 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="py-6 text-gray-500 text-center">No payment records found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  let activeDropdownButton = null;
+
+  function showWalletDropdown(button) {
+    const menu = document.getElementById("globalDropdown");
+    const content = document.getElementById("dropdownContent");
+
+    if (activeDropdownButton === button && !menu.classList.contains("hidden")) {
+      menu.classList.add("hidden");
+      activeDropdownButton = null;
+      return;
+    }
+
+    activeDropdownButton = button;
+    const actions = JSON.parse(button.getAttribute("data-actions"));
+    content.innerHTML = actions.map(action =>
+      `<a href="${action.url}" class="block px-4 py-2 text-sm ${action.color} hover:bg-gray-100">${action.label}</a>`
+    ).join('');
+
+    const rect = button.getBoundingClientRect();
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    menu.style.top = `${rect.bottom + scrollTop + 5}px`;
+    menu.style.left = `${rect.left + window.scrollX}px`;
+    menu.classList.remove("hidden");
+  }
+
+  document.addEventListener("click", function (e) {
+    const dropdown = document.getElementById("globalDropdown");
+    if (!dropdown.contains(e.target) && !e.target.closest("[onclick^='showWalletDropdown']")) {
+      dropdown.classList.add("hidden");
+      activeDropdownButton = null;
+    }
+  });
+</script>
+
+<div id="globalDropdown" class="dropdown-menu hidden fixed w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-[9999]">
+  <div class="py-1 text-left" id="dropdownContent"></div>
+</div>
+{% endblock %}

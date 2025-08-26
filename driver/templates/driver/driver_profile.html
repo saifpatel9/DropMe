@@ -1,0 +1,185 @@
+{% load static %}
+
+{% block extra_css %}
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Fonts and Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 text-gray-800">
+
+  <!-- Header -->
+  <header class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-gradient-to-r from-teal-500 to-teal-600 rounded-lg flex items-center justify-center">
+          <i class="fas fa-car text-white text-lg"></i>
+        </div>
+        <span class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-teal-600">Hospione</span>
+      </div>
+      <a href="{% url 'driver_homepage' %}" class="bg-teal-600 text-white px-5 py-2 rounded-lg hover:bg-teal-700">&larr; Back</a>
+    </div>
+  </header>
+   
+  <!-- Main -->
+  <main class="max-w-6xl mx-auto px-4 py-10 space-y-10">
+
+    <!-- Profile Summary -->
+    <section class="bg-white shadow-md rounded-2xl p-6 flex flex-col md:flex-row items-center md:items-start md:space-x-8">
+      <img src="{% static 'driver/images/user.png' %}" class="w-28 h-28 rounded-full mb-4 md:mb-0" />
+      <div class="flex-1">
+        <h2 class="text-2xl font-bold">{{ driver.first_name }} {{ driver.last_name }}</h2>
+        <p class="text-sm text-gray-500">Driver ID: {{ driver.driver_id }} • Joined: {{ driver.created_at|date:"M Y" }}</p>
+        <div class="mt-3 space-x-2">
+          <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs">Active</span>
+          <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs">Rating: {{ avg_rating|default:"N/A" }} ★</span>
+        </div>
+      </div>
+      <a href="{% url 'driver:driver_edit_profile' %}">
+          <button class="bg-teal-500 text-white px-6 py-2 mt-6 md:mt-0 rounded-lg hover:bg-teal-600">Edit Profile
+          </button>
+      </a>
+    </section>
+
+    <!-- Personal Info -->
+    <section class="bg-white shadow-md rounded-2xl p-6">
+      <h3 class="text-xl font-semibold text-teal-700 mb-6 border-b pb-2">Personal Information</h3>
+      <div class="grid sm:grid-cols-2 gap-6 text-sm">
+        <div><strong>Phone:</strong> {{ driver.phone }}</div>
+        <div><strong>Email:</strong> {{ driver.email }}</div>
+        <div><strong>Address:</strong> {{ driver.address }}</div>
+        <div><strong>Experience:</strong> {{ driver.experience }} Years</div>
+      </div>
+    </section>
+
+    <!-- Vehicle Info -->
+    <section class="bg-white shadow-md rounded-2xl p-6">
+      <h3 class="text-xl font-semibold text-teal-700 mb-6 border-b pb-2">Vehicle Information</h3>
+      <div class="grid sm:grid-cols-2 gap-6 text-sm">
+        <div>
+          <strong>Vehicle:</strong>
+          {% if vehicle %}
+            {% firstof vehicle.manufacturer "N/A" %} {% firstof vehicle.model_name vehicle.model "N/A" %}
+          {% else %}
+            N/A
+          {% endif %}
+        </div>
+        <div><strong>Plate No:</strong> {{ driver.plate_number }}</div>
+        <div>
+          <strong>Color:</strong>
+          {% if vehicle %}
+            {% firstof vehicle.color vehicle.vehicle_color "N/A" %}
+          {% else %}
+            N/A
+          {% endif %}
+        </div>
+        <div><strong>Insurance Validity:</strong> {{ driver.insurance_validity|date:"M Y" }}</div>
+      </div>
+    </section>
+
+    <!-- Document Uploads -->
+    <section class="bg-white shadow-md rounded-2xl p-6">
+      <h3 class="text-xl font-semibold text-teal-700 mb-6 border-b pb-2">Document Uploads</h3>
+      <div class="space-y-6 text-sm">
+
+        <!-- Vehicle RC -->
+<div class="flex justify-between items-center border-b pb-4">
+  <div>
+    <p class="font-medium">Vehicle RC</p>
+    <p class="text-gray-500">PDF or Image format (Max 5MB)</p>
+    {% if driver.vehicle_rc %}
+      <a href="{{ driver.vehicle_rc.url }}" target="_blank" class="text-xs text-blue-600 hover:underline">
+        Uploaded: {{ driver.vehicle_rc.name|cut:"driver_documents/vehicle_rcs" }}
+      </a>
+    {% else %}
+      <span class="text-xs text-gray-400">No file uploaded</span>
+    {% endif %}
+  </div>
+  <form method="post" enctype="multipart/form-data" class="flex items-center space-x-4">
+    {% csrf_token %}
+    <span class="text-xs px-3 py-1 rounded-full 
+      {% if driver.vehicle_rc_status == 'Verified' %}bg-green-100 text-green-700
+      {% elif driver.vehicle_rc_status == 'Rejected' %}bg-red-100 text-red-700
+      {% else %}bg-orange-100 text-orange-700{% endif %}">
+      {{ driver.vehicle_rc_status }}
+    </span>
+    <input type="file" name="vehicle_rc" class="text-sm text-gray-500 file:px-3 file:py-1 file:bg-teal-500 file:text-white file:rounded-md" onchange="this.form.submit()" />
+  </form>
+</div>
+
+<!-- Driving Licence -->
+<div class="flex justify-between items-center border-b pb-4">
+  <div>
+    <p class="font-medium">Driving Licence</p>
+    <p class="text-gray-500">JPEG, PNG or PDF</p>
+    {% if driver.license_document %}
+      <a href="{{ driver.license_document.url }}" target="_blank" class="text-xs text-blue-600 hover:underline">
+        Uploaded: {{ driver.license_document.name|cut:"driver_documents/licenses" }}
+      </a>
+    {% else %}
+      <span class="text-xs text-gray-400">No file uploaded</span>
+    {% endif %}
+  </div>
+  <form method="post" enctype="multipart/form-data" class="flex items-center space-x-4">
+    {% csrf_token %}
+    <span class="text-xs px-3 py-1 rounded-full 
+      {% if driver.license_document_status == 'Verified' %}bg-green-100 text-green-700
+      {% elif driver.license_document_status == 'Rejected' %}bg-red-100 text-red-700
+      {% else %}bg-orange-100 text-orange-700{% endif %}">
+      {{ driver.license_document_status }}
+    </span>
+    <input type="file" name="license_document" class="text-sm text-gray-500 file:px-3 file:py-1 file:bg-teal-500 file:text-white file:rounded-md" onchange="this.form.submit()" />
+  </form>
+</div>
+
+<!-- ID Proof -->
+<div class="flex justify-between items-center">
+  <div>
+    <p class="font-medium">ID Proof</p>
+    <p class="text-gray-500">Aadhaar, PAN, Voter ID etc.</p>
+    {% if driver.id_proof %}
+      <a href="{{ driver.id_proof.url }}" target="_blank" class="text-xs text-blue-600 hover:underline">
+        Uploaded: {{ driver.id_proof.name|cut:"driver_documents/id_proofs" }}
+      </a>
+    {% else %}
+      <span class="text-xs text-gray-400">No file uploaded</span>
+    {% endif %}
+  </div>
+  <form method="post" enctype="multipart/form-data" class="flex items-center space-x-4">
+    {% csrf_token %}
+    <span class="text-xs px-3 py-1 rounded-full 
+      {% if driver.id_proof_status == 'Verified' %}bg-green-100 text-green-700
+      {% elif driver.id_proof_status == 'Rejected' %}bg-red-100 text-red-700
+      {% else %}bg-orange-100 text-orange-700{% endif %}">
+      {{ driver.id_proof_status }}
+    </span>
+    <input type="file" name="id_proof" class="text-sm text-gray-500 file:px-3 file:py-1 file:bg-teal-500 file:text-white file:rounded-md" onchange="this.form.submit()" />
+  </form>
+</div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-white py-8 mt-16">
+  <div class="max-w-7xl mx-auto px-4 text-center">
+    <div class="flex justify-center items-center mb-4">
+      <div class="w-10 h-10 bg-gradient-to-r from-teal-500 to-teal-600 rounded-lg flex items-center justify-center">
+        <i class="fas fa-car text-white text-lg"></i>
+      </div>
+      <span class="ml-3 text-xl font-bold text-gradient">Hospione</span>
+    </div>
+    <p class="text-sm text-gray-400">&copy; 2025 Hospione. All rights reserved.</p>
+  </div>
+</footer>
+
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</div>
+{% endblock %}

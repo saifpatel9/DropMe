@@ -1,0 +1,462 @@
+{% extends "base_admin.html" %}
+{% load widget_tweaks %}
+{% block title %}Add Driver{% endblock %}
+
+{% block content %}
+<style>
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* New styles for two-column section layout */
+.sections-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .sections-container {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.section-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+}
+
+.section-card .form-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-content: start;
+}
+
+@media (min-width: 768px) {
+  .section-card .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Special handling for sections with fewer fields */
+.security-section, .services-section {
+  min-height: 280px;
+}
+
+.security-section .form-grid {
+  grid-template-columns: 1fr !important;
+}
+
+.services-section .form-grid {
+  grid-template-columns: 1fr !important;
+}
+
+@media (min-width: 768px) {
+  .services-section .form-grid {
+    grid-template-columns: 1fr 1fr 1fr !important;
+  }
+}
+
+.full-width-section {
+  grid-column: 1 / -1;
+  min-height: auto;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2);
+}
+
+.form-label {
+  display: block;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #1f2937;
+  border-bottom: 2px solid #14b8a6;
+  padding-bottom: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1023px) {
+  .section-card {
+    margin-bottom: 1.5rem;
+  }
+}
+.eye-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  user-select: none;
+  font-size: 1rem;
+  color: #6b7280;
+}
+.position-relative {
+  position: relative;
+}
+</style>
+
+<div class="page-header flex justify-between items-center mb-6">
+  <h1 class="text-3xl font-semibold text-gray-800">Add New Driver</h1>
+  <a href="{% url 'admin_drivers' %}" class="btn btn-sm bg-gray-200 hover:bg-gray-300 text-gray-800">
+        ← Back to Drivers
+      </a>
+</div>
+
+<div class="max-w-7xl mx-auto">
+<form method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+  {% if form.errors %}
+    <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded full-width-section">
+      <ul>
+        {% for field in form %}
+          {% for error in field.errors %}
+            <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <div class="sections-container">
+    <!-- Personal Info -->
+    <div class="section-card">
+      <h5 class="section-title">Personal Info</h5>
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="{{ form.first_name.id_for_label }}" class="form-label">
+            {{ form.first_name.label }}
+          </label>
+          {{ form.first_name|add_class:"form-input" }}
+        </div>
+        <div class="form-field">
+          <label for="{{ form.last_name.id_for_label }}" class="form-label">
+            {{ form.last_name.label }}
+          </label>
+          {{ form.last_name|add_class:"form-input" }}
+        </div>
+        <div class="form-field">
+          <label for="{{ form.email.id_for_label }}" class="form-label">
+            {{ form.email.label }}
+          </label>
+          {{ form.email|add_class:"form-input" }}
+        </div>
+        <div class="form-field">
+          <label for="{{ form.phone.id_for_label }}" class="form-label">
+            {{ form.phone.label }}
+          </label>
+          {{ form.phone|add_class:"form-input" }}
+        </div>
+        <div class="form-field">
+          <label for="{{ form.gender.id_for_label }}" class="form-label">
+            {{ form.gender.label }}
+          </label>
+          {{ form.gender|add_class:"form-input" }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Vehicle Details -->
+    <div class="section-card">
+      <h5 class="section-title">Vehicle Details</h5>
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="vehicle_type" class="form-label">Vehicle Type</label>
+          <select name="vehicle_type" id="vehicle_type" class="form-input">
+            <option value="">Select Vehicle Type</option>
+            <option value="Hatchback">Hatchback</option>
+            <option value="Sedan">Sedan</option>
+            <option value="SUV">SUV</option>
+            <option value="Auto">Auto</option>
+            <option value="Bike">Bike</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="{{ form.plate_number.id_for_label }}" class="form-label">
+            {{ form.plate_number.label }}
+          </label>
+          {{ form.plate_number|add_class:"form-input" }}
+        </div>
+        <div class="form-field">
+          <label for="{{ form.manufacturer.id_for_label }}" class="form-label">
+            {{ form.manufacturer.label }}
+          </label>
+          {{ form.manufacturer|add_class:"form-input" }}
+        </div>
+        <div class="form-field">
+          <label for="{{ form.color.id_for_label }}" class="form-label">
+            {{ form.color.label }}
+          </label>
+          {{ form.color|add_class:"form-input" }}
+        </div>
+        <div class="form-field">
+          <label for="{{ form.manufacturing_year.id_for_label }}" class="form-label">
+            {{ form.manufacturing_year.label }}
+          </label>
+          {{ form.manufacturing_year|add_class:"form-input" }}
+        </div>
+        <div class="form-field">
+          <label for="{{ form.seat_arrangement.id_for_label }}" class="form-label">
+            {{ form.seat_arrangement.label }}
+          </label>
+          {{ form.seat_arrangement|add_class:"form-input" }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Location -->
+    <div class="section-card">
+      <h5 class="section-title">Location</h5>
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="state" class="form-label">State</label>
+          <select id="state" name="state" onchange="updateCityOptions()" class="form-input">
+            <option value="">Select State</option>
+            <option value="Maharashtra">Maharashtra</option>
+            <option value="Gujarat">Gujarat</option>
+            <option value="Karnataka">Karnataka</option>
+            <option value="Tamil Nadu">Tamil Nadu</option>
+            <option value="Delhi">Delhi</option>
+            <option value="West Bengal">West Bengal</option>
+            <option value="Rajasthan">Rajasthan</option>
+            <option value="Uttar Pradesh">Uttar Pradesh</option>
+            <option value="Telangana">Telangana</option>
+            <option value="Punjab">Punjab</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="city" class="form-label">City</label>
+          <select id="city" name="city" class="form-input">
+            <option value="">Select City</option>
+          </select>
+        </div>
+        <div class="form-field full-width">
+          <label for="{{ form.full_address.id_for_label }}" class="form-label">
+            {{ form.full_address.label }}
+          </label>
+          {{ form.full_address|add_class:"form-input" }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Services -->
+    <div class="section-card services-section">
+      <h5 class="section-title">Services</h5>
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="daily_services" class="form-label">Daily Services</label>
+          <select name="daily_services" id="daily_services" class="form-input">
+            <option value="">Select</option>
+            <option value="Yes" {% if form.daily_services.value == "Yes" %}selected{% endif %}>Yes</option>
+            <option value="No" {% if form.daily_services.value == "No" %}selected{% endif %}>No</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="rental_services" class="form-label">Rental Services</label>
+          <select name="rental_services" id="rental_services" class="form-input">
+            <option value="">Select</option>
+            <option value="Yes" {% if form.rental_services.value == "Yes" %}selected{% endif %}>Yes</option>
+            <option value="No" {% if form.rental_services.value == "No" %}selected{% endif %}>No</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="outstation_services" class="form-label">Outstation Services</label>
+          <select name="outstation_services" id="outstation_services" class="form-input">
+            <option value="">Select</option>
+            <option value="Yes" {% if form.outstation_services.value == "Yes" %}selected{% endif %}>Yes</option>
+            <option value="No" {% if form.outstation_services.value == "No" %}selected{% endif %}>No</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bank Details -->
+    <div class="section-card">
+      <h5 class="section-title">Bank Details</h5>
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="{{ form.upi_id.id_for_label }}" class="form-label">
+            {{ form.upi_id.label }}
+          </label>
+          {{ form.upi_id|add_class:"form-input" }}
+        </div>
+        <div class="form-field">
+          <label for="{{ form.bank_name.id_for_label }}" class="form-label">
+            {{ form.bank_name.label }}
+          </label>
+          {{ form.bank_name|add_class:"form-input" }}
+        </div>
+        <div class="form-field">
+          <label for="{{ form.ifsc_code.id_for_label }}" class="form-label">
+            {{ form.ifsc_code.label }}
+          </label>
+          {{ form.ifsc_code|add_class:"form-input" }}
+        </div>
+        <div class="form-field">
+          <label for="{{ form.account_number.id_for_label }}" class="form-label">
+            {{ form.account_number.label }}
+          </label>
+          {{ form.account_number|add_class:"form-input" }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Security -->
+    <div class="section-card security-section">
+      <h5 class="section-title">Security</h5>
+      <div class="form-grid">
+        <div class="form-field position-relative">
+          <label for="{{ form.password_hash.id_for_label }}" class="form-label">
+            {{ form.password_hash.label }}
+          </label>
+          {{ form.password_hash|add_class:"form-input" }}
+          <span class="eye-toggle" onclick="togglePasswordVisibility('{{ form.password_hash.id_for_label }}')">&#128065;</span>
+        </div>
+        <div class="form-field position-relative">
+          <label for="confirm_password" class="form-label">Confirm Password</label>
+          <input type="password" id="confirm_password" class="form-input" />
+          <span class="eye-toggle" onclick="togglePasswordVisibility('confirm_password')">&#128065;</span>
+          <small id="password-match-msg" style="margin-top:4px;font-size:0.8rem;"></small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Documents - Full Width -->
+    <div class="section-card full-width-section">
+      <h5 class="section-title">Documents</h5>
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="{{ form.license_document.id_for_label }}" class="form-label">
+            {{ form.license_document.label }}
+          </label>
+          {{ form.license_document|add_class:"form-input" }}
+        </div>
+        <div class="form-field">
+          <label for="{{ form.id_proof.id_for_label }}" class="form-label">
+            {{ form.id_proof.label }}
+          </label>
+          {{ form.id_proof|add_class:"form-input" }}
+        </div>
+        <div class="form-field">
+          <label for="{{ form.vehicle_rc.id_for_label }}" class="form-label">
+            {{ form.vehicle_rc.label }}
+          </label>
+          {{ form.vehicle_rc|add_class:"form-input" }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex justify-end mt-6">
+    <button type="submit" class="px-6 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 transition duration-200">
+      Submit
+    </button>
+  </div>
+  
+<script>
+  function updateCityOptions() {
+    const state = document.getElementById("state").value;
+    const citySelect = document.getElementById("city");
+
+    const cityMap = {
+      "Maharashtra": ["Mumbai", "Pune", "Nashik"],
+      "Gujarat": ["Ahmedabad", "Surat", "Vadodara"],
+      "Karnataka": ["Bengaluru", "Mysuru", "Mangalore"],
+      "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai"],
+      "Delhi": ["New Delhi", "Dwarka", "Rohini"],
+      "West Bengal": ["Kolkata", "Howrah", "Siliguri"],
+      "Rajasthan": ["Jaipur", "Udaipur", "Jodhpur"],
+      "Uttar Pradesh": ["Lucknow", "Kanpur", "Noida"],
+      "Telangana": ["Hyderabad", "Warangal", "Nizamabad"],
+      "Punjab": ["Ludhiana", "Amritsar", "Jalandhar"]
+    };
+
+    const cities = cityMap[state] || [];
+    citySelect.innerHTML = '<option value="">Select City</option>' + 
+      cities.map(city => `<option value="${city}">${city}</option>`).join('');
+  }
+
+  function togglePasswordVisibility(id) {
+    const input = document.getElementById(id);
+    if (input.type === "password") {
+      input.type = "text";
+    } else {
+      input.type = "password";
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const passwordInput = document.getElementById("{{ form.password_hash.id_for_label }}");
+    const confirmPasswordInput = document.getElementById("confirm_password");
+    const message = document.getElementById("password-match-msg");
+
+    function checkPasswordMatch() {
+      if (passwordInput.value === "" && confirmPasswordInput.value === "") {
+        message.textContent = "";
+        return;
+      }
+      if (passwordInput.value === confirmPasswordInput.value) {
+        message.textContent = "Passwords match";
+        message.style.color = "green";
+      } else {
+        message.textContent = "Passwords do not match";
+        message.style.color = "red";
+      }
+    }
+
+    passwordInput.addEventListener('input', checkPasswordMatch);
+    confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+  });
+</script>
+    
+</form>
+</div>
+{% endblock %}

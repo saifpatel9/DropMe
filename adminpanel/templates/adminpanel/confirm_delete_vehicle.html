@@ -1,0 +1,15 @@
+{% extends "base_admin.html" %}
+{% block title %}Delete Vehicle{% endblock %}
+
+{% block content %}
+<div class="p-6 bg-white rounded shadow">
+  <h2 class="text-xl font-semibold text-red-600">Confirm Delete</h2>
+  <p class="mt-2">Are you sure you want to delete this vehicle: <strong>{{ vehicle.manufacturer }} {{ vehicle.model_name }}</strong>?</p>
+
+  <form method="POST" class="mt-4 flex gap-4">
+    {% csrf_token %}
+    <button type="submit" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">Yes, Delete</button>
+    <a href="{% url 'vehicle_dashboard' %}" class="btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base_admin.html" %}
+{% load static %}
+
+{% block title %}Driver Ride History{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+  <div class="card">
+    <div class="card-header">
+      <h2 class="text-2xl font-bold text-gray-800">
+        Ride History - {{ driver.first_name }} {{ driver.last_name }}
+      </h2>
+    </div>
+    <div class="card-body">
+      {% if rides %}
+        <div class="overflow-x-auto">
+          <table class="min-w-full table table-hover text-sm text-center border border-gray-200 rounded shadow-sm">
+            <thead class="bg-[#131C44] text-white">
+              <tr>
+                <th class="px-4 py-2">S/N</th>
+                <th class="px-4 py-2">Pickup</th>
+                <th class="px-4 py-2">Dropoff</th>
+                <th class="px-4 py-2">Scheduled Time</th>
+                <th class="px-4 py-2">Fare</th>
+                <th class="px-4 py-2">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ride in rides %}
+              <tr class="border-t hover:bg-gray-50 transition">
+                <td class="px-4 py-2">{{ forloop.counter }}</td>
+                <td class="px-4 py-2">{{ ride.pickup_location }}</td>
+                <td class="px-4 py-2">{{ ride.dropoff_location }}</td>
+                <td class="px-4 py-2">{{ ride.scheduled_time|date:"Y-m-d H:i" }}</td>
+                <td class="px-4 py-2">₹{{ ride.fare }}</td>
+                <td class="px-4 py-2">{{ ride.status }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p class="text-gray-600">No ride history available for this driver.</p>
+      {% endif %}
+      <!-- Back Button -->
+      <div class="mt-8 text-right">
+        <a href="{% url 'admin_drivers' %}" class="btn btn-sm bg-gray-200 hover:bg-gray-300 text-gray-800">
+          ← Back to Driver Dashboard
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

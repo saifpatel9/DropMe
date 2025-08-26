@@ -1,0 +1,292 @@
+{% load static %}
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+  }
+  
+  .glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  }
+  
+  .success-gradient {
+    background: linear-gradient(135deg, #10b981, #059669);
+  }
+  
+  .error-gradient {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+  }
+  
+  .info-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    transition: all 0.3s ease;
+  }
+  
+  .info-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  .pulse-dot {
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
+  .driver-avatar {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: white;
+  }
+  
+  .status-indicator {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .status-indicator::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: rotate(45deg);
+    animation: shimmer 3s infinite;
+  }
+  
+  @keyframes shimmer {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+  }
+</style>
+{% endblock %}
+
+
+<div class="min-h-screen py-4 px-4 flex items-center">
+  <div class="max-w-lg mx-auto w-full">
+    {% if no_driver %}
+      <!-- No Driver Available State -->
+      <div class="glass-card rounded-2xl p-6 text-center">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+          <i class="fas fa-car-side text-2xl text-gray-400"></i>
+        </div>
+        <h2 class="text-xl font-bold text-gray-800 mb-3">No Rides Available</h2>
+        <p class="text-gray-600 mb-5">Sorry, there are no drivers available for <strong class="text-gray-800">{{ ride_type }}</strong> at the moment.</p>
+        <a href="{% url 'choose_ride' %}" class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 transform hover:scale-105">
+          <i class="fas fa-redo mr-2"></i>
+          Try Another
+        </a>
+      </div>
+
+    {% elif error %}
+      <!-- Error State -->
+      <div class="glass-card rounded-2xl p-6 text-center">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-full error-gradient flex items-center justify-center">
+          <i class="fas fa-exclamation-triangle text-2xl text-white"></i>
+        </div>
+        <h2 class="text-xl font-bold text-red-700 mb-3">Oops! Something went wrong</h2>
+        <p class="text-gray-600 mb-5">{{ error }}</p>
+        <a href="{% url 'choose_ride' %}" class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white font-medium rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 transform hover:scale-105">
+          <i class="fas fa-redo mr-2"></i>
+          Try Another
+        </a>
+      </div>
+
+    {% else %}
+      <!-- Success State -->
+      <div class="glass-card rounded-2xl p-6">
+        <!-- Header -->
+        <div class="text-center mb-6">
+          <div class="w-16 h-16 mx-auto mb-3 rounded-full success-gradient flex items-center justify-center status-indicator">
+            <i class="fas fa-check text-2xl text-white"></i>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800 mb-1">Ride Confirmed!</h2>
+          <p class="text-gray-600 text-sm">Your ride has been successfully booked</p>
+        </div>
+
+        <!-- Booking Details -->
+        <div class="space-y-3 mb-6">
+          <!-- Booking ID -->
+          <div class="info-card rounded-xl p-3">
+            <div class="flex items-center">
+              <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center mr-3">
+                <i class="fas fa-ticket-alt text-blue-600 text-sm"></i>
+              </div>
+              <div>
+                <p class="text-xs text-gray-500 font-medium">Booking ID</p>
+                <p class="text-gray-800 font-semibold text-sm">{{ booking_id }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Route Information -->
+          <div class="info-card rounded-xl p-3">
+            <div class="space-y-2">
+              <!-- Pickup -->
+              <div class="flex items-start">
+                <div class="w-2.5 h-2.5 rounded-full bg-green-500 mt-1.5 mr-3 pulse-dot"></div>
+                <div class="flex-1">
+                  <p class="text-xs text-gray-500 font-medium">Pickup Location</p>
+                  <p class="text-gray-800 font-semibold text-sm">{{ pickup }}</p>
+                </div>
+              </div>
+              
+              <!-- Route Line -->
+              <div class="flex items-center ml-1">
+                <div class="w-px h-4 bg-gray-300"></div>
+              </div>
+              
+              <!-- Dropoff -->
+              <div class="flex items-start">
+                <div class="w-2.5 h-2.5 rounded-full bg-red-500 mt-1.5 mr-3"></div>
+                <div class="flex-1">
+                  <p class="text-xs text-gray-500 font-medium">Drop-off Location</p>
+                  <p class="text-gray-800 font-semibold text-sm">{{ dropoff }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Service and Fare -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="info-card rounded-xl p-3">
+              <div class="flex items-center">
+                <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center mr-2">
+                  <i class="fas fa-car text-purple-600 text-sm"></i>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 font-medium">Service</p>
+                  <p class="text-gray-800 font-semibold text-sm">{{ selected_service }}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="info-card rounded-xl p-3">
+              <div class="flex items-center">
+                <div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center mr-2">
+                  <i class="fas fa-rupee-sign text-green-600 text-sm"></i>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 font-medium">Fare</p>
+                  <p class="text-gray-800 font-semibold text-sm">₹{{ fare }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Driver Information -->
+          <div class="info-card rounded-xl p-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="driver-avatar w-10 h-10 rounded-full mr-3">
+                  {% if driver.first_name and driver.last_name %}
+                    {{ driver.first_name|slice:":1" }}{{ driver.last_name|slice:":1" }}
+                  {% else %}
+                    <i class="fas fa-user text-sm"></i>
+                  {% endif %}
+                </div>
+                <div>
+                  <p class="text-gray-800 font-semibold text-sm">{{ driver.first_name }} {{ driver.last_name }}</p>
+                  <p class="text-gray-500 text-xs">{{ driver.plate_number }}</p>
+                  <div class="flex items-center mt-0.5">
+                    <div class="flex text-yellow-400 mr-1">
+                      {% for i in "12345" %}
+                        {% if driver.rating and forloop.counter <= driver.rating %}
+                          <i class="fas fa-star text-xs"></i>
+                        {% else %}
+                          <i class="far fa-star text-xs"></i>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                    <span class="text-xs text-gray-600">{{ driver.rating }}/5</span>
+                  </div>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="w-2.5 h-2.5 bg-green-500 rounded-full pulse-dot mb-1"></div>
+                <p class="text-xs text-gray-500">Available</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ETA Message -->
+          <div class="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-3 border border-green-200">
+            <div class="flex items-center">
+              <div class="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center mr-3">
+                <i class="fas fa-clock text-green-600 text-sm"></i>
+              </div>
+              <div>
+                <p class="text-green-800 font-semibold text-sm">{{ eta_message }}</p>
+                <p class="text-green-600 text-xs">Please be ready at your pickup location</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <div class="flex justify-center">
+          <form action="{% url 'cancel_booking' %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="booking_id" value="{{ booking_id }}">
+            <button type="submit" class="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white font-medium rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-200">
+              <i class="fas fa-times mr-2"></i>
+              Cancel Ride
+            </button>
+          </form>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  // Poll every 7 seconds for booking status with enhanced UX
+  let pollInterval;
+  
+  function startPolling() {
+    pollInterval = setInterval(async () => {
+      try {
+        const response = await fetch("{% url 'booking_status_api' booking_id=booking_id %}");
+        const data = await response.json();
+        
+        if (data.status === "Ongoing") {
+          // Add a smooth transition effect before redirect
+          document.body.style.opacity = '0.7';
+          setTimeout(() => {
+            window.location.href = "{% url 'ride_started' booking_id=booking_id %}";
+          }, 300);
+        }
+      } catch (error) {
+        console.error('Polling error:', error);
+      }
+    }, 7000);
+  }
+
+  // Start polling when page loads
+  document.addEventListener('DOMContentLoaded', startPolling);
+  
+  // Clean up interval when page unloads
+  window.addEventListener('beforeunload', () => {
+    if (pollInterval) {
+      clearInterval(pollInterval);
+    }
+  });
+</script>

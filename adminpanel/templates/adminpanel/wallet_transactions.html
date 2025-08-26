@@ -1,0 +1,57 @@
+{% extends "base_admin.html" %}
+{% block title %}Wallet Transactions{% endblock %}
+
+{% block content %}
+<div class="page-header flex justify-between items-center mb-6">
+  <h1 class="text-3xl font-semibold text-gray-800">Wallet Transactions</h1>
+</div>
+
+<div class="card table-card">
+  <div class="card-header">
+    <h5>Transactions for Wallet ID: {{ wallet.wallet_id }}</h5>
+  </div>
+  <div class="card-body">
+    <div class="overflow-x-auto relative z-0">
+      <table class="table min-w-full text-sm text-center">
+        <thead class="bg-[#131C44] text-white">
+          <tr>
+            <th>S/N</th>
+            <th>Title</th>
+            <th>Transaction Type</th>
+            <th>Amount</th>
+            <th>Payment Mode</th>
+            <th>Paid At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for txn in transactions %}
+          <tr class="border-b hover:bg-gray-50 transition">
+            <td>{{ forloop.counter }}</td>
+            <td>{{ txn.title }}</td>
+            <td>
+              {% if txn.payment_mode == 'Wallet' %}
+              <span class="text-red-600 font-medium">Debit</span>
+              {% else %}
+              <span class="text-green-600 font-medium">Credit</span>
+              {% endif %}
+            </td>
+            <td>₹{{ txn.amount }}</td>
+            <td>{{ txn.payment_mode }}</td>
+            <td>{{ txn.paid_at|date:"Y-m-d H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="py-4 text-gray-500">No transactions found for this wallet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div class="pt-6 px-4">
+        <a href="{% url 'wallet_dashboard' %}" class="btn btn-outline-secondary">Back</a>
+    </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}

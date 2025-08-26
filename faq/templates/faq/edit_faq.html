@@ -1,0 +1,57 @@
+{% extends "base_admin.html" %}
+{% block title %}Edit FAQ{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-10 bg-white p-8 rounded-xl shadow">
+  <h1 class="text-3xl font-semibold text-[#131C44] mb-6">Edit FAQ</h1>
+
+  <form method="POST" class="space-y-6">
+    {% csrf_token %}
+
+    {% if error %}
+      <p class="text-red-600 text-sm">{{ error }}</p>
+    {% endif %}
+
+    <!-- Main Topic -->
+    <div>
+      <label for="main_topic_name" class="block text-gray-700 font-medium mb-1">Main Topic</label>
+      <input type="text" name="main_topic_name" value="{{ faq.main_topic.name }}"
+             class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500" required>
+    </div>
+
+    <!-- Sub Topic -->
+    <div>
+      <label for="sub_topic_name" class="block text-gray-700 font-medium mb-1">Sub Topic</label>
+      <input type="text" name="sub_topic_name" value="{{ faq.sub_topic.name }}"
+             class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500" required>
+    </div>
+
+    <!-- Question -->
+    <div>
+      <label for="question" class="block text-gray-700 font-medium mb-1">Question</label>
+      <input type="text" name="question" value="{{ faq.question }}"
+             class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500" required>
+    </div>
+
+    <!-- Answer -->
+    <div>
+      <label for="answer" class="block text-gray-700 font-medium mb-1">Answer</label>
+      <textarea name="answer" rows="4"
+                class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                required>{{ faq.answer }}</textarea>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="pt-4 flex justify-end gap-4">
+      <button type="submit"
+              class="bg-[#00A59E] hover:bg-[#131C44] text-white px-6 py-2 rounded-full font-semibold transition">
+        Save Changes
+      </button>
+      <a href="{% url 'faq_dashboard' %}"
+         class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-full font-semibold transition">
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

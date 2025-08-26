@@ -1,0 +1,24 @@
+<svg width="200" height="60" viewBox="0 0 200 60" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradientWhite" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00A59E;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0EB9D3;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Car icon -->
+  <g transform="translate(10, 15)">
+    <rect x="0" y="15" width="30" height="12" rx="6" fill="url(#logoGradientWhite)"/>
+    <circle cx="8" cy="30" r="4" fill="white"/>
+    <circle cx="22" cy="30" r="4" fill="white"/>
+    <circle cx="8" cy="30" r="2" fill="#131C44"/>
+    <circle cx="22" cy="30" r="2" fill="#131C44"/>
+    <rect x="5" y="10" width="20" height="8" rx="4" fill="url(#logoGradientWhite)"/>
+    <rect x="8" y="12" width="6" height="2" rx="1" fill="white" opacity="0.9"/>
+    <rect x="16" y="12" width="6" height="2" rx="1" fill="white" opacity="0.9"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="55" y="25" font-family="Open Sans, Arial, sans-serif" font-size="20" font-weight="700" fill="white">Hospione</text>
+  <text x="55" y="42" font-family="Raleway, Arial, sans-serif" font-size="10" font-weight="400" fill="#00A59E">Your Trusted Cab Partner</text>
+</svg>

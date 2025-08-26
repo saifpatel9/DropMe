@@ -1,0 +1,201 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Rides</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts and Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen">
+    <div class="container mx-auto px-4 py-6 max-w-7xl">
+        <div class="mb-4">
+            <a href="{% url 'driver_homepage' %}" 
+               class="inline-flex items-center bg-[#1BBC9B] hover:bg-[#17a589] text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-md transition duration-200 ease-in-out">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+            </a>
+        </div>
+        <!-- Header Section -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <div class="flex items-center">
+                <div class="bg-blue-100 p-3 rounded-full mr-4">
+                    <i class="fas fa-car text-blue-600 text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900">My Rides</h2>
+                    <p class="text-gray-600 mt-1">Manage and track your driving assignments</p>
+                </div>
+            </div>
+        </div>
+
+        {% for ride_group in ride_groups %}
+        {% with label=ride_group.0 rides=ride_group.1 %}
+            <!-- Section Header -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-gray-50 to-gray-100 px-6 py-4 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            {% if label == "Confirmed" %}
+                                <div class="bg-purple-100 p-2 rounded-full mr-3">
+                                    <i class="fas fa-thumbs-up text-purple-600"></i>
+                                </div>
+                            {% elif label == "Ongoing" %}
+                                <div class="bg-green-100 p-2 rounded-full mr-3">
+                                    <i class="fas fa-play-circle text-green-600"></i>
+                                </div>
+                            {% elif label == "Completed" %}
+                                <div class="bg-blue-100 p-2 rounded-full mr-3">
+                                    <i class="fas fa-check-circle text-blue-600"></i>
+                                </div>
+                            {% elif label == "Upcoming" %}
+                                <div class="bg-orange-100 p-2 rounded-full mr-3">
+                                    <i class="fas fa-clock text-orange-600"></i>
+                                </div>
+                            {% else %}
+                                <div class="bg-gray-100 p-2 rounded-full mr-3">
+                                    <i class="fas fa-list text-gray-600"></i>
+                                </div>
+                            {% endif %}
+                            <h3 class="text-xl font-semibold text-gray-900">{{ label }} Rides</h3>
+                        </div>
+                        {% if rides %}
+                            <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
+                                {{ rides|length }} ride{{ rides|length|pluralize }}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if rides %}
+                    <!-- Enhanced Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-200">
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        <i class="fas fa-hashtag mr-2"></i>Booking ID
+                                    </th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        <i class="fas fa-user mr-2"></i>Passenger
+                                    </th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        <i class="fas fa-map-marker-alt mr-2"></i>Pickup
+                                    </th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        <i class="fas fa-flag-checkered mr-2"></i>Dropoff
+                                    </th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">₹ Fare</th>
+
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        <i class="fas fa-clock mr-2"></i>Time
+                                    </th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                        <i class="fas fa-cog mr-2"></i>Action
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for ride in rides %}
+                                <tr class="hover:bg-gray-50 transition-colors duration-200">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <span class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm font-mono">
+                                                #{{ ride.booking_id }}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="bg-blue-100 w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                                                <span class="text-blue-600 font-semibold text-sm">
+                                                    {{ ride.user.first_name|first|upper }}
+                                                </span>
+                                            </div>
+                                            <span class="text-gray-900 font-medium">{{ ride.user.first_name }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-circle text-green-500 text-xs mr-2"></i>
+                                            <span class="text-gray-900">{{ ride.pickup_location }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-circle text-red-500 text-xs mr-2"></i>
+                                            <span class="text-gray-900">{{ ride.dropoff_location }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
+                                            ₹{{ ride.fare }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            {% if ride.scheduled_time %}
+                                                <i class="fas fa-calendar-alt text-gray-400 mr-2"></i>
+                                                <span class="text-gray-900">{{ ride.scheduled_time }}</span>
+                                            {% else %}
+                                                <span class="text-gray-500 italic">N/A</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        {% if label == "Confirmed" %}
+                                            <form action="{% url 'start_ride' ride.booking_id %}" method="post" class="inline-block">
+                                                {% csrf_token %}
+                                                <button type="submit" 
+                                                        class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md flex items-center">
+                                                    <i class="fas fa-play mr-2"></i>
+                                                    Start Ride
+                                                </button>
+                                            </form>
+                                        {% elif label == "Ongoing" %}
+                                            <form action="{% url 'end_ride' ride.booking_id %}" method="post" class="inline-block">
+                                                {% csrf_token %}
+                                                <button type="submit" 
+                                                        class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-sm hover:shadow-md flex items-center">
+                                                    <i class="fas fa-stop mr-2"></i>
+                                                    End Ride
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <div class="flex items-center text-gray-400">
+                                                <i class="fas fa-minus-circle mr-2"></i>
+                                                <span>No action</span>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <!-- Empty State -->
+                    <div class="px-6 py-12 text-center">
+                        <div class="bg-gray-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-car-side text-gray-400 text-2xl"></i>
+                        </div>
+                        <h4 class="text-lg font-medium text-gray-900 mb-2">No {{ label|lower }} rides</h4>
+                        <p class="text-gray-500">
+                            {% if label == "Confirmed" %}
+                                No confirmed rides waiting to be started.
+                            {% else %}
+                                You don't have any {{ label|lower }} rides at the moment.
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        {% endwith %}
+        {% endfor %}
+    </div>
+</body>
+</html>

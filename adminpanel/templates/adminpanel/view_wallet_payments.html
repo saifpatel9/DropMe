@@ -1,0 +1,49 @@
+{% extends "base_admin.html" %}
+{% block title %}Wallet Payment Details{% endblock %}
+
+{% block content %}
+<div class="page-header flex justify-between items-center mb-6">
+  <h1 class="text-3xl font-semibold text-gray-800">Wallet Payment Detail</h1>
+</div>
+
+<div class="max-w-4xl mx-auto bg-white rounded-lg shadow p-6">
+  <h2 class="text-xl font-semibold mb-4 text-[#131C44]">Payment Information</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    <div>
+      <p class="text-sm font-medium text-gray-500">Passenger Name</p>
+      <p class="text-lg font-semibold text-gray-800">{{ payment.user.first_name }} {{ payment.user.last_name }}</p>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium text-gray-500">Title</p>
+      <p class="text-lg font-semibold text-gray-800">{{ payment.title }}</p>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium text-gray-500">Payment ID</p>
+      <p class="text-lg font-semibold text-gray-800">{{ payment.payment_id }}</p>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium text-gray-500">Payment Mode</p>
+      <p class="text-lg font-semibold text-gray-800">{{ payment.payment_mode }}</p>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium text-gray-500">Amount</p>
+      <p class="text-lg font-semibold text-gray-800">₹{{ payment.amount }}</p>
+    </div>
+
+    <div>
+      <p class="text-sm font-medium text-gray-500">Paid At</p>
+      <p class="text-lg font-semibold text-gray-800">{{ payment.paid_at|date:"Y-m-d H:i" }}</p>
+    </div>
+
+  </div>
+
+  <div class="mt-6">
+    <a href="{% url 'wallet_dashboard' %}" class="btn btn-outline-secondary">Back</a>
+  </div>
+</div>
+{% endblock %}

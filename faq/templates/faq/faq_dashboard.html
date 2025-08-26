@@ -1,0 +1,108 @@
+{% extends "base_admin.html" %}
+{% block title %}FAQ Management{% endblock %}
+
+{% block content %}
+<div class="p-6 max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-semibold text-gray-800">FAQ Management</h1>
+    <a href="{% url 'add_faq' %}" class="btn btn-sm btn-primary">Add FAQs</a>
+  </div>
+
+  <!-- FAQ Table -->
+  <div class="bg-white shadow rounded-xl overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-lg font-medium text-gray-700">View FAQs</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full table-auto text-sm text-left text-gray-700">
+        <thead class="bg-[#131C44] text-white">
+          <tr>
+            <th class="py-3 px-4">S/N</th>
+            <th class="py-3 px-4">Main Topic</th>
+            <th class="py-3 px-4">Sub Topic</th>
+            <th class="py-3 px-4">Question</th>
+            <th class="py-3 px-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for faq in faqs %}
+          <tr>
+            <td class="py-3 px-4">{{ forloop.counter }}</td>
+            <td class="py-3 px-4">{{ faq.main_topic.name }}</td>
+            <td class="py-3 px-4">{{ faq.sub_topic.name }}</td>
+            <td class="py-3 px-4 w-64 whitespace-normal break-words">{{ faq.question }}</td>
+            <td class="py-3 px-4">
+              <button
+                onclick="showDropdown(this)"
+                class="btn btn-sm bg-white text-gray-800 border border-gray-300 shadow hover:bg-gray-100"
+                data-view-url="{% url 'faq_detail' faq.id %}"
+                data-edit-url="{% url 'edit_faq' faq.id %}"
+                data-delete-url="{% url 'delete_faq' faq.id %}">
+                Actions
+                <svg class="w-4 h-4 ml-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd"
+                    d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.23 8.27a.75.75 0 01.02-1.06z"
+                    clip-rule="evenodd" />
+                </svg>
+              </button>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="py-6 text-center text-gray-500">No FAQs available.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ✅ Global Dropdown -->
+<div id="globalDropdown" class="dropdown-menu hidden fixed w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-[9999]">
+  <div class="py-1 text-left" id="dropdownContent"></div>
+</div>
+
+<script>
+  let activeDropdownButton = null;
+
+  function showDropdown(button) {
+    const dropdown = document.getElementById("globalDropdown");
+    const content = document.getElementById("dropdownContent");
+
+    if (activeDropdownButton === button && !dropdown.classList.contains("hidden")) {
+      dropdown.classList.add("hidden");
+      activeDropdownButton = null;
+      return;
+    }
+
+    activeDropdownButton = button;
+
+    const viewUrl = button.getAttribute("data-view-url");
+    const editUrl = button.getAttribute("data-edit-url");
+    const deleteUrl = button.getAttribute("data-delete-url");
+
+    content.innerHTML = `
+      <a href="${viewUrl}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">View</a>
+      <a href="${editUrl}" class="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100">Edit</a>
+      <a href="${deleteUrl}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Delete</a>
+    `;
+
+    const rect = button.getBoundingClientRect();
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+
+    dropdown.style.top = `${rect.bottom + scrollTop + 5}px`;
+    dropdown.style.left = `${rect.right - 160}px`;
+    dropdown.classList.remove("hidden");
+  }
+
+  document.addEventListener("click", function (e) {
+    const dropdown = document.getElementById("globalDropdown");
+    if (!dropdown.contains(e.target) && !e.target.closest("[onclick^='showDropdown']")) {
+      dropdown.classList.add("hidden");
+      activeDropdownButton = null;
+    }
+  });
+</script>
+{% endblock %}

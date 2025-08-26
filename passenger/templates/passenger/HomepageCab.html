@@ -1,0 +1,645 @@
+
+{% load static %}
+
+<!-- {% block title %}Hospione - Your Trusted Cab Booking Partner{% endblock %} -->
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+<title>Home Page</title>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
+<style>
+  .hero-bg {
+    background: url('{% static "passenger/images/hero-bg.svg" %}') center/cover no-repeat,
+                linear-gradient(135deg, rgba(19, 28, 68, 0.8), rgba(0, 165, 158, 0.8));
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<header class="bg-white shadow-sm border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-3">
+            <!-- Tagline & Contact -->
+            <div class="flex items-center space-x-6">
+                <div class="hidden md:flex items-center text-sm text-gray-600 font-body">
+                    <i class="fas fa-clock text-teal-600 mr-2"></i>
+                    <span>24/7 Available</span>
+                </div>
+                <div class="hidden md:flex items-center text-sm text-gray-600 font-body">
+                    <i class="fas fa-phone text-teal-600 mr-2"></i>
+                    <span>1800 180 8000</span>
+                </div>
+                <div class="hidden md:flex items-center text-sm text-gray-600 font-body">
+                    <i class="fas fa-envelope text-teal-600 mr-2"></i>
+                    <span>info@hospione.com</span>
+                </div>
+            </div>
+            
+            <!-- Social Media Links -->
+            <div class="flex items-center space-x-4">
+                <a href="#" class="text-gray-400 hover:text-teal-600 transition-colors duration-300">
+                    <i class="fab fa-facebook-f text-lg"></i>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-teal-600 transition-colors duration-300">
+                    <i class="fab fa-instagram text-lg"></i>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-teal-600 transition-colors duration-300">
+                    <i class="fab fa-twitter text-lg"></i>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-teal-600 transition-colors duration-300">
+                    <i class="fab fa-linkedin-in text-lg"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Navigation -->
+<nav class="bg-white shadow-lg sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center py-4">
+      
+      <!-- Left: Logo -->
+      <div class="flex items-center space-x-2">
+        <!-- Logo box -->
+        <div class="w-10 h-10 bg-gradient-to-r from-teal-500 to-teal-600 rounded-lg flex items-center justify-center">
+          <i class="fas fa-car text-white text-lg"></i>
+        </div>
+        <!-- Logo text -->
+        <span class="text-2xl font-bold bg-gradient-to-r from-teal-500 to-teal-600 bg-clip-text text-transparent">
+          Hospione
+        </span>
+      </div>
+
+      <!-- Right: Navigation Links -->
+      <div class="hidden md:flex items-center space-x-8">
+        {% if user.is_authenticated %}
+          <!-- Profile Dropdown -->
+          <div class="relative group">
+            <button id="profileToggle" class="text-gray-700 transition focus:outline-none hover:scale-105 hover:shadow-lg transform duration-300">
+              <div class="w-10 h-10 bg-gradient-to-r from-teal-500 to-teal-600 rounded-full flex items-center justify-center">
+                <i class="fas fa-user text-white text-lg"></i>
+              </div>
+            </button>
+            <div id="profileDropdown" class="absolute right-0 mt-3 w-64 bg-white rounded-xl shadow-xl z-50 hidden">
+              <div class="bg-gradient-to-r from-teal-500 to-teal-600 p-4 rounded-t-xl text-white">
+                <div class="flex items-center space-x-3">
+                  <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-teal-500"></i>
+                  </div>
+                  <div>
+                    <p class="font-semibold">{{ user.first_name }} {{ user.last_name }}</p>
+                    <p class="text-sm">{{ user.email }}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="p-4 space-y-3 text-gray-700 font-body">
+                <a href="{% url 'profile_page' %}" class="flex items-center space-x-3 hover:text-teal-600 transition">
+                  <i class="fas fa-user"></i><span>My Account</span>
+                </a>
+                <a href="{% url 'faq_page' %}" class="flex items-center space-x-3 hover:text-teal-600 transition">
+                  <i class="fas fa-question-circle"></i><span>Help</span>
+                </a>
+                <form method="POST" action="{% url 'logout' %}">
+                  {% csrf_token %}
+                  <button type="submit" class="flex items-center space-x-3 hover:text-teal-600 transition w-full text-left">
+                    <i class="fas fa-power-off"></i><span>Logout</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <!-- Login Button -->
+          <a href="{% url 'login' %}">
+            <button class="btn-primary text-white px-6 py-2 rounded-full font-medium font-body">
+              <i class="fas fa-sign-in-alt mr-2"></i>Login
+            </button>
+          </a>
+        {% endif %}
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <div class="md:hidden">
+        <button class="text-gray-700 hover:text-teal-600 focus:outline-none">
+          <i class="fas fa-bars text-xl"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+
+<!-- Hero Banner -->
+<section id="home" class="hero-bg min-h-screen flex items-center relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-r from-blue-900/20 to-teal-900/20"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        
+<div class="grid lg:grid-cols-2 gap-12 items-center">
+    <!-- Left Text Content -->
+    <div class="text-white animate-fade-in-up">
+        <h1 class="text-5xl lg:text-6xl font-bold font-heading mb-6 leading-tight">
+            Your Journey
+            <span class="text-gradient block">Starts Here</span>
+        </h1>
+        <p class="text-xl font-body mb-8 text-gray-200 leading-relaxed">
+            Experience comfortable, reliable, and affordable cab services. 
+            Book your ride in seconds and travel with confidence across the city and beyond.
+        </p>
+    </div>
+
+    <!-- Right Booking Widget -->
+    <div class="slide-in">
+        <div class="bg-white/95 backdrop-blur-sm rounded-3xl p-8 shadow-2xl">
+            <!-- Booking Tabs -->
+            <div class="flex justify-center mb-6">
+                <div class="flex bg-gray-100 rounded-xl p-1">
+                    <button class="px-6 py-2 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-md font-medium text-sm booking-tab" data-tab="ride-now">
+                        <i class="fas fa-car mr-2"></i>Daily Ride
+                    </button>
+                    <button class="px-6 py-2 text-gray-600 rounded-md font-medium text-sm hover:bg-gray-200 transition booking-tab" data-tab="outstation">
+                    <i class="fas fa-map-marked-alt mr-2"></i>Outstation
+                </button>
+                    <button class="px-6 py-2 text-gray-600 rounded-md font-medium text-sm hover:bg-gray-200 transition booking-tab" data-tab="rental">
+                        <i class="fas fa-route mr-2"></i>Rental
+                    </button>
+                </div>
+            </div>
+
+            <form class="space-y-4" action="{% url 'choose_ride' %}" method="get">
+                <input type="hidden" name="ride_type" value="daily" id="rideTypeInput">
+                <!-- Pickup -->
+                <div class="relative">
+                    <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-500">
+                        <div class="w-3 h-3 bg-green-500 rounded-full pulse-animation"></div>
+                    </div>
+                    <input type="text" name="pickup" placeholder="Pickup location" value="{{ pickup }}" class="w-full pl-10 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none transition" required>
+                    <button type="button" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-teal-600 transition">
+                        <i class="fas fa-crosshairs"></i>
+                    </button>
+                </div>
+
+                <!-- Drop-off -->
+                <div class="relative">
+                    <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                    </div>
+                    <input type="text" name="dropoff" placeholder="Drop-off location" value="{{ dropoff }}" class="w-full pl-10 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none transition" required>
+                </div>
+
+                <!-- Book Now or Schedule Toggle -->
+                <div>
+                    <button type="button" id="toggleSchedule" class="w-full py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none transition flex items-center justify-between px-4 text-gray-700 font-medium">
+                        <span id="toggleText"><i class="fas fa-clock mr-2"></i> Now</span>
+                        <i class="fas fa-chevron-down text-sm"></i>
+                    </button>
+                </div>
+
+                <!-- Hidden Schedule Inputs -->
+                <div id="scheduleFields" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 hidden">
+                    <div class="relative">
+                        <i class="fas fa-calendar absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="date" name="date" value="{{ date }}" class="w-full pl-10 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none transition">
+                    </div>
+                    <div class="relative">
+                        <i class="fas fa-clock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="time" name="time" value="{{ time }}" class="w-full pl-10 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none transition">
+                    </div>
+                </div>
+
+                <!-- Rental duration -->
+                <div class="grid grid-cols-1 gap-4 rental-fields hidden">
+                    <div class="relative">
+                        <i class="fas fa-clock absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <select name="rental_duration_id" class="appearance-none w-full pl-10 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none transition" required>
+                            {% for rental in rental_packages %}
+                                <option value="{{ rental.id }}">{{ rental.distance_km }} KM / {{ rental.time_hours }} Hours</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-4 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                    <i class="fas fa-search mr-2"></i>
+                    Find Your Ride
+                </button>
+
+                <div class="mt-4 text-center text-gray-600 text-sm">
+                    <i class="fas fa-shield-alt text-green-500 mr-1"></i>
+                    Your booking is protected by our safety guarantee
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+</section>
+
+<!-- Why Choose Us -->
+<section class="py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-900 font-heading mb-4">Why Choose Hospione?</h2>
+            <p class="text-xl text-gray-600 font-body max-w-3xl mx-auto">
+                We make your journey smooth and hassle-free with our professional service and modern approach
+            </p>
+        </div>
+        
+        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Step 1 -->
+            <div class="text-center card-hover bg-white p-8 rounded-2xl shadow-lg">
+                <div class="w-20 h-20 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-mobile-alt text-2xl text-white"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 font-heading mb-4">Easy Booking</h3>
+                <p class="text-gray-600 font-body leading-relaxed">
+                    Book your cab in just a few taps. Our intuitive platform makes scheduling rides effortless.
+                </p>
+            </div>
+            
+            <!-- Step 2 -->
+            <div class="text-center card-hover bg-white p-8 rounded-2xl shadow-lg">
+                <div class="w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-user-tie text-2xl text-white"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 font-heading mb-4">Reliable Drivers</h3>
+                <p class="text-gray-600 font-body leading-relaxed">
+                    Professional, verified drivers with years of experience and excellent customer service.
+                </p>
+            </div>
+            
+            <!-- Step 3 -->
+            <div class="text-center card-hover bg-white p-8 rounded-2xl shadow-lg">
+                <div class="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-dollar-sign text-2xl text-white"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 font-heading mb-4">Affordable Prices</h3>
+                <p class="text-gray-600 font-body leading-relaxed">
+                    Transparent pricing with no hidden charges. Get the best value for your money.
+                </p>
+            </div>
+            
+            <!-- Step 4 -->
+            <div class="text-center card-hover bg-white p-8 rounded-2xl shadow-lg">
+                <div class="w-20 h-20 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-headset text-2xl text-white"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 font-heading mb-4">24/7 Support</h3>
+                <p class="text-gray-600 font-body leading-relaxed">
+                    Round-the-clock customer support to assist you whenever you need help.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Our Services -->
+<section id="services" class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-900 font-heading mb-4">Our Services</h2>
+            <p class="text-xl text-gray-600 font-body max-w-3xl mx-auto">
+                Comprehensive cab services tailored to meet all your transportation needs
+            </p>
+        </div>
+        
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Daily Rides -->
+            <div class="card-hover bg-gradient-to-br from-teal-50 to-teal-100 p-8 rounded-2xl border border-teal-200">
+                <div class="w-16 h-16 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center mb-6">
+                    <i class="fas fa-car text-2xl text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 font-heading mb-4">Daily Rides</h3>
+                <p class="text-gray-700 font-body mb-6 leading-relaxed">
+                    Quick and convenient rides for your daily commute, shopping trips, or short-distance travel within the city.
+                </p>
+                <ul class="text-gray-600 font-body space-y-2 mb-6">
+                    <li class="flex items-center"><i class="fas fa-check text-teal-600 mr-2"></i>Instant booking</li>
+                    <li class="flex items-center"><i class="fas fa-check text-teal-600 mr-2"></i>Real-time tracking</li>
+                    <li class="flex items-center"><i class="fas fa-check text-teal-600 mr-2"></i>Multiple payment options</li>
+                </ul>
+                <button class="btn-primary text-white px-6 py-3 rounded-full font-medium font-body w-full">
+                    Book Daily Ride
+                </button>
+            </div>
+            
+            <!-- Rental Services -->
+            <div class="card-hover bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-2xl border border-blue-200">
+                <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-6">
+                    <i class="fas fa-calendar-alt text-2xl text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 font-heading mb-4">Rental Services</h3>
+                <p class="text-gray-700 font-body mb-6 leading-relaxed">
+                    Flexible hourly or daily rental options perfect for business meetings, events, or extended city tours.
+                </p>
+                <ul class="text-gray-600 font-body space-y-2 mb-6">
+                    <li class="flex items-center"><i class="fas fa-check text-blue-600 mr-2"></i>Hourly & daily packages</li>
+                    <li class="flex items-center"><i class="fas fa-check text-blue-600 mr-2"></i>Professional chauffeurs</li>
+                    <li class="flex items-center"><i class="fas fa-check text-blue-600 mr-2"></i>Premium vehicles</li>
+                </ul>
+                <button class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-500 text-white px-6 py-3 rounded-full font-medium font-body w-full transition-all duration-300 hover:shadow-lg">
+                    Book Rental
+                </button>
+            </div>
+            
+            <!-- Outstation Travel -->
+            <div class="card-hover bg-gradient-to-br from-green-50 to-green-100 p-8 rounded-2xl border border-green-200">
+                <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-6">
+                    <i class="fas fa-map-marked-alt text-2xl text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 font-heading mb-4">Outstation Travel</h3>
+                <p class="text-gray-700 font-body mb-6 leading-relaxed">
+                    Comfortable long-distance travel to other cities with experienced drivers and well-maintained vehicles.
+                </p>
+                <ul class="text-gray-600 font-body space-y-2 mb-6">
+                    <li class="flex items-center"><i class="fas fa-check text-green-600 mr-2"></i>Interstate permits</li>
+                    <li class="flex items-center"><i class="fas fa-check text-green-600 mr-2"></i>24/7 roadside assistance</li>
+                    <li class="flex items-center"><i class="fas fa-check text-green-600 mr-2"></i>Round trip & one-way</li>
+                </ul>
+                <button class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-500 text-white px-6 py-3 rounded-full font-medium font-body w-full transition-all duration-300 hover:shadow-lg">
+                    Plan Outstation
+                </button>
+            </div>
+            
+            <!-- Bike Rides -->
+            <div class="card-hover bg-gradient-to-br from-purple-50 to-purple-100 p-8 rounded-2xl border border-purple-200">
+                <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-6">
+                    <i class="fas fa-motorcycle text-2xl text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 font-heading mb-4">Bike Rides</h3>
+                <p class="text-gray-700 font-body mb-6 leading-relaxed">
+                    Quick and affordable two-wheeler rides for solo travel across the city.
+                </p>
+                <ul class="text-gray-600 font-body space-y-2 mb-6">
+                    <li class="flex items-center"><i class="fas fa-check text-purple-600 mr-2"></i>Faster urban commute</li>
+                    <li class="flex items-center"><i class="fas fa-check text-purple-600 mr-2"></i>Lower cost</li>
+                    <li class="flex items-center"><i class="fas fa-check text-purple-600 mr-2"></i>Available on-demand</li>
+                </ul>
+                <button class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-500 text-white px-6 py-3 rounded-full font-medium font-body w-full transition-all duration-300 hover:shadow-lg">
+                    Book Bike Ride
+                </button>
+            </div>
+            
+            <!-- Auto Rickshaw -->
+            <div class="card-hover bg-gradient-to-br from-orange-50 to-orange-100 p-8 rounded-2xl border border-orange-200">
+                <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-6">
+                    <i class="fas fa-taxi text-2xl text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 font-heading mb-4">Auto Rickshaw</h3>
+                <p class="text-gray-700 font-body mb-6 leading-relaxed">
+                    Book hassle-free and economical auto rickshaw rides anytime.
+                </p>
+                <ul class="text-gray-600 font-body space-y-2 mb-6">
+                    <li class="flex items-center"><i class="fas fa-check text-orange-600 mr-2"></i>Wide city coverage</li>
+                    <li class="flex items-center"><i class="fas fa-check text-orange-600 mr-2"></i>Eco-friendly travel</li>
+                    <li class="flex items-center"><i class="fas fa-check text-orange-600 mr-2"></i>Quick availability</li>
+                </ul>
+                <button class="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-500 text-white px-6 py-3 rounded-full font-medium font-body w-full transition-all duration-300 hover:shadow-lg">
+                    Book Auto Ride
+                </button>
+            </div>
+
+            <!-- Schedule Ride -->
+            <div class="card-hover bg-gradient-to-br from-pink-50 to-pink-100 p-8 rounded-2xl border border-pink-200">
+                <div class="w-16 h-16 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center mb-6">
+                    <i class="fas fa-calendar-check text-2xl text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 font-heading mb-4">Schedule Ride</h3>
+                <p class="text-gray-700 font-body mb-6 leading-relaxed">
+                    Plan your rides in advance and enjoy hassle-free, on-time pickups.
+                </p>
+                <ul class="text-gray-600 font-body space-y-2 mb-6">
+                    <li class="flex items-center"><i class="fas fa-check text-pink-600 mr-2"></i>Advance booking</li>
+                    <li class="flex items-center"><i class="fas fa-check text-pink-600 mr-2"></i>Reliable scheduling</li>
+                    <li class="flex items-center"><i class="fas fa-check text-pink-600 mr-2"></i>Priority driver allocation</li>
+                </ul>
+                <button class="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-500 text-white px-6 py-3 rounded-full font-medium font-body w-full transition-all duration-300 hover:shadow-lg">
+                    Schedule Ride
+                </button>
+            </div>
+            
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-20 bg-gradient-to-r from-gray-900 via-blue-900 to-teal-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-4xl font-bold text-white font-heading mb-6">Ready to Start Your Journey?</h2>
+        <p class="text-xl text-gray-300 font-body mb-8 max-w-2xl mx-auto">
+            Join thousands of satisfied customers who trust Hospione for their daily transportation needs.
+        </p>
+        <div class="flex justify-center">
+            <button class="btn-primary text-white px-8 py-4 rounded-full font-semibold text-lg font-body">
+                <i class="fas fa-user-plus mr-3"></i>Join Now
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-white py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-4 gap-8">
+            <div>
+                <div class="flex items-center space-x-2 mb-4">
+                  <div class="w-10 h-10 bg-gradient-to-r from-teal-500 to-teal-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-car text-white text-lg"></i>
+                  </div>
+                  <span class="text-2xl font-bold bg-gradient-to-r from-teal-500 to-teal-600 bg-clip-text text-transparent">
+                    Hospione
+                  </span>
+                </div>
+                <p class="text-gray-400 font-body mb-4">
+                    Your trusted partner for reliable, comfortable, and affordable cab services across the city and beyond.
+                </p>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-400 hover:text-teal-400 transition-colors duration-300">
+                        <i class="fab fa-facebook-f text-lg"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-teal-400 transition-colors duration-300">
+                        <i class="fab fa-instagram text-lg"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-teal-400 transition-colors duration-300">
+                        <i class="fab fa-twitter text-lg"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-teal-400 transition-colors duration-300">
+                        <i class="fab fa-linkedin-in text-lg"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-semibold font-heading mb-4">Quick Links</h3>
+                <ul class="space-y-2 font-body">
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">Home</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">About Us</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">Services</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">Contact</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">Blog</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-semibold font-heading mb-4">Services</h3>
+                <ul class="space-y-2 font-body">
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">Daily Rides</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">Rentals</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">Outstation</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">Bike Rides</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors duration-300">Auto Rickshaw</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-semibold font-heading mb-4">Contact Info</h3>
+                <ul class="space-y-3 font-body">
+                    <li class="flex items-center text-gray-400">
+                        <i class="fas fa-map-marker-alt mr-3 text-teal-400"></i>
+                        123 Business Street, City, State 12345
+                    </li>
+                    <li class="flex items-center text-gray-400">
+                        <i class="fas fa-phone mr-3 text-teal-400"></i>
+                        1800 180 8000
+                    </li>
+                    <li class="flex items-center text-gray-400">
+                        <i class="fas fa-envelope mr-3 text-teal-400"></i>
+                        info@hospione.com
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="border-t border-gray-800 mt-8 pt-8 text-center">
+            <p class="text-gray-400 font-body">
+                © 2024 Hospione. All rights reserved. | 
+                <a href="#" class="hover:text-white transition-colors duration-300">Privacy Policy</a> | 
+                <a href="#" class="hover:text-white transition-colors duration-300">Terms of Service</a>
+            </p>
+        </div>
+    </div>
+</footer>
+
+<script>
+// Smooth scrolling for navigation links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+    });
+});
+
+// Add scroll effect to navbar
+window.addEventListener('scroll', function() {
+    const navbar = document.querySelector('nav');
+    if (window.scrollY > 100) {
+        navbar.classList.add('bg-white/95', 'backdrop-blur-sm');
+    } else {
+        navbar.classList.remove('bg-white/95', 'backdrop-blur-sm');
+    }
+});
+
+// Mobile menu toggle
+const mobileMenuButton = document.querySelector('.md\\:hidden button');
+const mobileMenu = document.createElement('div');
+mobileMenu.className = 'md:hidden absolute top-full left-0 right-0 bg-white shadow-lg border-t hidden';
+mobileMenu.innerHTML = `
+    <div class="px-4 py-6 space-y-4">
+        <a href="#home" class="block text-gray-700 hover:text-teal-600 font-medium font-body">Home</a>
+        <a href="#services" class="block text-gray-700 hover:text-teal-600 font-medium font-body">Services</a>
+        <a href="#about" class="block text-gray-700 hover:text-teal-600 font-medium font-body">About</a>
+        <a href="#contact" class="block text-gray-700 hover:text-teal-600 font-medium font-body">Contact</a>
+        <button class="btn-primary text-white px-6 py-2 rounded-full font-medium font-body w-full">
+            <i class="fas fa-sign-in-alt mr-2"></i>Login
+        </button>
+    </div>
+`;
+
+document.querySelector('nav .max-w-7xl').appendChild(mobileMenu);
+
+mobileMenuButton.addEventListener('click', function() {
+    mobileMenu.classList.toggle('hidden');
+    const icon = this.querySelector('i');
+    icon.classList.toggle('fa-bars');
+    icon.classList.toggle('fa-times');
+});
+
+// Animate elements on scroll
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('animate-fade-in-up');
+        }
+    });
+}, observerOptions);
+
+// Observe service cards and other elements
+document.querySelectorAll('.card-hover').forEach(card => {
+    observer.observe(card);
+});
+// Profile dropdown toggle
+document.getElementById('profileToggle')?.addEventListener('click', function(e) {
+  e.stopPropagation();
+  document.getElementById('profileDropdown').classList.toggle('hidden');
+});
+
+document.addEventListener('click', function(e) {
+  const dropdown = document.getElementById('profileDropdown');
+  if (dropdown && !dropdown.contains(e.target)) {
+    dropdown.classList.add('hidden');
+  }
+});
+
+// Toggle Schedule Inputs
+const toggleBtn = document.getElementById('toggleSchedule');
+const scheduleFields = document.getElementById('scheduleFields');
+const toggleText = document.getElementById('toggleText');
+
+toggleBtn.addEventListener('click', () => {
+    const isHidden = scheduleFields.classList.contains('hidden');
+    scheduleFields.classList.toggle('hidden');
+
+    if (isHidden) {
+        toggleText.innerHTML = '<i class="fas fa-clock mr-2"></i> Schedule for Later';
+    } else {
+        toggleText.innerHTML = '<i class="fas fa-clock mr-2"></i> Now';
+    }
+});
+</script>
+{% endblock %}
+<script>
+document.querySelectorAll('.booking-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.booking-tab').forEach(b => b.classList.remove('bg-gradient-to-r', 'from-teal-500', 'to-teal-600', 'text-white'));
+        btn.classList.add('bg-gradient-to-r', 'from-teal-500', 'to-teal-600', 'text-white');
+
+        const selectedTab = btn.dataset.tab;
+        document.getElementById('rideTypeInput').value = selectedTab;
+
+        const rentalFields = document.querySelector('.rental-fields');
+        const dateTimeFields = document.querySelector('.date-time-group');
+
+        if (selectedTab === 'rental') {
+            rentalFields.classList.remove('hidden');
+            dateTimeFields.classList.add('hidden');
+        } else {
+            rentalFields.classList.add('hidden');
+            dateTimeFields.classList.remove('hidden');
+        }
+    });
+});
+</script>

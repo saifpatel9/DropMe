@@ -1,0 +1,201 @@
+{% load static %}
+{% load custom_filters %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<section class="bg-gray-50 py-10">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
+    <a href="{% url 'homepage' %}" class="inline-block text-sm text-teal-600 font-semibold hover:underline hover:text-teal-800 transition">
+      ← Back
+    </a>
+  </div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-3 gap-8">
+
+    <div class="bg-white shadow-md rounded-2xl p-6">
+      <div class="flex justify-center mb-4">
+        <div id="ride-type-tabs" class="flex bg-gray-100 rounded-xl p-1 w-full">
+          <button data-type="daily" class="flex-1 py-2 {% if ride_type == 'daily' %}bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-l-xl font-medium text-sm{% else %}text-gray-600 hover:bg-gray-200 transition font-medium text-sm{% endif %}">Daily Ride</button>
+          <button data-type="outstation" class="flex-1 py-2 {% if ride_type == 'outstation' %}bg-gradient-to-r from-teal-500 to-teal-600 text-white font-medium text-sm{% else %}text-gray-600 hover:bg-gray-200 transition font-medium text-sm{% endif %}">Outstation</button>
+          <button data-type="rental" class="flex-1 py-2 {% if ride_type == 'rental' %}bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-r-xl font-medium text-sm{% else %}text-gray-600 hover:bg-gray-200 transition font-medium text-sm rounded-r-xl{% endif %}">Rental</button>
+        </div>
+      </div>
+
+      <input type="hidden" name="ride_type" value="{{ ride_type }}">
+      <div class="mb-4">
+        <input type="text" name="pickup" placeholder="Pickup Location" value="{{ pickup }}" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500">
+      </div>
+      <div class="mb-4">
+        <input type="text" name="dropoff" placeholder="Dropoff Location" value="{{ dropoff }}" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500">
+      </div>
+
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div>
+          <input type="date" name="ride_date" value="{{ ride_date }}" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500">
+        </div>
+        <div>
+          <input type="time" name="ride_time" value="{{ ride_time }}" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500">
+        </div>
+      </div>
+
+      {% if ride_type == 'rental' %}
+      <div class="mt-4">
+        <label for="rental_duration" class="block text-sm font-medium text-gray-700 mb-1">Select Rental Package</label>
+        <select name="rental_duration" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500">
+          {% if rental_options %}
+            {% for option in rental_options %}
+              <option value="{{ option.id }}" {% if rental_duration == option.id|stringformat:"s" %}selected{% endif %}>
+                {{ option.distance_km }} KM / {{ option.time_hours }} Hours
+              </option>
+            {% endfor %}
+          {% else %}
+            <option disabled selected>No durations available</option>
+          {% endif %}
+        </select>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="lg:col-span-2">
+      <div class="bg-white shadow-md rounded-2xl p-6">
+        <div class="space-y-4 mb-6">
+          {% if estimated_fares %}
+            {% for fare in estimated_fares %}
+              <label class="block">
+                <input type="radio" name="selected_service" value="{{ fare.service_id }}" class="peer hidden" required>
+                <div class="flex items-center p-4 border rounded-xl hover:shadow transition cursor-pointer peer-checked:border-2 peer-checked:border-teal-500 mb-2">
+                  <div class="mr-4 flex-shrink-0">
+                    {% if fare.icon %}
+                      <i class="{{ fare.icon }} text-teal-500 text-2xl"></i>
+                    {% else %}
+                      <i class="fas fa-car text-teal-500 text-2xl"></i>
+                    {% endif %}
+                  </div>
+                  <div class="flex-1">
+                    <p class="font-semibold text-gray-800">{{ fare.service_name }}</p> {# CHANGED THIS LINE #}
+                    <p class="text-sm text-gray-500">{{ fare.number_of_seats }} Seater</p>
+                  </div>
+                  <div class="text-right text-sm text-gray-600">
+                    <p class="text-teal-600 font-bold text-lg mt-1">₹{{ fare.estimated_price }}</p>
+                    <p class="text-xs text-gray-400">Total Fare</p>
+                  </div>
+                </div>
+              </label>
+            {% endfor %}
+          {% else %}
+            <p class="text-center text-gray-500">No services available.</p>
+          {% endif %}
+        </div>
+
+
+        <div>
+          <button id="book-ride-btn" class="w-full bg-gradient-to-r from-teal-500 to-teal-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50" disabled>Book a Ride</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const tabsContainer = document.getElementById('ride-type-tabs');
+    const buttons = tabsContainer.querySelectorAll('button');
+
+    const rideType = document.querySelector('input[name="ride_type"]').value;
+    buttons.forEach(btn => {
+      if (btn.getAttribute('data-type') === rideType) {
+        btn.classList.add('bg-gradient-to-r', 'from-teal-500', 'to-teal-600', 'text-white');
+        btn.classList.remove('text-gray-600', 'hover:bg-gray-200');
+        if (btn === buttons[0]) btn.classList.add('rounded-l-xl');
+        if (btn === buttons[buttons.length - 1]) btn.classList.add('rounded-r-xl');
+      } else {
+        btn.classList.remove('bg-gradient-to-r', 'from-teal-500', 'to-teal-600', 'text-white');
+        btn.classList.add('text-gray-600', 'hover:bg-gray-200');
+        btn.classList.remove('rounded-l-xl', 'rounded-r-xl');
+      }
+    });
+
+    buttons.forEach(button => {
+      button.addEventListener('click', () => {
+        buttons.forEach(btn => {
+          btn.classList.remove('bg-gradient-to-r', 'from-teal-500', 'to-teal-600', 'text-white');
+          btn.classList.add('text-gray-600', 'hover:bg-gray-200');
+          // Reset rounded corners
+          btn.classList.remove('rounded-l-xl', 'rounded-r-xl');
+        });
+
+        // Add active classes to clicked button
+        button.classList.add('bg-gradient-to-r', 'from-teal-500', 'to-teal-600', 'text-white');
+        button.classList.remove('text-gray-600', 'hover:bg-gray-200');
+
+        // Add rounded corners based on position
+        if (button === buttons[0]) {
+          button.classList.add('rounded-l-xl');
+        } else if (button === buttons[buttons.length - 1]) {
+          button.classList.add('rounded-r-xl');
+        }
+
+        const selectedType = button.getAttribute('data-type');
+        const pickup = document.querySelector('input[name="pickup"]').value;
+        const dropoff = document.querySelector('input[name="dropoff"]').value;
+        const date = document.querySelector('input[name="ride_date"]').value;
+        const time = document.querySelector('input[name="ride_time"]').value;
+        const rentalSelect = document.querySelector('select[name="rental_duration"]');
+        const rentalDuration = rentalSelect ? rentalSelect.value : '';
+        
+        if (pickup && dropoff && date && time) {
+          let url = `/passenger/choose-ride/?pickup=${pickup}&dropoff=${dropoff}&ride_date=${date}&ride_time=${time}&ride_type=${selectedType}`;
+          if (selectedType === 'rental' && rentalDuration) {
+            url += `&rental_duration=${rentalDuration}`;
+          }
+          window.location.href = url;
+        }
+      });
+    });
+
+    const serviceRadios = document.querySelectorAll('input[name="selected_service"]');
+    const bookButton = document.getElementById('book-ride-btn');
+
+    serviceRadios.forEach(radio => {
+      radio.addEventListener('change', () => {
+        if (radio.checked) {
+          bookButton.disabled = false;
+          bookButton.dataset.selectedService = radio.value;
+        }
+      });
+    });
+
+    bookButton.addEventListener('click', () => {
+      const selectedService = document.querySelector('input[name="selected_service"]:checked');
+      if (!selectedService) {
+        alert('Please select a service option before booking.');
+        return;
+      }
+
+      // Capture selected service name and fare
+      const selectedServiceContainer = selectedService.closest('label').querySelector('div.flex-1 p.font-semibold');
+      const selectedFareContainer = selectedService.closest('label').querySelector('div.text-right p.text-teal-600');
+      const selectedServiceName = selectedServiceContainer ? selectedServiceContainer.textContent.trim() : '';
+      const selectedFare = selectedFareContainer ? selectedFareContainer.textContent.replace('₹', '').trim() : '';
+
+      const pickup = document.querySelector('input[name="pickup"]').value;
+      const dropoff = document.querySelector('input[name="dropoff"]').value;
+      const ride_date = document.querySelector('input[name="ride_date"]').value;
+      const ride_time = document.querySelector('input[name="ride_time"]').value;
+      const ride_type = document.querySelector('input[name="ride_type"]').value;
+      const rentalSelect = document.querySelector('select[name="rental_duration"]');
+      const rental_duration = rentalSelect ? rentalSelect.value : '';
+
+      let url = `/passenger/book-ride/?pickup=${encodeURIComponent(pickup)}&dropoff=${encodeURIComponent(dropoff)}&ride_date=${ride_date}&ride_time=${ride_time}&ride_type=${ride_type}&service_id=${selectedService.value}&service_name=${encodeURIComponent(selectedServiceName)}&fare=${encodeURIComponent(selectedFare)}`;
+      if (ride_type === 'rental' && rental_duration) {
+        url += `&rental_duration=${rental_duration}`;
+      }
+      window.location.href = url;
+    });
+  });
+</script>
+{% endblock %}

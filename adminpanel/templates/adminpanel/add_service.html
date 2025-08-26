@@ -1,0 +1,74 @@
+{% extends "base_admin.html" %}
+{% block title %}Add Service{% endblock %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-10 p-6 bg-white rounded-xl shadow">
+  <h2 class="text-3xl font-semibold text-[#131C44] mb-6">Add New Service</h2>
+
+  <form method="POST" class="space-y-6">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {% for field in form %}
+        {% if field.name != 'status' %}
+          <div>
+            <label for="{{ field.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ field.label }}</label>
+            {{ field }}
+            {% for error in field.errors %}
+              <p class="text-sm text-red-600 mt-1">{{ error }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <!-- ✅ Status Toggle -->
+    <div class="md:col-span-2 flex items-center gap-4 mt-4">
+      <label for="statusToggle" class="font-semibold text-gray-700">Status</label>
+
+      <label class="relative inline-block w-12 h-6 cursor-pointer">
+        <input type="checkbox" id="statusToggle" class="sr-only peer"
+               {% if form.status.value == 'active' or not form.status.value %}checked{% endif %}>
+        <div class="w-full h-full bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors duration-300"></div>
+        <div class="absolute top-[2px] left-[2px] bg-white w-5 h-5 rounded-full transition-transform duration-300 peer-checked:translate-x-6"></div>
+      </label>
+
+      <span id="statusText" class="text-gray-700">
+        {% if form.status.value %}{{ form.status.value }}{% else %}active{% endif %}
+      </span>
+      <input type="hidden" name="status" id="statusHidden" value="{% if form.status.value %}{{ form.status.value }}{% else %}active{% endif %}">
+    </div>
+
+    <!-- ✅ Form Buttons -->
+    <div class="pt-6 flex justify-end gap-4">
+      <button type="submit"
+        class="bg-[#00A59E] hover:bg-[#131C44] text-white px-6 py-3 rounded-full font-semibold transition">
+        Save Service
+      </button>
+      <a href="{% url 'service_dashboard' %}" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-full font-semibold transition">
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>
+
+<!-- ✅ Status Toggle Script -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const toggle = document.getElementById('statusToggle');
+    const statusText = document.getElementById('statusText');
+    const statusInput = document.getElementById('statusHidden');
+
+    toggle.addEventListener('change', () => {
+      if (toggle.checked) {
+        statusText.textContent = 'active';
+        statusInput.value = 'active';
+      } else {
+        statusText.textContent = 'inactive';
+        statusInput.value = 'inactive';
+      }
+    });
+  });
+</script>
+{% endblock %}

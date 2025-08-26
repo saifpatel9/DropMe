@@ -1,0 +1,676 @@
+{% extends "base_admin.html" %}
+{% load static %}
+{% block title %}Payment Dashboard{% endblock %}
+
+{% block extrahead %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="p-6 max-w-7xl mx-auto">
+  <!-- Page Header -->
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 space-y-4 sm:space-y-0">
+    <div>
+      <h1 class="text-3xl font-semibold text-gray-800 mb-2">Payment Dashboard</h1>
+      <p class="text-gray-600">Monitor and analyze payment transactions</p>
+    </div>
+    <div class="flex items-center space-x-2 text-sm text-gray-500">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <span>Last updated: Today</span>
+    </div>
+  </div>
+
+  <!-- KPI Summary Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 lg:gap-6 mb-8">
+    <div class="group p-4 lg:p-6 bg-white shadow rounded-xl text-center hover:shadow-lg transition-shadow duration-300 border-l-4 border-green-500">
+      <div class="flex items-center justify-center w-10 h-10 bg-green-100 rounded-full mx-auto mb-3">
+        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+        </svg>
+      </div>
+      <h3 class="text-gray-500 text-sm font-medium mb-1">Total Revenue</h3>
+      <p class="text-xl lg:text-2xl font-semibold text-gray-800">₹{{ total_revenue }}</p>
+    </div>
+    
+    <div class="group p-4 lg:p-6 bg-white shadow rounded-xl text-center hover:shadow-lg transition-shadow duration-300 border-l-4 border-orange-500">
+      <div class="flex items-center justify-center w-10 h-10 bg-orange-100 rounded-full mx-auto mb-3">
+        <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+        </svg>
+      </div>
+      <h3 class="text-gray-500 text-sm font-medium mb-1">Admin Profit</h3>
+      <p class="text-xl lg:text-2xl font-semibold text-gray-800">₹{{ total_profit }}</p>
+    </div>
+    
+    <div class="group p-4 lg:p-6 bg-white shadow rounded-xl text-center hover:shadow-lg transition-shadow duration-300 border-l-4 border-blue-500">
+      <div class="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full mx-auto mb-3">
+        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <h3 class="text-gray-500 text-sm font-medium mb-1">Completed</h3>
+      <p class="text-xl lg:text-2xl font-semibold text-gray-800">{{ completed_count }}</p>
+    </div>
+    
+    <div class="group p-4 lg:p-6 bg-white shadow rounded-xl text-center hover:shadow-lg transition-shadow duration-300 border-l-4 border-yellow-500">
+      <div class="flex items-center justify-center w-10 h-10 bg-yellow-100 rounded-full mx-auto mb-3">
+        <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <h3 class="text-gray-500 text-sm font-medium mb-1">Pending</h3>
+      <p class="text-xl lg:text-2xl font-semibold text-gray-800">{{ pending_count }}</p>
+    </div>
+    
+    <div class="group p-4 lg:p-6 bg-white shadow rounded-xl text-center hover:shadow-lg transition-shadow duration-300 border-l-4 border-red-500">
+      <div class="flex items-center justify-center w-10 h-10 bg-red-100 rounded-full mx-auto mb-3">
+        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <h3 class="text-gray-500 text-sm font-medium mb-1">Failed</h3>
+      <p class="text-xl lg:text-2xl font-semibold text-gray-800">{{ failed_count }}</p>
+    </div>
+    
+    <div class="group p-4 lg:p-6 bg-white shadow rounded-xl text-center hover:shadow-lg transition-shadow duration-300 border-l-4 border-indigo-500">
+      <div class="flex items-center justify-center w-10 h-10 bg-indigo-100 rounded-full mx-auto mb-3">
+        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+        </svg>
+      </div>
+      <h3 class="text-gray-500 text-sm font-medium mb-1">Refunded</h3>
+      <p class="text-xl lg:text-2xl font-semibold text-gray-800">{{ refunded_count }}</p>
+    </div>
+  </div>
+
+  <!-- Charts Section -->
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white p-6 shadow rounded-xl border border-gray-100 hover:shadow-lg transition-shadow duration-300">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-medium text-gray-700">Payment Status Distribution</h2>
+        <div class="flex items-center space-x-2">
+          <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+          <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+          <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+        </div>
+      </div>
+      <div class="h-48" style="height: 300px;">
+        <canvas id="statusChart" class="w-full h-full"></canvas>
+      </div>
+    </div>
+    
+    <div class="bg-white p-6 shadow rounded-xl border border-gray-100 hover:shadow-lg transition-shadow duration-300">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-medium text-gray-700">Payment Modes</h2>
+        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+        </svg>
+      </div>
+      <div class="h-48" style="height: 300px;">
+        <canvas id="modeChart" class="w-full h-full"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white p-6 shadow rounded-xl mb-8 border border-gray-100 hover:shadow-lg transition-shadow duration-300">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-medium text-gray-700">Revenue Trend (Last 30 Days)</h2>
+      <div class="flex items-center space-x-2">
+        <div class="flex items-center space-x-1">
+          <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          <span class="text-sm text-gray-600">Revenue</span>
+        </div>
+      </div>
+    </div>
+    <div class="h-48" style="height: 300px;">
+      <canvas id="revenueTrendChart" class="w-full h-full"></canvas>
+    </div>
+  </div>
+
+  <div class="bg-white p-6 shadow rounded-xl mb-8 border border-gray-100 hover:shadow-lg transition-shadow duration-300">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-lg font-medium text-gray-700">Admin vs Provider Earnings</h2>
+      <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-1">
+          <div class="w-3 h-3 bg-orange-500 rounded-full"></div>
+          <span class="text-sm text-gray-600">Admin</span>
+        </div>
+        <div class="flex items-center space-x-1">
+          <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+          <span class="text-sm text-gray-600">Provider</span>
+        </div>
+      </div>
+    </div>
+    <div class="h-64" style="height: 300px;">
+      <canvas id="adminVsProviderChart" class="w-full h-full"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- JSON Script tags for data using Django's json_script -->
+{{ payment_status_data|json_script:"payment-status-data" }}
+{{ payment_mode_data|json_script:"payment-mode-data" }}
+{{ revenue_trend|json_script:"revenue-trend-data" }}
+
+<script id="admin-earnings-data" type="application/json">
+{
+  "admin_profit": {{ total_profit|default:0 }},
+  "provider_earnings": {{ total_provider_earning|default:0 }}
+}
+</script>
+
+{% endblock %}
+
+{% block extrajs %}
+<script>
+console.log("🚀 Payment Dashboard Loading...");
+
+// Global variables for debugging - accessible in browser console
+window.chartData = {};
+window.chartInstances = {};
+window.paymentStatusData = null;
+window.paymentModeData = null;
+window.revenueTrendData = null;
+window.earningsData = null;
+
+// Check if Chart.js is loaded
+if (typeof Chart === 'undefined') {
+    console.error('❌ Chart.js is not loaded! Make sure the CDN link is working.');
+} else {
+    console.log('✅ Chart.js loaded, version:', Chart.version);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("📊 Initializing Payment Dashboard Charts...");
+    
+    try {
+        // Parse data from JSON script tags
+        const statusElement = document.getElementById('payment-status-data');
+        const modeElement = document.getElementById('payment-mode-data');
+        const trendElement = document.getElementById('revenue-trend-data');
+        const earningsElement = document.getElementById('admin-earnings-data');
+        
+        // Check if all script tags exist
+        console.log("🔍 Checking JSON script tags:", {
+            statusScript: !!statusElement,
+            modeScript: !!modeElement,
+            trendScript: !!trendElement,
+            earningsScript: !!earningsElement
+        });
+        
+        if (!statusElement) throw new Error("payment-status-data script tag not found");
+        if (!modeElement) throw new Error("payment-mode-data script tag not found");
+        if (!trendElement) throw new Error("revenue-trend-data script tag not found");
+        if (!earningsElement) throw new Error("admin-earnings-data script tag not found");
+        
+        // Parse JSON data safely
+        const paymentStatusData = JSON.parse(document.getElementById("payment-status-data").textContent);
+        const paymentModeData = JSON.parse(document.getElementById("payment-mode-data").textContent);
+        const revenueTrendData = JSON.parse(document.getElementById("revenue-trend-data").textContent);
+        const earningsData = JSON.parse(document.getElementById("admin-earnings-data").textContent);
+        
+        // Assign globally for debugging
+        window.paymentStatusData = paymentStatusData;
+        window.paymentModeData = paymentModeData;
+        window.revenueTrendData = revenueTrendData;
+        window.earningsData = earningsData;
+        
+        console.log("📋 Raw data loaded:", {
+            statusData: paymentStatusData,
+            modeData: paymentModeData,
+            trendData: revenueTrendData,
+            earningsData: earningsData
+        });
+        
+        // Process and validate data
+        const processedData = processChartData(paymentStatusData, paymentModeData, revenueTrendData, earningsData);
+        window.chartData = processedData;
+        var chartData = processedData;  // global alias for easier debugging
+        
+        console.log("🔄 Processed data:", processedData);
+        
+        // Create all charts
+        createAllCharts(processedData);
+        
+        console.log("🎉 Charts initialization complete!");
+        console.log("💡 Debug tips:");
+        console.log("  - Type 'window.paymentStatusData' in console to see status data");
+        console.log("  - Type 'window.chartData' to see all processed data");
+        console.log("  - Type 'debugCharts()' for comprehensive debug info");
+        console.log("  - Type 'refreshCharts()' to update all charts");
+        
+    } catch (error) {
+        console.error("❌ Error initializing charts:", error);
+        console.log("🔧 Troubleshooting:");
+        console.log("  1. Check Django view is passing data correctly");
+        console.log("  2. Verify json_script tags are in template");
+        console.log("  3. Check browser console for specific errors");
+        
+        // Create fallback charts with sample data
+        console.log("🔄 Creating fallback charts with sample data...");
+        createFallbackCharts();
+    }
+});
+
+function processChartData(statusData, modeData, trendData, earningsData) {
+    console.log("⚙️  Processing chart data...");
+    
+    // Process status data - ensure all statuses are represented
+    const statusMap = {};
+    if (statusData && Array.isArray(statusData)) {
+        statusData.forEach(item => {
+            if (item && item.status) {
+                statusMap[item.status] = item.total || 0;
+            }
+        });
+    }
+    
+    const allStatuses = ['completed', 'pending', 'failed', 'refunded'];
+    const processedStatusData = allStatuses.map(status => ({
+        status: status,
+        total: statusMap[status] || 0
+    }));
+    
+    // Process mode data
+    let processedModeData;
+    if (modeData && Array.isArray(modeData) && modeData.length > 0) {
+        processedModeData = modeData;
+    } else {
+        console.warn("⚠️  Mode data is empty, using fallback");
+        processedModeData = [
+            {payment_mode: "Credit Card", total: 1},
+            {payment_mode: "UPI", total: 1},
+            {payment_mode: "Cash", total: 0}
+        ];
+    }
+    
+    // Process trend data
+    let processedTrendData;
+    if (trendData && Array.isArray(trendData) && trendData.length > 0) {
+        processedTrendData = trendData;
+    } else {
+        console.warn("⚠️  Trend data is empty, generating fallback");
+        processedTrendData = generateFallbackTrendData();
+    }
+    
+    return {
+        statusData: processedStatusData,
+        modeData: processedModeData,
+        trendData: processedTrendData,
+        adminProfit: earningsData.admin_profit || 0,
+        providerEarnings: earningsData.provider_earnings || 0
+    };
+}
+
+function generateFallbackTrendData() {
+    const fallbackData = [];
+    const today = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - i);
+        fallbackData.push({
+            date: date.toISOString().split('T')[0],
+            total: Math.floor(Math.random() * 300) + 100
+        });
+    }
+    
+    return fallbackData;
+}
+
+function createAllCharts(data) {
+    console.log("🎨 Creating all charts...");
+    
+    // Set Chart.js global defaults
+    Chart.defaults.responsive = true;
+    Chart.defaults.maintainAspectRatio = false;
+    Chart.defaults.plugins.legend.position = 'bottom';
+    
+    // Create each chart
+    createStatusChart(data.statusData);
+    createModeChart(data.modeData);
+    createRevenueTrendChart(data.trendData);
+    createAdminProviderChart(data.adminProfit, data.providerEarnings);
+    
+    console.log("✅ Created chart instances:", Object.keys(window.chartInstances));
+}
+
+function createStatusChart(statusData) {
+    const canvas = document.getElementById('statusChart');
+    if (!canvas) {
+        console.error('❌ Status chart canvas not found');
+        return;
+    }
+    
+    try {
+        console.log('🥧 Creating status pie chart...');
+        
+        const chart = new Chart(canvas, {
+            type: 'pie',
+            data: {
+                labels: statusData.map(d => d.status.charAt(0).toUpperCase() + d.status.slice(1)),
+                datasets: [{
+                    data: statusData.map(d => d.total),
+                    backgroundColor: [
+                        '#10b981', // green for completed
+                        '#f59e0b', // yellow for pending
+                        '#ef4444', // red for failed
+                        '#06b6d4'  // cyan for refunded
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                    hoverBorderWidth: 3
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            font: { size: 12 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        window.chartInstances.statusChart = chart;
+        console.log('✅ Status chart created');
+        
+    } catch (error) {
+        console.error('❌ Status chart failed:', error);
+    }
+}
+
+function createModeChart(modeData) {
+    const canvas = document.getElementById('modeChart');
+    if (!canvas) {
+        console.error('❌ Mode chart canvas not found');
+        return;
+    }
+    
+    try {
+        console.log('📊 Creating mode bar chart...');
+        
+        const chart = new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: modeData.map(d => d.payment_mode),
+                datasets: [{
+                    label: 'Payments',
+                    data: modeData.map(d => d.total),
+                    backgroundColor: '#3b82f6',
+                    borderColor: '#1d4ed8',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f3f4f6' },
+                        ticks: { 
+                            precision: 0,
+                            font: { size: 11 }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 11 } }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.parsed.y}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        window.chartInstances.modeChart = chart;
+        console.log('✅ Mode chart created');
+        
+    } catch (error) {
+        console.error('❌ Mode chart failed:', error);
+    }
+}
+
+function createRevenueTrendChart(trendData) {
+    const canvas = document.getElementById('revenueTrendChart');
+    if (!canvas) {
+        console.error('❌ Revenue trend chart canvas not found');
+        return;
+    }
+    
+    try {
+        console.log('📈 Creating revenue trend chart...');
+        
+        const chart = new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels: trendData.map(d => {
+                    const date = new Date(d.date);
+                    return date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+                }),
+                datasets: [{
+                    label: 'Revenue',
+                    data: trendData.map(d => d.total),
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#10b981',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f3f4f6' },
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value;
+                            },
+                            font: { size: 11 }
+                        }
+                    },
+                    x: {
+                        grid: { color: '#f3f4f6' },
+                        ticks: { font: { size: 11 } }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `Revenue: ₹${context.parsed.y}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        window.chartInstances.revenueTrendChart = chart;
+        console.log('✅ Revenue trend chart created');
+        
+    } catch (error) {
+        console.error('❌ Revenue trend chart failed:', error);
+    }
+}
+
+function createAdminProviderChart(adminProfit, providerEarnings) {
+    const canvas = document.getElementById('adminVsProviderChart');
+    if (!canvas) {
+        console.error('❌ Admin vs Provider chart canvas not found');
+        return;
+    }
+    
+    try {
+        console.log('💰 Creating admin vs provider chart...');
+        
+        const chart = new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: ['Earnings Comparison'],
+                datasets: [
+                    {
+                        label: 'Admin Earnings',
+                        data: [adminProfit],
+                        backgroundColor: '#f97316',
+                        borderColor: '#ea580c',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Provider Earnings',
+                        data: [providerEarnings],
+                        backgroundColor: '#10b981',
+                        borderColor: '#059669',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f3f4f6' },
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value;
+                            },
+                            font: { size: 11 }
+                        }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 11 } }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            font: { size: 12 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ₹${context.parsed.y}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        window.chartInstances.adminProviderChart = chart;
+        console.log('✅ Admin vs Provider chart created');
+        
+    } catch (error) {
+        console.error('❌ Admin vs Provider chart failed:', error);
+    }
+}
+
+function createFallbackCharts() {
+    console.log('🔄 Creating fallback charts with sample data...');
+    
+    const fallbackData = {
+        statusData: [
+            {status: "completed", total: 5},
+            {status: "pending", total: 2},
+            {status: "failed", total: 1},
+            {status: "refunded", total: 0}
+        ],
+        modeData: [
+            {payment_mode: "Credit Card", total: 3},
+            {payment_mode: "UPI", total: 3},
+            {payment_mode: "Cash", total: 2}
+        ],
+        trendData: generateFallbackTrendData(),
+        adminProfit: 150,
+        providerEarnings: 350
+    };
+    
+    window.chartData = fallbackData;
+    createAllCharts(fallbackData);
+}
+
+// ✅ GLOBAL DEBUG FUNCTIONS - accessible in browser console
+window.debugCharts = function() {
+    console.log("=== 🔍 CHART DEBUG INFO ===");
+    console.log("📊 Chart data:", window.chartData);
+    console.log("📈 Chart instances:", Object.keys(window.chartInstances));
+    console.log("🏷️  Individual data variables:");
+    console.log("  - paymentStatusData:", window.paymentStatusData);
+    console.log("  - paymentModeData:", window.paymentModeData);
+    console.log("  - revenueTrendData:", window.revenueTrendData);
+    console.log("  - earningsData:", window.earningsData);
+    
+    console.log("🎨 Canvas elements exist:", {
+        statusChart: !!document.getElementById('statusChart'),
+        modeChart: !!document.getElementById('modeChart'),
+        revenueTrendChart: !!document.getElementById('revenueTrendChart'),
+        adminVsProviderChart: !!document.getElementById('adminVsProviderChart')
+    });
+    
+    console.log("📋 JSON script tags exist:", {
+        statusScript: !!document.getElementById('payment-status-data'),
+        modeScript: !!document.getElementById('payment-mode-data'),
+        trendScript: !!document.getElementById('revenue-trend-data'),
+        earningsScript: !!document.getElementById('admin-earnings-data')
+    });
+    
+    console.log("🔧 Technical info:");
+    console.log("  - Chart.js available:", typeof Chart !== 'undefined');
+    if (typeof Chart !== 'undefined') {
+        console.log("  - Chart.js version:", Chart.version);
+    }
+    console.log("  - Total charts created:", Object.keys(window.chartInstances).length + "/4");
+};
+
+window.refreshCharts = function() {
+    console.log
+};
+
+// End of extrajs block
+</script>
+{% endblock %}

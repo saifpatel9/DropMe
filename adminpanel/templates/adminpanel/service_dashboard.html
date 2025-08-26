@@ -1,0 +1,193 @@
+{% extends "base_admin.html" %}
+{% load static %}
+
+{% block title %}Services Dashboard{% endblock %}
+
+{% block content %}
+<div class="p-6 max-w-7xl mx-auto">
+  <!-- Page Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-semibold text-gray-800">Services</h1>
+    <a href="{% url 'add_service' %}" class="bg-teal-600 text-white text-sm px-5 py-2 rounded hover:bg-teal-700">Add Service</a>
+  </div>
+
+  <!-- Services Table -->
+  <div class="bg-white shadow rounded-xl overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-lg font-medium text-gray-700">Service List</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full table-auto text-sm text-center text-gray-700">
+        <thead class="bg-[#131C44] text-white">
+          <tr>
+            <th class="py-3 px-4">ID</th>
+            <th class="py-3 px-4">Name</th>
+            <th class="py-3 px-4">Picture</th>
+            <th class="py-3 px-4">Base Fare</th>
+            <th class="py-3 px-4">Min Fare</th>
+            <th class="py-3 px-4">Booking Fee</th>
+            <th class="py-3 px-4">Driver Cash Limit</th>
+            <th class="py-3 px-4">Daily</th>
+            <th class="py-3 px-4">Rental</th>
+            <th class="py-3 px-4">Outstation</th>
+            <th class="py-3 px-4">Status</th>
+            <th class="py-3 px-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for service in services %}
+          <tr>
+            <td class="py-3 px-4">{{ service.service_id }}</td>
+            <td class="py-3 px-4 font-semibold">{{ service.name }}</td>
+            <td class="py-3 px-4">
+              {% if service.picture %}
+                <img src="{{ service.picture }}" alt="Image" class="w-12 h-12 object-cover rounded" />
+              {% else %}N/A{% endif %}
+            </td>
+            <td class="py-3 px-4">₹{{ service.base_fare }}</td>
+            <td class="py-3 px-4">₹{{ service.min_fare }}</td>
+            <td class="py-3 px-4">₹{{ service.booking_fee }}</td>
+            <td class="py-3 px-4">₹{{ service.driver_cash_limit }}</td>
+            <td class="py-3 px-4">{% if service.daily_service %}✅{% else %}❌{% endif %}</td>
+            <td class="py-3 px-4">{% if service.rental_service %}✅{% else %}❌{% endif %}</td>
+            <td class="py-3 px-4">{% if service.outstation_service %}✅{% else %}❌{% endif %}</td>
+            <td class="py-3 px-4">
+              {% if service.status == 'active' %}
+                <span class="inline-block bg-green-500 text-white px-2 py-1 rounded-full text-xs">Active</span>
+              {% else %}
+                <span class="inline-block bg-gray-300 text-gray-800 px-2 py-1 rounded-full text-xs">Inactive</span>
+              {% endif %}
+            </td>
+            <td class="py-3 px-4 relative">
+              <div class="relative inline-block text-left">
+                <button onclick="toggleDropdown(this)" class="inline-flex items-center justify-center bg-white border border-gray-300 rounded-md shadow-sm px-3 py-1 text-sm font-medium hover:bg-gray-50">
+                  Actions
+                  <svg class="ml-2 w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.23 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+                <!-- Dropdown -->
+                <div class="dropdown-menu absolute right-0 mt-2 w-40 bg-white border border-gray-200 shadow-xl rounded-md hidden z-50">
+                  <a href="{% url 'view_service' service.service_id %}" class="block px-4 py-2 text-sm hover:bg-gray-100">View</a>
+                  <a href="{% url 'edit_service' service.service_id %}" class="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100">Edit</a>
+                  <a href="javascript:void(0)" onclick="openModal('deleteModal{{ service.service_id }}')" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Delete</a>
+                  <a href="{% url 'decline_service' service.service_id %}" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Decline</a>
+                </div>
+              </div>
+              <!-- Delete Modal -->
+              <div id="deleteModal{{ service.service_id }}" class="fixed inset-0 bg-black bg-opacity-40 hidden z-40 flex items-center justify-center">
+                <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                  <h2 class="text-xl font-semibold text-red-600 mb-3">Confirm Delete</h2>
+                  <p class="text-gray-700 mb-6">Are you sure you want to delete <strong>{{ service.name }}</strong>?</p>
+                  <form method="POST" action="{% url 'delete_service' service.service_id %}" class="flex justify-end gap-3">
+                    {% csrf_token %}
+                    <button type="button" onclick="closeModal('deleteModal{{ service.service_id }}')" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
+                  </form>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="12" class="py-6 text-gray-500 text-center">No services found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Fare Slab Management Table -->
+<div class="flex justify-between items-center mb-4 mt-10">
+  <h2 class="text-2xl font-bold text-gray-800">Fare Slab Management</h2>
+  <a href="{% url 'add_fareslab' %}" class="bg-teal-600 text-white text-sm px-5 py-2 rounded hover:bg-teal-700">Add Slab</a>
+</div>
+
+<div class="bg-white shadow rounded-xl overflow-x-auto max-h-[600px] overflow-y-auto">
+  <table class="min-w-full table-auto text-sm text-center text-gray-700">
+    <thead class="bg-[#131C44] text-white">
+      <tr>
+        <th class="py-3 px-4">Slab ID</th>
+        <th class="py-3 px-4">Service Type</th>
+        <th class="py-3 px-4">Base Fare</th>
+        <th class="py-3 px-4">Rate / KM</th>
+        <th class="py-3 px-4">Rate / Minute</th>
+        <th class="py-3 px-4">KM Range</th>
+        <th class="py-3 px-4">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-200 text-sm">
+      {% for slab in slabs %}
+      <tr>
+        <td class="py-3 px-4">{{ slab.id }}</td>
+        <td class="py-3 px-4">{{ slab.service_type.name }}</td>
+        <td class="py-3 px-4">₹{{ slab.base_fare }}</td>
+        <td class="py-3 px-4">₹{{ slab.rate_per_km }}</td>
+        <td class="py-3 px-4">₹{{ slab.rate_per_minute }}</td>
+        <td class="py-3 px-4">{{ slab.km_from }} - {{ slab.km_to }} km</td>
+        <td class="py-3 px-4">
+          <div class="relative inline-block text-left">
+            <button onclick="toggleDropdown(this)" class="inline-flex items-center justify-center bg-white border border-gray-300 rounded-md shadow-sm px-3 py-1 text-sm font-medium hover:bg-gray-50">
+              Actions
+              <svg class="ml-2 w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.23 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            <div class="dropdown-menu absolute right-0 mt-2 w-40 bg-white border border-gray-200 shadow-xl rounded-md hidden z-50">
+              <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100">View</a>
+              <a href="{% url 'edit_fareslab' slab.id %}" class="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100">Edit</a>
+              <a href="javascript:void(0)" onclick="openModal('deleteModalSlab{{ slab.id }}')" class="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100">Delete</a>
+            </div>
+          </div>
+
+          <!-- Delete Modal -->
+          <div id="deleteModalSlab{{ slab.id }}" class="fixed inset-0 bg-black bg-opacity-40 hidden z-40 flex items-center justify-center">
+            <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+              <h2 class="text-xl font-semibold text-red-600 mb-3">Confirm Delete</h2>
+              <p class="text-gray-700 mb-6">Are you sure you want to delete this fare slab?</p>
+              <form method="POST" action="#" class="flex justify-end gap-3">
+                {% csrf_token %}
+                <button type="button" onclick="closeModal('deleteModalSlab{{ slab.id }}')" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
+              </form>
+            </div>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="10" class="px-4 py-4 text-center text-gray-500">No fare slabs found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+  function toggleDropdown(button) {
+    const menu = button.closest('td').querySelector('.dropdown-menu');
+    document.querySelectorAll('.dropdown-menu').forEach(el => {
+      if (el !== menu) el.classList.add('hidden');
+    });
+    menu.classList.toggle('hidden');
+  }
+
+  document.addEventListener('click', function (e) {
+    document.querySelectorAll('.dropdown-menu').forEach(menu => {
+      if (!menu.parentElement.contains(e.target)) {
+        menu.classList.add('hidden');
+      }
+    });
+  });
+
+  function openModal(id) {
+    document.getElementById(id).classList.remove('hidden');
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+  }
+</script>
+{% endblock %}

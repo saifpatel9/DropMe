@@ -1,0 +1,111 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1e40af;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#131C44;stop-opacity:1" />
+    </linearGradient>
+    
+    <radialGradient id="cityGlow" cx="50%" cy="80%" r="60%">
+      <stop offset="0%" style="stop-color:#00A59E;stop-opacity:0.3" />
+      <stop offset="50%" style="stop-color:#0EB9D3;stop-opacity:0.2" />
+      <stop offset="100%" style="stop-color:#131C44;stop-opacity:0.1" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Sky background -->
+  <rect width="1920" height="1080" fill="url(#skyGradient)"/>
+  
+  <!-- City glow effect -->
+  <rect width="1920" height="1080" fill="url(#cityGlow)"/>
+  
+  <!-- Road -->
+  <polygon points="0,900 1920,900 1920,1080 0,1080" fill="#2d2d2d"/>
+  <polygon points="0,920 1920,920 1920,940 0,940" fill="#404040"/>
+  
+  <!-- Road lines -->
+  <g stroke="white" stroke-width="3" opacity="0.6">
+    <line x1="200" y1="930" x2="300" y2="930"/>
+    <line x1="400" y1="930" x2="500" y2="930"/>
+    <line x1="600" y1="930" x2="700" y2="930"/>
+    <line x1="800" y1="930" x2="900" y2="930"/>
+    <line x1="1000" y1="930" x2="1100" y2="930"/>
+    <line x1="1200" y1="930" x2="1300" y2="930"/>
+    <line x1="1400" y1="930" x2="1500" y2="930"/>
+    <line x1="1600" y1="930" x2="1700" y2="930"/>
+  </g>
+  
+  <!-- City skyline -->
+  <g fill="#1a1a1a" opacity="0.8">
+    <!-- Buildings -->
+    <rect x="100" y="600" width="80" height="300"/>
+    <rect x="200" y="550" width="60" height="350"/>
+    <rect x="280" y="650" width="90" height="250"/>
+    <rect x="390" y="580" width="70" height="320"/>
+    <rect x="480" y="620" width="85" height="280"/>
+    <rect x="590" y="540" width="95" height="360"/>
+    <rect x="710" y="590" width="75" height="310"/>
+    <rect x="810" y="610" width="80" height="290"/>
+    <rect x="920" y="570" width="70" height="330"/>
+    <rect x="1020" y="640" width="85" height="260"/>
+    <rect x="1130" y="560" width="90" height="340"/>
+    <rect x="1250" y="600" width="75" height="300"/>
+    <rect x="1350" y="580" width="80" height="320"/>
+    <rect x="1460" y="620" width="70" height="280"/>
+    <rect x="1560" y="550" width="85" height="350"/>
+    <rect x="1670" y="590" width="75" height="310"/>
+    <rect x="1770" y="610" width="80" height="290"/>
+  </g>
+  
+  <!-- Building windows (lights) -->
+  <g fill="#00A59E" opacity="0.6">
+    <rect x="110" y="620" width="8" height="8"/>
+    <rect x="130" y="620" width="8" height="8"/>
+    <rect x="150" y="620" width="8" height="8"/>
+    <rect x="110" y="650" width="8" height="8"/>
+    <rect x="150" y="650" width="8" height="8"/>
+    <rect x="110" y="680" width="8" height="8"/>
+    <rect x="130" y="680" width="8" height="8"/>
+    
+    <rect x="210" y="570" width="8" height="8"/>
+    <rect x="230" y="570" width="8" height="8"/>
+    <rect x="210" y="600" width="8" height="8"/>
+    <rect x="230" y="630" width="8" height="8"/>
+    <rect x="210" y="660" width="8" height="8"/>
+    
+    <rect x="600" y="560" width="8" height="8"/>
+    <rect x="620" y="560" width="8" height="8"/>
+    <rect x="640" y="560" width="8" height="8"/>
+    <rect x="660" y="560" width="8" height="8"/>
+    <rect x="600" y="590" width="8" height="8"/>
+    <rect x="640" y="590" width="8" height="8"/>
+    <rect x="620" y="620" width="8" height="8"/>
+    <rect x="660" y="620" width="8" height="8"/>
+  </g>
+  
+  <!-- Stars -->
+  <g fill="white" opacity="0.8">
+    <circle cx="300" cy="150" r="1"/>
+    <circle cx="500" cy="120" r="1"/>
+    <circle cx="700" cy="180" r="1"/>
+    <circle cx="900" cy="100" r="1"/>
+    <circle cx="1100" cy="160" r="1"/>
+    <circle cx="1300" cy="130" r="1"/>
+    <circle cx="1500" cy="170" r="1"/>
+    <circle cx="1700" cy="140" r="1"/>
+    <circle cx="400" cy="200" r="0.5"/>
+    <circle cx="600" cy="80" r="0.5"/>
+    <circle cx="800" cy="220" r="0.5"/>
+    <circle cx="1000" cy="90" r="0.5"/>
+    <circle cx="1200" cy="190" r="0.5"/>
+    <circle cx="1400" cy="110" r="0.5"/>
+    <circle cx="1600" cy="200" r="0.5"/>
+  </g>
+  
+  <!-- Glowing lights effect -->
+  <g fill="#0EB9D3" opacity="0.3">
+    <ellipse cx="600" cy="560" rx="15" ry="8"/>
+    <ellipse cx="640" cy="590" rx="12" ry="6"/>
+    <ellipse cx="660" cy="620" rx="10" ry="5"/>
+  </g>
+</svg>

@@ -1,0 +1,97 @@
+{% load static %}
+<!-- [ Header Topbar ] start -->
+<header class="pc-header">
+  <div class="header-wrapper flex max-sm:px-[15px] px-[25px] grow">
+    <div class="me-auto pc-mob-drp">
+      <ul class="inline-flex items-center min-h-header-height">
+        <!-- Menu toggle for mobile -->
+        <li class="pc-h-item pc-sidebar-collapse max-lg:hidden lg:inline-flex">
+          <a href="#" class="pc-head-link" id="sidebar-hide">
+            <i data-feather="menu"></i>
+          </a>
+        </li>
+        <li class="pc-h-item pc-sidebar-popup lg:hidden">
+          <a href="#" class="pc-head-link" id="mobile-collapse">
+            <i data-feather="menu"></i>
+          </a>
+        </li>
+        <!-- Search Dropdown -->
+        <li class="dropdown pc-h-item">
+          <a class="pc-head-link dropdown-toggle me-0" data-pc-toggle="dropdown" href="#">
+            <i data-feather="search"></i>
+          </a>
+          <div class="dropdown-menu pc-h-dropdown drp-search">
+            <form class="px-2 py-1">
+              <input type="search" class="form-control !border-0 !shadow-none" placeholder="Search here..." />
+            </form>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Right icons -->
+    <div class="ms-auto">
+      <ul class="inline-flex items-center min-h-header-height">
+        <!-- Theme Switch -->
+        <li class="dropdown pc-h-item">
+          <a class="pc-head-link dropdown-toggle me-0" data-pc-toggle="dropdown" href="#">
+            <i data-feather="sun"></i>
+          </a>
+          <div class="dropdown-menu pc-h-dropdown">
+            <a href="#!" class="dropdown-item" onclick="layout_change('dark')">
+              <i data-feather="moon"></i> <span>Dark</span>
+            </a>
+            <a href="#!" class="dropdown-item" onclick="layout_change('light')">
+              <i data-feather="sun"></i> <span>Light</span>
+            </a>
+            <a href="#!" class="dropdown-item" onclick="layout_change_default()">
+              <i data-feather="settings"></i> <span>Default</span>
+            </a>
+          </div>
+        </li>
+
+        <!-- Notifications (you can dynamically populate this) -->
+        <li class="dropdown pc-h-item">
+          <a class="pc-head-link dropdown-toggle me-0" data-pc-toggle="dropdown" href="#">
+            <i data-feather="bell"></i>
+            <span class="badge bg-success-500 text-white rounded-full z-10 absolute right-0 top-0">3</span>
+          </a>
+          <div class="dropdown-menu dropdown-menu-end pc-h-dropdown p-2">
+            <div class="dropdown-header py-4 px-5">
+              <h5 class="m-0">Notifications</h5>
+              <a href="#" class="btn btn-link btn-sm">Mark all read</a>
+            </div>
+            <div class="dropdown-body py-4 px-5" style="max-height: 300px; overflow-y: auto;">
+              <p class="text-span mb-3">Today</p>
+              <div class="text-sm text-gray-600">No notifications</div>
+            </div>
+          </div>
+        </li>
+
+        <!-- User Profile -->
+        <li class="dropdown pc-h-item header-user-profile">
+          <a class="pc-head-link dropdown-toggle arrow-none me-0" data-pc-toggle="dropdown" href="#">
+            <i data-feather="user"></i>
+          </a>
+          <div class="dropdown-menu dropdown-user-profile dropdown-menu-end pc-h-dropdown p-2">
+            <div class="dropdown-header py-4 px-5 bg-primary-500 text-white">
+              <div class="flex items-center">
+                <img src="{% static 'images/user/avatar-2.jpg' %}" alt="User" class="w-10 rounded-full" />
+                <div class="ml-3">
+                  <h6 class="mb-0">Admin</h6>
+                  <span>admin@example.com</span>
+                </div>
+              </div>
+            </div>
+            <div class="dropdown-body py-4 px-5">
+              <a href="#" class="dropdown-item"><i class="ti ti-user"></i> My Account</a>
+              <a href="#" class="dropdown-item"><i class="ti ti-settings"></i> Settings</a>
+              <a href="#" class="dropdown-item"><i class="ti ti-power"></i> Logout</a>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</header>
+<!-- [ Header Topbar ] end -->

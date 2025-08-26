@@ -1,0 +1,56 @@
+{% extends "base_admin.html" %}
+{% block title %}Feedback{% endblock %}
+
+{% block content %}
+<div class="p-6 max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-semibold text-gray-800">Feedback Management</h1>
+  </div>
+
+  <!-- Feedback Table -->
+  <div class="bg-white shadow rounded-xl overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-lg font-medium text-gray-700">User Feedback</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full table-auto text-sm text-left text-gray-700">
+        <thead class="bg-[#131C44] text-white">
+          <tr>
+            <th class="py-3 px-4 text-center">S/N</th>
+            <th class="py-3 px-4">User</th>
+            <th class="py-3 px-4">Feedback</th>
+            <th class="py-3 px-4 text-center">Star Rating</th>
+            <th class="py-3 px-4 text-center">Submitted At</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for feedback in feedback_list %}
+          <tr>
+            <td class="py-3 px-4 text-center">{{ forloop.counter }}</td>
+            <td class="py-3 px-4">
+              {% if feedback.user %}
+              {{ feedback.user.first_name }} {{ feedback.user.last_name }}
+              {% else %}
+              <span class="text-gray-400 italic">Anonymous</span>
+              {% endif %}
+            </td>
+            <td class="py-3 px-4">{{ feedback.message }}</td>
+            <td class="py-3 px-4 text-center">
+              <span class="inline-block bg-yellow-400 text-white text-xs font-medium px-2 py-1 rounded">{{ feedback.stars }} ★</span>
+            </td>
+            <td class="py-3 px-4 text-center text-sm text-gray-600">
+              {{ feedback.created_at|date:"M d, Y H:i" }}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="py-6 text-center text-gray-500">No feedback available.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

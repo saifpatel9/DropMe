@@ -1,0 +1,117 @@
+{% extends "base_admin.html" %}
+{% load static %}
+{% block title %}Edit Passenger{% endblock %}
+
+{% block content %}
+<div class="min-h-[calc(100vh-160px)] py-6">
+  <div class="card max-w-3xl mx-auto bg-white shadow p-8 rounded-md">
+    <div class="card-body p-8">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-6">Edit Passenger</h2>
+
+      <form method="POST" class="space-y-6">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+          <div>
+            <label for="{{ form.first_name.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.first_name.label }}</label>
+            {{ form.first_name }}
+          </div>
+
+          <div>
+            <label for="{{ form.last_name.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.last_name.label }}</label>
+            {{ form.last_name }}
+          </div>
+
+          <div class="md:col-span-2">
+            <label for="{{ form.email.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.email.label }}</label>
+            {{ form.email }}
+          </div>
+
+          <div>
+            <label for="{{ form.country_code.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.country_code.label }}</label>
+            {{ form.country_code }}
+          </div>
+
+          <div>
+            <label for="{{ form.phone.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.phone.label }}</label>
+            {{ form.phone }}
+          </div>
+
+          <div>
+            <label for="{{ form.gender.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.gender.label }}</label>
+            {{ form.gender }}
+          </div>
+
+          <div>
+            <label for="{{ form.referral_code.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.referral_code.label }}</label>
+            {{ form.referral_code }}
+          </div>
+
+          <div class="md:col-span-2">
+            <label for="{{ form.referred_by.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.referred_by.label }}</label>
+            {{ form.referred_by }}
+          </div>
+
+          <div class="md:col-span-2">
+            <label for="{{ form.description.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.description.label }}</label>
+            {{ form.description }}
+          </div>
+
+          <div class="md:col-span-2">
+            <label for="{{ form.payment_method.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.payment_method.label }}</label>
+            {{ form.payment_method }}
+          </div>
+
+          <!-- Verified Dropdown (Yes/No only) -->
+          <div class="md:col-span-2">
+            <label for="{{ form.is_verified.id_for_label }}" class="block font-medium text-gray-700 mb-1">
+              {{ form.is_verified.label }}
+            </label>
+            <select name="is_verified" id="id_is_verified" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+              <option value="True" {% if form.is_verified.value == True %}selected{% endif %}>Yes</option>
+              <option value="False" {% if form.is_verified.value == False %}selected{% endif %}>No</option>
+            </select>
+          </div>
+
+          <!-- Status Toggle Switch -->
+          <div class="md:col-span-2 flex items-center gap-4">
+            <label for="statusToggle" class="font-semibold text-gray-700">Status</label>
+            
+            <label class="relative inline-block w-12 h-6 cursor-pointer">
+              <input type="checkbox" id="statusToggle" class="sr-only peer"
+                    {% if form.status.value == 'Active' %}checked{% endif %}>
+              <div class="w-full h-full bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors duration-300"></div>
+              <div class="absolute top-[2px] left-[2px] bg-white w-5 h-5 rounded-full transition-transform duration-300 peer-checked:translate-x-6"></div>
+            </label>
+            
+            <span id="statusText" class="text-gray-700">{{ form.status.value }}</span>
+            <input type="hidden" name="status" id="statusHidden" value="{{ form.status.value }}">
+          </div>
+
+        </div>
+
+        <div class="pt-6 flex justify-end gap-4">
+          <a href="{% url 'admin_passengers' %}" class="btn btn-sm bg-gray-200 hover:bg-gray-300 text-gray-800">Cancel</a>
+          <button type="submit" class="btn btn-sm bg-primary-500 text-white hover:bg-primary-600">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const toggle = document.getElementById('statusToggle');
+  const statusText = document.getElementById('statusText');
+  const statusInput = document.getElementById('statusHidden');
+
+  toggle.addEventListener('change', () => {
+    if (toggle.checked) {
+      statusText.textContent = 'Active';
+      statusInput.value = 'Active';
+    } else {
+      statusText.textContent = 'Inactive';
+      statusInput.value = 'Inactive';
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base_admin.html" %}
+{% block title %}Passenger Rating Details{% endblock %}
+
+{% block content %}
+<div class="page-header flex justify-between items-center mb-6">
+  <h1 class="text-3xl font-semibold text-gray-800">Passenger Rating Details</h1>
+  <a href="{% url 'rating_dashboard' %}" class="btn bg-[#131C44] text-white px-4 py-2 rounded-md shadow hover:bg-blue-700">Back to Dashboard</a>
+</div>
+
+<div class="card max-w-4xl mx-auto">
+  <div class="card-header">
+    <h5>Rating Information</h5>
+  </div>
+  <div class="card-body p-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-gray-700">
+      
+      <div class="detail-item">
+        <strong class="block text-gray-900 mb-1">Rating ID:</strong>
+        <p class="text-gray-700">{{ rating.id }}</p>
+      </div>
+
+      <div class="detail-item">
+        <strong class="block text-gray-900 mb-1">Passenger Name:</strong>
+        <p class="text-gray-700">{{ rating.passenger.first_name }} {{ rating.passenger.last_name }}</p>
+      </div>
+
+      <div class="detail-item">
+        <strong class="block text-gray-900 mb-1">Driver Name:</strong>
+        <p class="text-gray-700">{{ rating.driver.first_name }} {{ rating.driver.last_name }}</p>
+      </div>
+
+      <div class="detail-item">
+        <strong class="block text-gray-900 mb-1">Booking ID:</strong>
+        <p class="text-gray-700">#{{ rating.booking_id }}</p>
+      </div>
+
+      <div class="detail-item">
+        <strong class="block text-gray-900 mb-1">Rating Score:</strong>
+        <p class="text-gray-700 font-bold text-lg">{{ rating.rating }} / 5 <span class="text-yellow-500">&#9733;</span></p>
+      </div>
+
+      <div class="detail-item">
+        <strong class="block text-gray-900 mb-1">Date:</strong>
+        <p class="text-gray-700">{{ rating.created_at|date:"d-m-Y H:i" }}</p>
+      </div>
+
+      <div class="detail-item md:col-span-2">
+        <strong class="block text-gray-900 mb-1">Comments:</strong>
+        <p class="text-gray-700 bg-gray-50 p-3 rounded-md border border-gray-200">{{ rating.comments|default:"No comments provided." }}</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}

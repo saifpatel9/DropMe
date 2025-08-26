@@ -1,0 +1,134 @@
+{% extends "base_admin.html" %}
+{% load static %}
+
+{% block title %}Driver Documents{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+  <div class="bg-white shadow rounded-xl p-6">
+    <h2 class="text-2xl font-semibold text-gray-800 mb-6">
+      {{ driver.first_name }} {{ driver.last_name }} – Documents
+    </h2>
+    <form id="doc-status-csrf" style="display:none;">{% csrf_token %}</form>
+    <div class="divide-y divide-gray-200">
+      <!-- Driving License -->
+      <div class="flex flex-col sm:flex-row justify-between items-center py-4">
+        <div class="w-full sm:w-1/3 font-medium text-gray-700">Driving License</div>
+        <div class="w-full sm:w-1/3 text-center">
+          {% if driver.license_document %}
+            <a href="{{ driver.license_document.url }}" class="text-blue-600 hover:underline" target="_blank">View File</a>
+          {% else %}
+            <span class="text-gray-400">Not Uploaded</span>
+          {% endif %}
+        </div>
+        <div class="w-full sm:w-1/3 flex flex-col sm:flex-row justify-end items-center gap-3 mt-2 sm:mt-0">
+          <span id="badge-license_document" class="badge-status px-3 py-1 rounded-full text-xs font-semibold 
+            {% if driver.license_document_status == 'Verified' %}bg-green-100 text-green-700
+            {% elif driver.license_document_status == 'Rejected' %}bg-red-100 text-red-700
+            {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+            {{ driver.license_document_status }}
+          </span>
+          <button type="button" class="btn btn-xs bg-green-500 hover:bg-green-600 text-white rounded px-3 py-1"
+            onclick="updateStatus('license_document', 'Verified')">Verify</button>
+          <button type="button" class="btn btn-xs bg-red-600 hover:bg-red-700 text-white rounded px-3 py-1"
+            onclick="updateStatus('license_document', 'Rejected')">Reject</button>
+        </div>
+      </div>
+      <!-- ID Proof -->
+      <div class="flex flex-col sm:flex-row justify-between items-center py-4">
+        <div class="w-full sm:w-1/3 font-medium text-gray-700">ID Proof</div>
+        <div class="w-full sm:w-1/3 text-center">
+          {% if driver.id_proof %}
+            <a href="{{ driver.id_proof.url }}" class="text-blue-600 hover:underline" target="_blank">View File</a>
+          {% else %}
+            <span class="text-gray-400">Not Uploaded</span>
+          {% endif %}
+        </div>
+        <div class="w-full sm:w-1/3 flex flex-col sm:flex-row justify-end items-center gap-3 mt-2 sm:mt-0">
+          <span id="badge-id_proof" class="badge-status px-3 py-1 rounded-full text-xs font-semibold 
+            {% if driver.id_proof_status == 'Verified' %}bg-green-100 text-green-700
+            {% elif driver.id_proof_status == 'Rejected' %}bg-red-100 text-red-700
+            {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+            {{ driver.id_proof_status }}
+          </span>
+          <button type="button" class="btn btn-xs bg-green-500 hover:bg-green-600 text-white rounded px-3 py-1"
+            onclick="updateStatus('id_proof', 'Verified')">Verify</button>
+          <button type="button" class="btn btn-xs bg-red-600 hover:bg-red-700 text-white rounded px-3 py-1"
+            onclick="updateStatus('id_proof', 'Rejected')">Reject</button>
+        </div>
+      </div>
+      <!-- Vehicle RC -->
+      <div class="flex flex-col sm:flex-row justify-between items-center py-4">
+        <div class="w-full sm:w-1/3 font-medium text-gray-700">Vehicle RC</div>
+        <div class="w-full sm:w-1/3 text-center">
+          {% if driver.vehicle_rc %}
+            <a href="{{ driver.vehicle_rc.url }}" class="text-blue-600 hover:underline" target="_blank">View File</a>
+          {% else %}
+            <span class="text-gray-400">Not Uploaded</span>
+          {% endif %}
+        </div>
+        <div class="w-full sm:w-1/3 flex flex-col sm:flex-row justify-end items-center gap-3 mt-2 sm:mt-0">
+          <span id="badge-vehicle_rc" class="badge-status px-3 py-1 rounded-full text-xs font-semibold 
+            {% if driver.vehicle_rc_status == 'Verified' %}bg-green-100 text-green-700
+            {% elif driver.vehicle_rc_status == 'Rejected' %}bg-red-100 text-red-700
+            {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+            {{ driver.vehicle_rc_status }}
+          </span>
+          <button type="button" class="btn btn-xs bg-green-500 hover:bg-green-600 text-white rounded px-3 py-1"
+            onclick="updateStatus('vehicle_rc', 'Verified')">Verify</button>
+          <button type="button" class="btn btn-xs bg-red-600 hover:bg-red-700 text-white rounded px-3 py-1"
+            onclick="updateStatus('vehicle_rc', 'Rejected')">Reject</button>
+        </div>
+      </div>
+    </div>
+    <!-- Back Button -->
+    <div class="mt-8 text-right">
+      <a href="{% url 'admin_drivers' %}" class="btn btn-sm bg-gray-200 hover:bg-gray-300 text-gray-800 rounded">
+        ← Back to Driver Dashboard
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+function getCSRFToken() {
+  const form = document.getElementById('doc-status-csrf');
+  if (!form) return '';
+  const input = form.querySelector('input[name="csrfmiddlewaretoken"]');
+  return input ? input.value : '';
+}
+function setBadgeStatus(docType, newStatus) {
+  const badge = document.getElementById('badge-' + docType);
+  if (!badge) return;
+  badge.textContent = newStatus;
+  badge.classList.remove('bg-green-100', 'text-green-700', 'bg-yellow-100', 'text-yellow-700', 'bg-red-100', 'text-red-700');
+  if (newStatus === 'Verified') {
+    badge.classList.add('bg-green-100', 'text-green-700');
+  } else if (newStatus === 'Rejected') {
+    badge.classList.add('bg-red-100', 'text-red-700');
+  } else {
+    badge.classList.add('bg-yellow-100', 'text-yellow-700');
+  }
+}
+function updateStatus(documentType, newStatus) {
+  const csrfToken = getCSRFToken();
+  fetch("{% url 'update_driver_document_status' driver.driver_id %}", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "X-CSRFToken": csrfToken,
+    },
+    body: `document_type=${encodeURIComponent(documentType)}&new_status=${encodeURIComponent(newStatus)}`
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      setBadgeStatus(documentType, data.status);
+    } else {
+      alert("Failed to update status: " + (data.error || 'Unknown error'));
+    }
+  })
+  .catch(() => alert("Network error while updating status."));
+}
+</script>
+{% endblock %}

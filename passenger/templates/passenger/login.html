@@ -1,0 +1,97 @@
+{% load static %}
+
+{% block extra_css %}
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Fonts and Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="min-h-screen bg-gradient-to-br from-white via-slate-100 to-slate-200 flex items-center justify-center px-4 py-12 font-body">
+  <div class="max-w-md w-full bg-white rounded-3xl shadow-2xl p-8 md:p-10 relative animate-fade-in">
+    <div class="mb-8 text-center">
+      <h2 class="text-3xl font-extrabold text-gray-900 font-heading">Welcome Back</h2>
+      <p class="text-sm text-gray-500 mt-2">Sign in to your Dropme account — whether you're a passenger or a driver.</p>
+    </div>
+
+    {% if messages %}
+      <div class="mb-4">
+        {% for message in messages %}
+          <div class="text-red-600 text-sm font-medium">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <form method="post" class="space-y-6">
+      {% csrf_token %}
+
+      <!-- Email -->
+      <div>
+        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+        <input
+          type="email"
+          name="email"
+          id="email"
+          required
+          class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm font-body"
+          placeholder="you@example.com"
+        >
+      </div>
+
+      <!-- Password -->
+      <div>
+        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+        <div class="relative">
+          <input
+            type="password"
+            name="password"
+            id="password"
+            required
+            class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm font-body"
+            placeholder="••••••••"
+          >
+          <span class="absolute inset-y-0 right-3 flex items-center text-gray-400 cursor-pointer" onclick="togglePassword()">
+            <i class="fas fa-eye" id="toggleIcon"></i>
+          </span>
+        </div>
+      </div>
+
+      <!-- Forgot password -->
+      <div class="text-right text-sm">
+        <a href="#" class="text-teal-600 hover:underline font-body">Forgot password?</a>
+      </div>
+
+      <!-- Submit -->
+      <button type="submit" class="w-full py-3 btn-primary text-white rounded-xl font-semibold hover:shadow-lg transition transform hover:scale-105 font-body">
+        Login
+      </button>
+    </form>
+
+    <!-- Create account -->
+    <p class="text-center text-sm text-gray-500 mt-6 font-body">
+      New here?
+      <a href="{% url 'signup' %}" class="text-teal-600 font-medium hover:underline">Create an account</a>
+    </p>
+  </div>
+</section>
+
+<script>
+function togglePassword() {
+  const input = document.getElementById("password");
+  const icon = document.getElementById("toggleIcon");
+  if (input.type === "password") {
+    input.type = "text";
+    icon.classList.remove("fa-eye");
+    icon.classList.add("fa-eye-slash");
+  } else {
+    input.type = "password";
+    icon.classList.remove("fa-eye-slash");
+    icon.classList.add("fa-eye");
+  }
+}
+</script>
+{% endblock %}

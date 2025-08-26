@@ -1,0 +1,49 @@
+{% extends "base_admin.html" %}
+{% load static %}
+
+{% block title %}Service Details{% endblock %}
+
+{% block content %}
+<div class="pc-container">
+  <div class="pc-content">
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow p-6">
+      <h2 class="text-2xl font-semibold text-[#131C44] mb-6">Service Details</h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-gray-700">
+        <div><strong>Name:</strong> {{ service.name }}</div>
+        <div><strong>Seats:</strong> {{ service.number_of_seats }}</div>
+        <div><strong>Base Fare:</strong> ₹{{ service.base_fare }}</div>
+        <div><strong>Booking Fee:</strong> ₹{{ service.booking_fee }}</div>
+        <div><strong>Min Fare:</strong> ₹{{ service.min_fare }}</div>
+        <div><strong>Tax %:</strong> {{ service.tax_percentage }}</div>
+        <div><strong>Per KM:</strong> ₹{{ service.price_per_km }}</div>
+        <div><strong>Per Minute:</strong> ₹{{ service.price_per_minute }}</div>
+        <div>
+          <strong>Daily Service:</strong> 
+          {% if service.daily_service %}<span class="text-green-600">✅</span>{% else %}<span class="text-red-600">❌</span>{% endif %}
+        </div>
+        <div>
+          <strong>Rental Service:</strong> 
+          {% if service.rental_service %}<span class="text-green-600">✅</span>{% else %}<span class="text-red-600">❌</span>{% endif %}
+        </div>
+        <div>
+          <strong>Outstation Service:</strong> 
+          {% if service.outstation_service %}<span class="text-green-600">✅</span>{% else %}<span class="text-red-600">❌</span>{% endif %}
+        </div>
+        <div>
+          <strong>Status:</strong> 
+          {% if service.status == 'Active' %}
+            <span class="text-green-600 font-semibold">Active ✅</span>
+          {% else %}
+            <span class="text-red-600 font-semibold">Inactive ❌</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <a href="{% url 'service_dashboard' %}" class="btn btn-outline-secondary">Back</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

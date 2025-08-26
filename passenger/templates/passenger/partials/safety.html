@@ -1,0 +1,188 @@
+<!-- Enhanced Safety Toolkit Page -->
+<style>
+  .safety-card {
+    transition: all 0.3s ease;
+  }
+  
+  .safety-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  }
+  
+  .feature-card {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .feature-card:hover {
+    transform: translateX(5px);
+    box-shadow: 0 5px 20px rgba(20, 184, 166, 0.1);
+  }
+  
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background: linear-gradient(to bottom, #14b8a6, #0f766e);
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+  }
+  
+  .feature-card:hover::before {
+    transform: scaleY(1);
+  }
+  
+  .floating-animation {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
+  .icon-bounce:hover {
+    animation: bounce 0.6s;
+  }
+  
+  @keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+  }
+</style>
+
+<div class="bg-gradient-to-br from-white to-teal-50 shadow-xl rounded-2xl p-8 border border-teal-100">
+  <!-- Header Section -->
+  <div class="flex items-center mb-6">
+    <div class="bg-teal-100 p-4 rounded-full mr-4 floating-animation">
+      <svg class="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+      </svg>
+    </div>
+    <div>
+      <h2 class="text-3xl font-bold text-[#131C44] mb-2">Safety Toolkit</h2>
+      <p class="text-teal-600 text-lg">Your safety comes first. Here are features designed to protect you.</p>
+    </div>
+  </div>
+  
+  <div class="w-full h-1 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full mb-8"></div>
+
+  <!-- Safety Feature Cards -->
+  <div class="flex space-x-6 overflow-x-auto pb-4 mb-8 scrollbar-hide">
+    <div class="safety-card min-w-[200px] bg-white rounded-xl shadow-lg p-6 text-center border border-gray-100">
+      <div class="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 icon-bounce">
+        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <div class="font-bold text-gray-800 mb-2">Active Safety Checks</div>
+      <p class="text-sm text-gray-600">Continuous monitoring for your protection</p>
+    </div>
+    
+    <div class="safety-card min-w-[200px] bg-white rounded-xl shadow-lg p-6 text-center border border-gray-100">
+      <div class="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 icon-bounce">
+        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>
+      </div>
+      <div class="font-bold text-gray-800 mb-2">Share Live Location</div>
+      <p class="text-sm text-gray-600">Real-time tracking with loved ones</p>
+    </div>
+    
+    <div class="safety-card min-w-[200px] bg-white rounded-xl shadow-lg p-6 text-center border border-gray-100">
+      <div class="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 icon-bounce">
+        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+      </div>
+      <div class="font-bold text-gray-800 mb-2">Trusted Contacts</div>
+      <p class="text-sm text-gray-600">Connect with your emergency network</p>
+    </div>
+  </div>
+
+  <!-- Safety Features List -->
+  <div>
+    <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+      <span class="bg-teal-100 w-2 h-8 rounded-full mr-3"></span>
+      Safety Features
+    </h3>
+
+    <div class="space-y-4">
+      <div class="feature-card bg-gradient-to-r from-white to-teal-50 p-6 rounded-xl shadow-md border border-gray-100">
+        <div class="flex items-start">
+          <div class="bg-teal-100 p-3 rounded-lg mr-4 mt-1">
+            <svg class="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+          </div>
+          <div>
+            <h4 class="font-bold text-gray-800 text-lg mb-2">New Trusted Contacts</h4>
+            <p class="text-gray-600">Share ride trip details with your loved ones in a single tap for instant peace of mind</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-card bg-gradient-to-r from-white to-red-50 p-6 rounded-xl shadow-md border border-gray-100">
+        <div class="flex items-start">
+          <div class="bg-red-100 p-3 rounded-lg mr-4 mt-1">
+            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+          </div>
+          <div>
+            <h4 class="font-bold text-gray-800 text-lg mb-2">Emergency SOS</h4>
+            <p class="text-gray-600">Alert your emergency contacts instantly with real-time location in case of danger</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-card bg-gradient-to-r from-white to-blue-50 p-6 rounded-xl shadow-md border border-gray-100">
+        <div class="flex items-start">
+          <div class="bg-blue-100 p-3 rounded-lg mr-4 mt-1">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+          <div>
+            <h4 class="font-bold text-gray-800 text-lg mb-2">Live Ride Tracking</h4>
+            <p class="text-gray-600">Let your family track your ride in real-time for added peace of mind</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-card bg-gradient-to-r from-white to-green-50 p-6 rounded-xl shadow-md border border-gray-100">
+        <div class="flex items-start">
+          <div class="bg-green-100 p-3 rounded-lg mr-4 mt-1">
+            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+            </svg>
+          </div>
+          <div>
+            <h4 class="font-bold text-gray-800 text-lg mb-2">Driver Verification</h4>
+            <p class="text-gray-600">All drivers undergo thorough background checks and document verification</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-card bg-gradient-to-r from-white to-purple-50 p-6 rounded-xl shadow-md border border-gray-100">
+        <div class="flex items-start">
+          <div class="bg-purple-100 p-3 rounded-lg mr-4 mt-1">
+            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.944l5.618 3.04A12.02 12.02 0 0118 9c0 5.591-3.824 10.29-9 11.622C3.824 19.29 0 14.591 0 9a12.02 12.02 0 01.382-3.016L6 2.944 12 2.944z"></path>
+            </svg>
+          </div>
+          <div>
+            <h4 class="font-bold text-gray-800 text-lg mb-2">24×7 Safety Support</h4>
+            <p class="text-gray-600">Reach out to our support team anytime for help with safety-related concerns</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,68 @@
+{% extends "base_admin.html" %}
+{% block title %}Edit Promo Code{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-10 p-6 bg-white rounded-xl shadow">
+  <h2 class="text-2xl font-semibold text-[#131C44] mb-6">Edit Promo Code</h2>
+
+  <form method="POST" class="space-y-6">
+    {% csrf_token %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <label for="id_code" class="block font-medium text-gray-700 mb-1">Promo Code</label>
+        {{ form.code }}
+      </div>
+
+      <div>
+        <label for="id_discount_amount" class="block font-medium text-gray-700 mb-1">Discount Amount</label>
+        {{ form.discount_amount }}
+      </div>
+
+      <div>
+        <label for="id_start_time" class="block font-medium text-gray-700 mb-1">Start Date & Time</label>
+        {{ form.start_time }}
+      </div>
+
+      <div>
+        <label for="id_expiry_time" class="block font-medium text-gray-700 mb-1">Expiry Date & Time</label>
+        {{ form.expiry_time }}
+      </div>
+
+      <div>
+        <label for="id_max_usage" class="block font-medium text-gray-700 mb-1">Max Usage (Total)</label>
+        {{ form.max_usage }}
+      </div>
+
+      <div>
+        <label for="id_max_usage_per_user" class="block font-medium text-gray-700 mb-1">Max Usage per Customer</label>
+        {{ form.max_usage_per_user }}
+      </div>
+      <div>
+        <label for="id_type" class="block font-medium text-gray-700 mb-1">Discount Type</label>
+        {{ form.type }}
+      </div>
+
+      <div>
+        <label for="id_percentage_value" class="block font-medium text-gray-700 mb-1">Discount Percentage</label>
+        {{ form.percentage_value }}
+      </div>
+
+      <div class="md:col-span-2">
+        <label for="id_description" class="block font-medium text-gray-700 mb-1">Short Description</label>
+        {{ form.description }}
+      </div>
+    </div>
+
+    <div class="pt-4 flex justify-end gap-4">
+      <button type="submit"
+        class="bg-[#00A59E] hover:bg-[#131C44] text-white px-6 py-3 rounded-full font-semibold transition">
+        Save Changes
+      </button>
+      <a href="{% url 'promo:promo_dashboard' %}"
+        class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-full font-semibold transition">
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

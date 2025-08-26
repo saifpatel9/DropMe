@@ -1,0 +1,70 @@
+
+
+{% extends "base_admin.html" %}
+{% block title %}Add Fare Slab{% endblock %}
+
+{% block content %}
+<div class="bg-white p-6 rounded shadow-md max-w-2xl mx-auto mt-6">
+  <h2 class="text-2xl font-semibold text-gray-800 mb-4">Add Fare Slab</h2>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="grid grid-cols-1 gap-4">
+
+      <div>
+        <label for="id_service_type" class="block text-sm font-medium text-gray-700">Service Type</label>
+        {{ form.service_type }}
+        {% if form.service_type.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ form.service_type.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label for="id_km_from" class="block text-sm font-medium text-gray-700">KM From</label>
+        {{ form.km_from }}
+        {% if form.km_from.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ form.km_from.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label for="id_km_to" class="block text-sm font-medium text-gray-700">KM To</label>
+        {{ form.km_to }}
+        {% if form.km_to.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ form.km_to.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label for="id_base_fare" class="block text-sm font-medium text-gray-700">Base Fare (₹)</label>
+        {{ form.base_fare }}
+        {% if form.base_fare.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ form.base_fare.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label for="id_rate_per_km" class="block text-sm font-medium text-gray-700">Rate per KM (₹)</label>
+        {{ form.rate_per_km }}
+        {% if form.rate_per_km.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ form.rate_per_km.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label for="id_rate_per_minute" class="block text-sm font-medium text-gray-700">Rate per Minute (₹)</label>
+        {{ form.rate_per_minute }}
+        {% if form.rate_per_minute.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ form.rate_per_minute.errors.0 }}</p>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <div class="mt-6 flex justify-end">
+      <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-5 rounded">
+        Add Slab
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

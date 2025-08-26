@@ -1,0 +1,149 @@
+{% extends "base_admin.html" %}
+{% load static %}
+{% block title %}Edit Driver{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto bg-white shadow p-8 rounded-md">
+  <h2 class="text-2xl font-semibold text-gray-800 mb-6">Edit Driver</h2>
+
+  <form method="POST" class="space-y-6">
+    {% csrf_token %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Name Fields -->
+      <div>
+        <label for="{{ form.first_name.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.first_name.label }}</label>
+        {{ form.first_name }}
+      </div>
+      <div>
+        <label for="{{ form.last_name.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.last_name.label }}</label>
+        {{ form.last_name }}
+      </div>
+
+      <!-- Contact Fields -->
+      <div>
+        <label for="{{ form.phone.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.phone.label }}</label>
+        {{ form.phone }}
+      </div>
+      <div>
+        <label for="{{ form.email.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.email.label }}</label>
+        {{ form.email }}
+      </div>
+
+      <!-- Location Fields -->
+      <div>
+        <label for="{{ form.state.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.state.label }}</label>
+        {{ form.state }}
+      </div>
+      <div>
+        <label for="{{ form.city.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.city.label }}</label>
+        {{ form.city }}
+      </div>
+
+      <!-- Vehicle Information -->
+      <div>
+        <label for="{{ form.plate_number.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.plate_number.label }}</label>
+        {{ form.plate_number }}
+      </div>
+      <div>
+        <label for="{{ form.manufacturer.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.manufacturer.label }}</label>
+        {{ form.manufacturer }}
+      </div>
+      <div>
+        <label for="{{ form.color.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.color.label }}</label>
+        {{ form.color }}
+      </div>
+      <div>
+        <label for="{{ form.manufacturing_year.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.manufacturing_year.label }}</label>
+        {{ form.manufacturing_year }}
+      </div>
+
+      <!-- Seat Arrangement -->
+      <div>
+        <label for="{{ form.seat_arrangement.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.seat_arrangement.label }}</label>
+        {{ form.seat_arrangement }}
+      </div>
+
+      <!-- Empty div to maintain grid alignment -->
+      <div></div>
+
+      <!-- Full Address -->
+      <div class="md:col-span-2">
+        <label for="{{ form.full_address.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.full_address.label }}</label>
+        {{ form.full_address }}
+      </div>
+
+      <!-- Service Options -->
+      <div class="md:col-span-2">
+        <label class="block font-medium text-gray-700 mb-1">Service Options</label>
+        <div class="flex flex-wrap gap-6 items-center">
+          <div class="inline-flex items-center gap-2">
+            {{ form.daily_services }}
+            <label for="{{ form.daily_services.id_for_label }}" class="text-gray-700">Daily Services</label>
+          </div>
+          <div class="inline-flex items-center gap-2">
+            {{ form.rental_services }}
+            <label for="{{ form.rental_services.id_for_label }}" class="text-gray-700">Rental Services</label>
+          </div>
+          <div class="inline-flex items-center gap-2">
+            {{ form.outstation_services }}
+            <label for="{{ form.outstation_services.id_for_label }}" class="text-gray-700">Outstation Services</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Banking Information -->
+      <div>
+        <label for="{{ form.upi_id.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.upi_id.label }}</label>
+        {{ form.upi_id }}
+      </div>
+      <div>
+        <label for="{{ form.bank_name.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.bank_name.label }}</label>
+        {{ form.bank_name }}
+      </div>
+      <div>
+        <label for="{{ form.ifsc_code.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.ifsc_code.label }}</label>
+        {{ form.ifsc_code }}
+      </div>
+      <div>
+        <label for="{{ form.account_number.id_for_label }}" class="block font-medium text-gray-700 mb-1">{{ form.account_number.label }}</label>
+        {{ form.account_number }}
+      </div>
+
+      <!-- Status Toggle -->
+      <div class="md:col-span-2 flex items-center gap-4">
+        <label class="font-semibold text-gray-700">Status</label>
+        <label class="relative inline-block w-12 h-6 cursor-pointer">
+          <input type="checkbox" id="statusToggle" class="sr-only peer"
+                {% if form.status.value == 'Active' %}checked{% endif %}>
+          <div class="w-full h-full bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors duration-300"></div>
+          <div class="absolute top-[2px] left-[2px] bg-white w-5 h-5 rounded-full transition-transform duration-300 peer-checked:translate-x-6"></div>
+        </label>
+        <span id="statusText" class="text-gray-700">{{ form.status.value }}</span>
+        <input type="hidden" name="status" id="statusHidden" value="{{ form.status.value }}">
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="pt-6 flex justify-end gap-4">
+      <a href="{% url 'admin_drivers' %}" class="btn btn-sm bg-gray-200 hover:bg-gray-300 text-gray-800">Cancel</a>
+      <button type="submit" class="btn btn-sm bg-primary-500 text-white hover:bg-primary-600">Save Changes</button>
+    </div>
+  </form>
+</div>
+
+<script>
+  const toggle = document.getElementById('statusToggle');
+  const statusText = document.getElementById('statusText');
+  const statusInput = document.getElementById('statusHidden');
+
+  toggle.addEventListener('change', () => {
+    if (toggle.checked) {
+      statusText.textContent = 'Active';
+      statusInput.value = 'Active';
+    } else {
+      statusText.textContent = 'Inactive';
+      statusInput.value = 'Inactive';
+    }
+  });
+</script>
+{% endblock %}

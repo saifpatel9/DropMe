@@ -1,0 +1,384 @@
+{% load static %}
+{% load driver_extras %}
+
+{% block extra_css %}
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<title>Driver Homepage</title>
+<!-- Fonts and Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
+
+<!-- Modern Toggle Switch Styles -->
+<style>
+.toggle-container {
+    position: relative;
+    display: inline-block;
+}
+
+.toggle-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.toggle-label {
+    position: relative;
+    display: block;
+    width: 64px;
+    height: 32px;
+    cursor: pointer;
+}
+
+.toggle-track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #d1d5db;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 28px;
+    height: 28px;
+    background-color: white;
+    border-radius: 50%;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1;
+}
+
+/* Checked state */
+.toggle-input:checked + .toggle-label .toggle-track {
+    background: linear-gradient(135deg, #00A59E, #0EB9D3);
+}
+
+.toggle-input:checked + .toggle-label .toggle-thumb {
+    transform: translateX(32px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Focus state */
+.toggle-input:focus + .toggle-label .toggle-track {
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(0, 165, 158, 0.2);
+}
+
+/* Hover effects */
+.toggle-label:hover .toggle-track {
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(0, 165, 158, 0.1);
+}
+
+.toggle-input:checked + .toggle-label:hover .toggle-track {
+    background: linear-gradient(135deg, #0EB9D3, #00A59E);
+}
+
+/* Remove old switch styles */
+.switch {
+    position: relative !important;
+    display: inline-block !important;
+    width: 64px !important;
+    height: 32px !important;
+}
+
+.switch input {
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    position: absolute !important;
+}
+
+.slider {
+    position: absolute !important;
+    cursor: pointer !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background-color: #d1d5db !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border-radius: 16px !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.slider:before {
+    position: absolute !important;
+    content: "" !important;
+    height: 28px !important;
+    width: 28px !important;
+    left: 2px !important;
+    top: 2px !important;
+    background-color: white !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border-radius: 50% !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.switch input:checked + .slider {
+    background: linear-gradient(135deg, #00A59E, #0EB9D3) !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.switch input:focus + .slider {
+    box-shadow: 0 0 0 3px rgba(0, 165, 158, 0.2) !important;
+}
+
+.switch input:checked + .slider:before {
+    transform: translateX(32px) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+.slider:hover {
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(0, 165, 158, 0.1) !important;
+}
+
+.switch input:checked + .slider:hover {
+    background: linear-gradient(135deg, #0EB9D3, #00A59E) !important;
+}
+</style>
+
+<script>
+  // Optional auto-refresh to update ride statuses every 10 seconds
+  setInterval(() => {
+    fetch(`/driver/check-assignment/?booking_id={{ booking_id }}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.assigned) {
+          location.reload();
+        }
+      });
+  }, 10000);
+</script>
+{% endblock %}
+
+{% block content %}
+<!-- Navbar -->
+<nav class="bg-white shadow-sm sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 bg-gradient-to-r from-teal-500 to-teal-600 rounded-lg flex items-center justify-center">
+        <i class="fas fa-car text-white text-lg"></i>
+      </div>
+      <span class="text-2xl font-bold bg-gradient-to-r from-teal-500 to-teal-600 bg-clip-text text-transparent">Hospione</span>
+    </div>
+    <div class="hidden md:flex space-x-6 items-center">
+      <a href="{% url 'driver_rating_page' %}" class="text-gray-700 hover:text-teal-600">Rating</a>
+      <a href="{% url 'driver:driver_rides' %}" class="text-gray-700 hover:text-teal-600">Rides</a>
+      <a href="{% url 'driver:driver_earnings' %}" class="text-gray-700 hover:text-teal-600">Earnings</a>
+      <a href="{% url 'driver:driver_profile' driver.driver_id %}" class="text-gray-700 hover:text-teal-600">Profile</a>
+      <a href="{% url 'logout' %}" class="bg-gradient-to-r from-teal-500 to-teal-600 text-white px-4 py-2 rounded-full hover:shadow-md">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-7xl mx-auto p-6">
+
+  <!-- Welcome Header with Availability Toggle -->
+  <div class="mb-8 flex justify-between items-center">
+    <div>
+      <h1 class="text-3xl font-heading font-bold text-gray-900 mb-2">Welcome, {{ driver.first_name }} {{ driver.last_name }} 👋</h1>
+      <p class="text-gray-600">Here's your activity overview for today.</p>
+    </div>
+    <div class="flex items-center space-x-3">
+      <span id="availability-text" class="font-semibold text-gray-700">
+        {% if driver.availability %}Available{% else %}Unavailable{% endif %}
+      </span>
+      <!-- Modern Toggle Switch -->
+      <div class="toggle-container">
+        <input type="checkbox" id="availability-toggle" class="toggle-input" {% if driver.availability %}checked{% endif %}>
+        <label for="availability-toggle" class="toggle-label">
+          <span class="toggle-track"></span>
+          <span class="toggle-thumb"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
+    <div class="bg-white p-4 rounded-2xl shadow card-hover">
+      <h3 class="text-gray-600 mb-2 flex items-center text-sm"><i class="fas fa-road mr-2 text-blue-500"></i>Total Rides</h3>
+      <p class="text-2xl font-bold text-blue-600">{{ total_rides }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-2xl shadow card-hover">
+      <h3 class="text-gray-600 mb-2 flex items-center text-sm"><i class="fas fa-calendar-check mr-2 text-teal-500"></i>Scheduled Rides</h3>
+      <p class="text-2xl font-bold text-teal-600">{{ scheduled_rides }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-2xl shadow card-hover">
+      <h3 class="text-gray-600 mb-2 flex items-center text-sm"><i class="fas fa-check-circle mr-2 text-green-500"></i>Completed Rides</h3>
+      <p class="text-2xl font-bold text-green-600">{{ completed_rides }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-2xl shadow card-hover">
+      <h3 class="text-gray-600 mb-2 flex items-center text-sm"><i class="fas fa-times-circle mr-2 text-red-500"></i>Cancelled Rides</h3>
+      <p class="text-2xl font-bold text-red-600">{{ cancelled_rides }}</p> 
+    </div>
+    <!-- New Total Earnings Card -->
+    <div class="bg-white p-4 rounded-2xl shadow card-hover">
+      <h3 class="text-gray-600 mb-2 flex items-center text-sm"><i class="fas fa-wallet mr-2 text-indigo-500"></i>Total Earnings</h3>
+      <p class="text-2xl font-bold text-indigo-600">₹{{ total_earnings }}</p>
+    </div>
+  </div>
+
+  <!-- Profile & Upcoming Rides -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Profile Summary -->
+    <div class="bg-white p-6 rounded-2xl shadow col-span-1">
+      <h2 class="text-xl font-heading font-bold mb-4">Driver Profile</h2>
+      <div class="flex items-center space-x-4 mb-4">
+        <img src="{% static 'driver/images/user.png' %}" alt="Driver" class="w-20 h-20 rounded-full object-cover" />
+        <div>
+          <p class="text-lg font-semibold text-gray-800">{{ driver.first_name }} {{ driver.last_name }}</p>
+          <p class="text-sm text-gray-500">ID: {{ driver.driver_id }}</p>
+        </div>
+      </div>
+      <ul class="text-sm text-gray-600 space-y-2">
+        <li><i class="fas fa-phone-alt text-teal-500 mr-2"></i>{{ driver.phone }}</li>
+        <li><i class="fas fa-envelope text-teal-500 mr-2"></i>{{ driver.email }}</li>
+        <li><i class="fas fa-car-side text-teal-500 mr-2"></i>{{ driver.vehicle_type }}</li>
+        <li><i class="fas fa-id-card text-teal-500 mr-2"></i>Plate: {{ driver.plate_number }}</li>
+      </ul>
+    </div>
+
+    <!-- Unified Upcoming Rides Section -->
+    <div class="bg-white p-6 rounded-2xl shadow col-span-2">
+      <h2 class="text-xl font-heading font-bold mb-4">Ride Request</h2>
+      <div class="divide-y divide-gray-200">
+        {% for ride in all_rides %}
+        <div class="py-4 flex justify-between items-center ride-entry" data-ride-id="{{ ride.id }}">
+          <div>
+            <p class="font-semibold">{{ ride.pickup_location }} â†' {{ ride.dropoff_location }}</p>
+            {% if ride.scheduled_time %}
+              <p class="text-sm text-gray-500">{{ ride.scheduled_time|date:"M d, Y" }} at {{ ride.scheduled_time|time:"h:i A" }}</p>
+            {% else %}
+              <p class="text-sm text-gray-500">Requested on {{ ride.created_at|date:"M d, Y" }} at {{ ride.created_at|time:"h:i A" }}</p>
+            {% endif %}
+          </div>
+          <div class="status-section space-x-2">
+            {% if ride|instanceof:"RideRequest" and ride.status == "Requested" %}
+              <form method="POST" action="{% url 'accept_ride' ride_request_id=ride.id %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="px-3 py-1 bg-green-500 text-white text-sm rounded">Accept</button>
+              </form>
+              <form method="POST" action="{% url 'reject_ride' ride_request_id=ride.id %}" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="px-3 py-1 bg-red-500 text-white text-sm rounded">Reject</button>
+              </form>
+            {% elif ride.status == "Rejected" %}
+              <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm status-rejected">Rejected</span>
+            {% elif ride.status == "Confirmed" %}
+              <span class="bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-sm">Confirmed</span>
+            {% elif ride.status == "Completed" %}
+              <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">Completed</span>
+            {% elif ride.status == "Cancelled" %}
+              <span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm">Cancelled</span>
+            {% else %}
+              <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">{{ ride.status }}</span>
+            {% endif %}
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-gray-500 text-sm text-center py-6">No rides requests at the moment.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Auto-hide rejected rides script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const REJECT_VISIBILITY_MS = 4000; // match server-side visibility
+      const rejectedEntries = Array.from(document.querySelectorAll('.ride-entry'))
+        .filter(entry => entry.querySelector('.status-rejected'));
+
+      rejectedEntries.forEach(entry => {
+        setTimeout(() => {
+          entry.style.transition = 'opacity 0.5s ease, height 0.5s ease, margin 0.5s ease';
+          entry.style.opacity = '0';
+          entry.style.margin = '0';
+          entry.style.height = '0';
+          setTimeout(() => entry.remove(), 600);
+        }, REJECT_VISIBILITY_MS);
+      });
+    });
+  </script>
+
+  <!-- Availability Toggle Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggle = document.getElementById('availability-toggle');
+      const statusText = document.getElementById('availability-text');
+
+      toggle.addEventListener('change', () => {
+        const availability = toggle.checked;
+
+        // Optimistic UI update
+        statusText.textContent = availability ? "Available" : "Unavailable";
+        statusText.className = availability 
+          ? "font-semibold text-green-600" 
+          : "font-semibold text-gray-500";
+
+        fetch("{% url 'driver:toggle_availability' %}", {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: `availability=${availability}`
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Update with server response
+            statusText.textContent = data.status_text;
+            statusText.className = data.availability 
+              ? "font-semibold text-green-600" 
+              : "font-semibold text-gray-500";
+          } else {
+            // Revert on failure
+            toggle.checked = !availability;
+            statusText.textContent = !availability ? "Available" : "Unavailable";
+            statusText.className = !availability 
+              ? "font-semibold text-green-600" 
+              : "font-semibold text-gray-500";
+            alert("Failed to update availability. Please try again.");
+          }
+        })
+        .catch(err => {
+          console.error("Error updating availability:", err);
+          // Revert on error
+          toggle.checked = !availability;
+          statusText.textContent = !availability ? "Available" : "Unavailable";
+          statusText.className = !availability 
+            ? "font-semibold text-green-600" 
+            : "font-semibold text-gray-500";
+          alert("Network error. Please check your connection and try again.");
+        });
+      });
+    });
+  </script>
+
+</main>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-white py-8 mt-16">
+  <div class="max-w-7xl mx-auto px-4 text-center">
+    <div class="flex justify-center items-center mb-4">
+      <div class="w-10 h-10 bg-gradient-to-r from-teal-500 to-teal-600 rounded-lg flex items-center justify-center">
+        <i class="fas fa-car text-white text-lg"></i>
+      </div>
+      <span class="ml-3 text-xl font-bold text-gradient">Hospione</span>
+    </div>
+    <p class="text-sm text-gray-400">&copy; 2025 Hospione. All rights reserved.</p>
+  </div>
+</footer>
+
+{% endblock %}

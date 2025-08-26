@@ -1,0 +1,128 @@
+{% load static %}
+{% load custom_filters %}
+
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
+{% block content %}
+<div class="container mx-auto p-6 max-w-xl">
+  <div class="bg-white shadow-md rounded-lg p-6 border border-gray-200">
+    <div class="mb-4">
+      <a href="{% url 'choose_ride' %}" class="inline-block bg-teal-600 hover:bg-teal-700 text-white font-semibold px-4 py-2 rounded">
+        ← Back
+      </a>
+    </div>
+    <h2 class="text-2xl font-bold mb-6 text-gray-800">Ride Summary</h2>
+
+    <div class="mb-6 space-y-4">
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Pickup Location</label>
+        <input type="text" readonly value="{{ pickup|default_if_none:'' }}" class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100" />
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Dropoff Location</label>
+        <input type="text" readonly value="{{ dropoff|default_if_none:'' }}" class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100" />
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Chosen Service</label>
+        <input type="text" readonly value="{{ selected_service|default:'Not selected' }}" class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100" />
+      </div>
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">Fare</label>
+        <input type="text" readonly value="₹{{ fare|default_if_none:'' }}" class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100" id="fare_display" />
+      </div>
+    </div>
+   
+    <form method="post" action="{% url 'confirm_booking' %}" class="mb-6 space-y-6">
+      {% csrf_token %} {# IMPORTANT: Include this for security in Django forms #}
+
+      <input type="hidden" name="vehicle_type" value="{{ selected_service }}">
+      <input type="hidden" name="fare" value="{{ fare }}" id="fare_input">
+      <input type="hidden" name="pickup" value="{{ pickup }}">
+      <input type="hidden" name="dropoff" value="{{ dropoff }}">
+      <input type="hidden" name="ride_date" value="{{ ride_date }}">
+      <input type="hidden" name="ride_time" value="{{ ride_time }}">
+      <input type="hidden" name="ride_type" value="{{ ride_type }}">
+      {% if ride_type == 'rental' %}
+      <input type="hidden" name="rental_duration" value="{{ rental_duration }}">
+      {% endif %}
+
+      <div>
+        <label for="payment_mode" class="block text-gray-700 font-medium mb-2">Payment Mode</label>
+        <select id="payment_mode" name="payment_mode" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-teal-500">
+          <option value="Cash">Cash</option>
+          <option value="Credit Card">Credit Card</option>
+          <option value="Debit Card">Debit Card</option>
+          <option value="UPI">UPI</option>
+          <option value="Wallet">Wallet</option>
+          <option value="Netbanking">Netbanking</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="promo_code" class="block text-gray-700 font-medium mb-2">Promo Code</label>
+        <div class="flex">
+          <input type="text" id="promo_code" name="promo_code" placeholder="Enter code" class="flex-grow border border-gray-300 rounded-l px-3 py-2 focus:outline-none focus:border-teal-500">
+          <button type="button" id="apply_promo" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold px-4 rounded-r">Apply</button>
+        </div>
+        <p id="promo_message" class="mt-2 text-sm"></p>
+      </div>
+
+      <div class="text-center">
+        <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white font-semibold px-6 py-2 rounded w-full">Confirm & Book</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const applyBtn = document.getElementById('apply_promo');
+  const promoInput = document.getElementById('promo_code');
+  const fareInput = document.getElementById('fare_input');
+  const fareDisplay = document.getElementById('fare_display');
+  const promoMessage = document.getElementById('promo_message');
+  const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+  applyBtn.addEventListener('click', function () {
+    const promoCode = promoInput.value.trim();
+    const currentFare = fareInput.value;
+
+    if (!promoCode) {
+      promoMessage.textContent = 'Please enter a promo code.';
+      promoMessage.className = 'mt-2 text-sm text-red-600';
+      return;
+    }
+
+    fetch("{% url 'apply_promo' %}", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken,
+      },
+      body: JSON.stringify({
+        promo_code: promoCode,
+        fare: currentFare
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Update fare hidden input and visible display
+        fareInput.value = data.discounted_fare;
+        fareDisplay.value = '₹' + data.discounted_fare;
+        promoMessage.textContent = data.message || 'Promo code applied successfully!';
+        promoMessage.className = 'mt-2 text-sm text-green-600';
+      } else {
+        promoMessage.textContent = data.message || 'Invalid promo code.';
+        promoMessage.className = 'mt-2 text-sm text-red-600';
+      }
+    })
+    .catch(() => {
+      promoMessage.textContent = 'An error occurred while applying the promo code.';
+      promoMessage.className = 'mt-2 text-sm text-red-600';
+    });
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base_admin.html" %}
+{% block title %}Add Rental Package{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto mt-10 p-6 bg-white rounded-xl shadow">
+  <h2 class="text-2xl font-semibold text-[#131C44] mb-6">Add Rental Package</h2>
+
+  <form method="POST" class="space-y-6">
+    {% csrf_token %}
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <label for="{{ form.distance_km.id_for_label }}" class="block mb-1 font-medium text-gray-700">
+          {{ form.distance_km.label }}
+        </label>
+        {{ form.distance_km }}
+        {% if form.distance_km.errors %}
+          <p class="text-red-500 text-sm mt-1">{{ form.distance_km.errors|striptags }}</p>
+        {% endif %}
+      </div>
+
+      <div>
+        <label for="{{ form.time_hours.id_for_label }}" class="block mb-1 font-medium text-gray-700">
+          {{ form.time_hours.label }}
+        </label>
+        {{ form.time_hours }}
+        {% if form.time_hours.errors %}
+          <p class="text-red-500 text-sm mt-1">{{ form.time_hours.errors|striptags }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="pt-6 flex justify-start gap-4">
+      <button type="submit"
+        class="bg-[#00A59E] hover:bg-[#131C44] text-white font-semibold px-6 py-3 rounded-full transition">
+        Save Package
+      </button>
+      <a href="{% url 'rental_dashboard' %}"
+        class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-full font-semibold transition">
+        Cancel
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

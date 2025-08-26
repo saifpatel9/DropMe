@@ -1,0 +1,165 @@
+{% extends "base_admin.html" %}
+{% block title %}Rating Dashboard{% endblock %}
+
+{% block content %}
+<div class="p-6 max-w-7xl mx-auto">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-semibold text-gray-800">Rating Dashboard</h1>
+  </div>
+
+  <!-- Passenger Ratings -->
+  <div class="bg-white shadow rounded-xl overflow-hidden mb-10">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-lg font-medium text-gray-700">Passenger Ratings</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full table-auto text-sm text-center text-gray-700">
+        <thead class="bg-[#131C44] text-white">
+          <tr>
+            <th class="py-3 px-4">S/N</th>
+            <th class="py-3 px-4">Passenger</th>
+            <th class="py-3 px-4">Driver</th>
+            <th class="py-3 px-4">Request ID</th>
+            <th class="py-3 px-4">Date</th>
+            <th class="py-3 px-4">Rating</th>
+            <th class="py-3 px-4">Comments</th>
+            <th class="py-3 px-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for rating in user_ratings %}
+          <tr>
+            <td class="py-3 px-4">{{ forloop.counter }}</td>
+            <td class="py-3 px-4">{{ rating.User.first_name }} {{ rating.User.last_name }}</td>
+            <td class="py-3 px-4">{{ rating.driver.first_name }} {{ rating.driver.last_name }}</td>
+            <td class="py-3 px-4">#{{ rating.booking_id }}</td>
+            <td class="py-3 px-4">{{ rating.created_at|date:"d-m-Y H:i" }}</td>
+            <td class="py-3 px-4 font-bold">{{ rating.rating }}</td>
+            <td class="py-3 px-4">{{ rating.comments|truncatechars:40 }}</td>
+            <td class="py-3 px-4">
+              {% if rating.pk %}
+              <button onclick="showDropdown(this)" class="inline-flex items-center justify-center bg-white border border-gray-300 rounded-md shadow-sm px-3 py-1 text-sm font-medium hover:bg-gray-50" data-actions='[{"label": "View", "url": "{% url 'passenger_rating_detail' rating.pk %}", "color": "text-blue-600"}]'>
+                Actions
+                <svg class="ml-2 w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.23 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                </svg>
+              </button>
+              {% else %}
+              <span class="text-red-500 text-xs">ID Error</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="py-6 text-gray-500 text-center">No passenger ratings found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Driver Ratings -->
+  <div class="bg-white shadow rounded-xl overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100">
+      <h2 class="text-lg font-medium text-gray-700">Driver Ratings</h2>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full table-auto text-sm text-center text-gray-700">
+        <thead class="bg-[#131C44] text-white">
+          <tr>
+            <th class="py-3 px-4">S/N</th>
+            <th class="py-3 px-4">Driver</th>
+            <th class="py-3 px-4">Passenger</th>
+            <th class="py-3 px-4">Request ID</th>
+            <th class="py-3 px-4">Date</th>
+            <th class="py-3 px-4">Rating</th>
+            <th class="py-3 px-4">Comments</th>
+            <th class="py-3 px-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          {% for rating in driver_ratings %}
+          <tr>
+            <td class="py-3 px-4">{{ forloop.counter }}</td>
+            <td class="py-3 px-4">{{ rating.driver.first_name }} {{ rating.driver.last_name }}</td>
+            <td class="py-3 px-4">{{ rating.User.first_name }} {{ rating.User.last_name }}</td>
+            <td class="py-3 px-4">#{{ rating.booking_id }}</td>
+            <td class="py-3 px-4">{{ rating.created_at|date:"d-m-Y H:i" }}</td>
+            <td class="py-3 px-4 font-bold">{{ rating.rating }}</td>
+            <td class="py-3 px-4">{{ rating.comments|truncatechars:40 }}</td>
+            <td class="py-3 px-4">
+              {% if rating.pk %}
+              <button onclick="showDropdown(this)" class="inline-flex items-center justify-center bg-white border border-gray-300 rounded-md shadow-sm px-3 py-1 text-sm font-medium hover:bg-gray-50" data-actions='[{"label": "View", "url": "{% url 'driver_rating_detail' rating.pk %}", "color": "text-blue-600"}]'>
+                Actions
+                <svg class="ml-2 w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.23 8.27a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                </svg>
+              </button>
+              {% else %}
+              <span class="text-red-500 text-xs">ID Error</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="py-6 text-gray-500 text-center">No driver ratings found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div id="globalDropdown" class="dropdown-menu hidden fixed w-40 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-[9999]">
+  <div class="py-1 text-left" id="dropdownContent"></div>
+</div>
+
+<script>
+  let activeDropdownButton = null;
+
+  function showDropdown(button) {
+    const dropdown = document.getElementById("globalDropdown");
+    const content = document.getElementById("dropdownContent");
+
+    if (activeDropdownButton === button && !dropdown.classList.contains("hidden")) {
+      dropdown.classList.add("hidden");
+      activeDropdownButton = null;
+      return;
+    }
+
+    activeDropdownButton = button;
+    const actions = JSON.parse(button.getAttribute("data-actions"));
+    content.innerHTML = actions.map(action =>
+      `<a href="${action.url}" class="block px-4 py-2 text-sm ${action.color} hover:bg-gray-100">${action.label}</a>`
+    ).join('');
+
+    document.body.appendChild(dropdown);
+
+    const rect = button.getBoundingClientRect();
+    dropdown.style.position = 'fixed';
+    dropdown.style.top = `${rect.bottom + 5}px`;
+    dropdown.style.left = `${rect.left}px`;
+    dropdown.style.zIndex = '10000';
+    dropdown.classList.remove("hidden");
+
+    const dropdownRect = dropdown.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    if (dropdownRect.right > viewportWidth) {
+      dropdown.style.left = `${rect.right - dropdownRect.width}px`;
+    }
+
+    if (dropdownRect.bottom > viewportHeight) {
+      dropdown.style.top = `${rect.top - dropdownRect.height - 5}px`;
+    }
+  }
+
+  document.addEventListener("click", function (e) {
+    const dropdown = document.getElementById("globalDropdown");
+    if (!dropdown.contains(e.target) && !e.target.closest("[onclick^='showDropdown']")) {
+      dropdown.classList.add("hidden");
+      activeDropdownButton = null;
+    }
+  });
+</script>
+{% endblock %}
