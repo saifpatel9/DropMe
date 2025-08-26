@@ -1,5 +1,6 @@
 [phases.setup]
-packages = ["python3", "python3-pip", "python3-venv"]
+# Install python, pip, npm
+packages = ["python310", "python310Packages.pip", "nodejs", "npm"]
 
 [phases.install]
 commands = [
@@ -9,7 +10,9 @@ commands = [
 
 [phases.build]
 commands = [
-    "echo 'Python app ready'"
+    "echo 'Building static files'",
+    "npm ci",
+    "npm run build"
 ]
 
 [phases.start]
