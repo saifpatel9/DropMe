@@ -1,0 +1,24 @@
+[project]
+name = "dropme"
+
+[phases.setup]
+# Install Python 3.12 and Node.js
+packages = ["python312", "python312Packages.pip", "nodejs", "npm"]
+
+[phases.install]
+# Upgrade pip and install Python requirements
+commands = [
+    "python3 -m pip install --upgrade pip",
+    "python3 -m pip install -r requirements.txt"
+]
+
+[phases.build]
+# Build Tailwind CSS
+commands = [
+    "npm ci",
+    "npm run build"
+]
+
+[phases.start]
+# Command to run your Django app
+command = "gunicorn config.wsgi"
