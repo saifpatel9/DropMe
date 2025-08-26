@@ -1,20 +1,12 @@
 [project]
 name = "dropme"
-start = "gunicorn config.wsgi"
+start = "gunicorn config.wsgi:application"
 
-[[phases.setup.packages]]
-name = "python"
-version = "3.12"
+[build]
+template = "python"
 
-[[phases.setup.packages]]
-name = "node"
-version = "20"
-
-[[phases.setup.packages]]
-name = "npm"
-
-[[phases.setup.commands]]
-command = "python3 -m pip install --upgrade pip"
-
-[[phases.setup.commands]]
-command = "python3 -m pip install -r requirements.txt"
+[phases.setup.commands]
+commands = [
+    "python3 -m pip install --upgrade pip",
+    "python3 -m pip install -r requirements.txt"
+]
