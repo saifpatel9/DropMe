@@ -1,1 +1,13 @@
 node_modules
+# Virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
+
+# Collected static files
+staticfiles/
