@@ -92,3 +92,5 @@ websocket-client==1.8.0
 wheel==0.43.0
 widgetsnbextension==4.0.10
 wsproto==1.2.0
+gunicorn
+whitenoise
