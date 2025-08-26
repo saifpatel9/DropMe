@@ -1,24 +1,20 @@
 [project]
 name = "dropme"
+start = "gunicorn config.wsgi"
 
-[phases.setup]
-# Install Python 3.12 and Node.js
-packages = ["python312", "python312Packages.pip", "nodejs", "npm"]
+[[phases.setup.packages]]
+name = "python"
+version = "3.12"
 
-[phases.install]
-# Upgrade pip and install Python requirements
-commands = [
-    "python3 -m pip install --upgrade pip",
-    "python3 -m pip install -r requirements.txt"
-]
+[[phases.setup.packages]]
+name = "node"
+version = "20"
 
-[phases.build]
-# Build Tailwind CSS
-commands = [
-    "npm ci",
-    "npm run build"
-]
+[[phases.setup.packages]]
+name = "npm"
 
-[phases.start]
-# Command to run your Django app
-command = "gunicorn config.wsgi"
+[[phases.setup.commands]]
+command = "python3 -m pip install --upgrade pip"
+
+[[phases.setup.commands]]
+command = "python3 -m pip install -r requirements.txt"
