@@ -5,7 +5,7 @@ import pymysql
 import sys
 import dj_database_url
 
-# Load environment variables from .env
+# Load environment variables from .env (for local development)
 load_dotenv()
 
 # Make PyMySQL act as MySQLdb
@@ -20,7 +20,12 @@ SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-fallback-key")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = ["*", "127.0.0.1", "localhost"]
+# Allowed hosts (remove https://)
+ALLOWED_HOSTS = [
+    "web-production-0a117.up.railway.app",
+    "localhost",
+    "127.0.0.1",
+]
 
 # Application definition
 INSTALLED_APPS = [
@@ -80,19 +85,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-# Database
+# Database using dj-database-url with fallback for build time
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": os.getenv("MYSQLDATABASE", "cabdb"),
-        "USER": os.getenv("MYSQLUSER", "root"),
-        "PASSWORD": os.getenv("MYSQLPASSWORD", ""),
-        "HOST": os.getenv("MYSQLHOST", "127.0.0.1"),
-        "PORT": os.getenv("MYSQLPORT", "3306"),
-        "OPTIONS": {
-            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'"
-        },
-    }
+    "default": dj_database_url.parse(
+        os.getenv("DATABASE_URL", "sqlite:///db.sqlite3")
+    )
 }
 
 # Password validation
@@ -139,16 +136,9 @@ AUTHENTICATION_BACKENDS = [
 # Security
 CSRF_TRUSTED_ORIGINS = [
     "https://web-production-0a117.up.railway.app",
-    "https://<your-custom-domain-if-any>",
 ]
 
-ALLOWED_HOSTS = [
-    "web-production-0a117.up.railway.app",
-    "https://web-production-0a117.up.railway.app",
-    "localhost",
-    "127.0.0.1",
-]
-
+# Logging
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -162,8 +152,4 @@ LOGGING = {
         "handlers": ["console"],
         "level": "DEBUG",
     },
-}
-
-DATABASES = {
-    "default": dj_database_url.parse(os.getenv("DATABASE_URL"))
 }
