@@ -3,6 +3,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 import pymysql
 import sys
+import dj_database_url
 
 # Load environment variables from .env
 load_dotenv()
@@ -162,4 +163,7 @@ LOGGING = {
         "level": "DEBUG",
     },
 }
-    
+
+DATABASES = {
+    "default": dj_database_url.parse(os.getenv("DATABASE_URL"))
+}
