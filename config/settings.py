@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 import pymysql
+import sys
 
 # Load environment variables from .env
 load_dotenv()
@@ -146,3 +147,19 @@ ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
 ]
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "stream": sys.stdout,
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "DEBUG",
+    },
+}
+    
