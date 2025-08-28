@@ -82,7 +82,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
     "default": dj_database_url.parse(
-        os.getenv("DATABASE_URL", "mysql+pymysql://root:password@127.0.0.1:3306/railway")
+        os.getenv("DATABASE_URL", "mysql://username:password@host:3306/railway")
     )
 }
 
