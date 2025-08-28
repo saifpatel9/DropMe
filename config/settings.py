@@ -80,19 +80,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-# Database
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": os.getenv("MYSQLDATABASE", "cabdb"),
-        "USER": os.getenv("MYSQLUSER", "root"),
-        "PASSWORD": os.getenv("MYSQLPASSWORD", ""),
-        "HOST": os.getenv("MYSQLHOST", "127.0.0.1"),
-        "PORT": os.getenv("MYSQLPORT", "3306"),
-        "OPTIONS": {
-            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'"
-        },
-    }
+    "default": dj_database_url.parse(
+        os.getenv("DATABASE_URL", "mysql+pymysql://root:password@127.0.0.1:3306/railway")
+    )
 }
 
 # Password validation
