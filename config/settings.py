@@ -81,9 +81,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
-    "default": dj_database_url.parse(
-        os.getenv("DATABASE_URL", "mysql://username:password@host:3306/railway")
-    )
+    "default": dj_database_url.parse(os.getenv("DATABASE_URL"))
 }
 
 # Password validation
