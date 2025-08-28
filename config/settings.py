@@ -133,3 +133,16 @@ AUTH_USER_MODEL = "passenger.User"
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
+
+# Security
+CSRF_TRUSTED_ORIGINS = [
+    "https://web-production-0a117.up.railway.app",
+    "https://<your-custom-domain-if-any>",
+]
+
+ALLOWED_HOSTS = [
+    "web-production-0a117.up.railway.app",
+    "https://web-production-0a117.up.railway.app",
+    "localhost",
+    "127.0.0.1",
+]
