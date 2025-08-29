@@ -1,15 +1,8 @@
 import os
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
-import pymysql
-import sys
 import dj_database_url
-
-# Load environment variables from .env
-load_dotenv()
-
-# Make PyMySQL act as MySQLdb
-pymysql.install_as_MySQLdb()
 
 # Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,7 +13,9 @@ SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-fallback-key")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = ["*", "127.0.0.1", "localhost"]
+# Load .env only when running locally (DEBUG = True)
+if DEBUG:
+    load_dotenv()
 
 # Application definition
 INSTALLED_APPS = [
@@ -80,13 +75,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
+# Database
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL environment variable not set")
+
 DATABASES = {
-    "default": dj_database_url.parse(
-        os.getenv(
-            "DATABASE_URL",
-            "mysql://root:password@127.0.0.1:3306/railway"  # fallback for build-time
-        )
-    )
+    "default": dj_database_url.parse(DATABASE_URL)
 }
 
 # Password validation
@@ -103,7 +98,7 @@ TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_TZ = True
 
-# Static files (CSS, JS, Images)
+# Static files
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
@@ -138,11 +133,11 @@ CSRF_TRUSTED_ORIGINS = [
 
 ALLOWED_HOSTS = [
     "web-production-0a117.up.railway.app",
-    "https://web-production-0a117.up.railway.app",
     "localhost",
     "127.0.0.1",
 ]
 
+# Logging
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
