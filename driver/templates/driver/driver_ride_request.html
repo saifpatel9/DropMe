@@ -34,7 +34,13 @@
           </div>
           <div>
             <p class="text-sm text-gray-500">Passenger</p>
-            <p class="font-medium text-gray-900">{{ rr.user.get_full_name|default:rr.user.username }}</p>
+            <p class="font-medium text-gray-900">
+              {% if rr.user.first_name or rr.user.last_name %}
+                {{ rr.user.first_name }} {{ rr.user.last_name }}
+              {% else %}
+                {{ rr.user.email }}
+              {% endif %}
+            </p>
           </div>
         </div>
         <div class="text-right">
