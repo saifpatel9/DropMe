@@ -274,8 +274,11 @@ def driver_rides_view(request):
 @driver_login_required
 def driver_ride_request_page(request):
     """
-    Placeholder Ride Request page for drivers.
+    Ride Request page showing pending requests for the current driver's vehicle type.
+    Displays pickup, dropoff, fare, passenger name, and passenger average rating.
     """
+    from django.db.models import Avg
+
     driver_id = request.session.get('driver_id')
     if not driver_id:
         return redirect('unified_login')
@@ -284,7 +287,33 @@ def driver_ride_request_page(request):
     except Driver.DoesNotExist:
         return redirect('unified_login')
 
-    return render(request, 'driver/driver_ride_request.html', {'driver': driver})
+    # Pending ride requests matching the driver's vehicle type
+    ride_requests = (
+        RideRequest.objects
+        .filter(status='Requested', service_type__name__iexact=driver.vehicle_type)
+        .select_related('user', 'service_type')
+        .order_by('-created_at')
+    )
+
+    # Compute average rating for each passenger (ratings given by drivers)
+    passenger_ids = list({rr.user_id for rr in ride_requests if rr.user_id})
+    ratings_map = {}
+    if passenger_ids:
+        from rating.models import Rating
+        passenger_avgs = (
+            Rating.objects
+            .filter(User_id__in=passenger_ids, given_by='driver')
+            .values('User_id')
+            .annotate(avg_rating=Avg('rating'))
+        )
+        ratings_map = {row['User_id']: row['avg_rating'] for row in passenger_avgs}
+
+    context = {
+        'driver': driver,
+        'ride_requests': ride_requests,
+        'passenger_avg_rating': ratings_map,
+    }
+    return render(request, 'driver/driver_ride_request.html', context)
 
 @require_POST
 @driver_login_required
