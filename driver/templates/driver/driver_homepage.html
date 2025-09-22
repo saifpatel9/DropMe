@@ -203,8 +203,8 @@
     </div>
   </div>
 
-  <!-- Stats Cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-10">
+  <!-- Row 1: Ride Stats Only -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
     <div class="bg-white p-4 rounded-2xl shadow card-hover">
       <h3 class="text-gray-600 mb-2 flex items-center text-sm"><i class="fas fa-road mr-2 text-blue-500"></i>Total Rides</h3>
       <p class="text-2xl font-bold text-blue-600">{{ total_rides }}</p>
@@ -219,12 +219,27 @@
     </div>
     <div class="bg-white p-4 rounded-2xl shadow card-hover">
       <h3 class="text-gray-600 mb-2 flex items-center text-sm"><i class="fas fa-times-circle mr-2 text-red-500"></i>Cancelled Rides</h3>
-      <p class="text-2xl font-bold text-red-600">{{ cancelled_rides }}</p> 
+      <p class="text-2xl font-bold text-red-600">{{ cancelled_rides }}</p>
     </div>
-    <!-- New Total Earnings Card -->
+  </div>
+
+  <!-- Row 2: Earnings Cards (reusing styles similar to earnings page) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-10">
     <div class="bg-white p-4 rounded-2xl shadow card-hover">
-      <h3 class="text-gray-600 mb-2 flex items-center text-sm"><i class="fas fa-wallet mr-2 text-indigo-500"></i>Total Earnings</h3>
-      <p class="text-2xl font-bold text-indigo-600">₹{{ total_earnings }}</p>
+      <h3 class="text-gray-600 mb-2 flex items-center text-sm"><i class="fas fa-sun mr-2 text-green-500"></i>Today’s Earnings</h3>
+      <p class="text-2xl font-bold text-green-600">₹{{ earnings_today }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-2xl shadow card-hover">
+      <h3 class="text-gray-600 mb-2 flex items-center text-sm"><i class="fas fa-calendar-week mr-2 text-indigo-500"></i>This Week</h3>
+      <p class="text-2xl font-bold text-indigo-600">₹{{ earnings_week }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-2xl shadow card-hover">
+      <h3 class="text-gray-600 mb-2 flex items-center text-sm"><i class="fas fa-calendar-alt mr-2 text-blue-500"></i>This Month</h3>
+      <p class="text-2xl font-bold text-blue-600">₹{{ earnings_month }}</p>
+    </div>
+    <div class="bg-white p-4 rounded-2xl shadow card-hover">
+      <h3 class="text-gray-600 mb-2 flex items-center text-sm"><i class="fas fa-wallet mr-2 text-purple-500"></i>Total Earnings</h3>
+      <p class="text-2xl font-bold text-purple-600">₹{{ total_earnings }}</p>
     </div>
   </div>
 

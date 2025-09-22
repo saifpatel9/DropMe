@@ -61,10 +61,24 @@ def driver_homepage_cab_view(request):
     all_rides = list(confirmed_rides) + list(ride_requests)
     all_rides.sort(key=get_sort_time)
 
-    # === Calculate total earnings ===
-    completed_bookings = Booking.objects.filter(driver=driver, status='Completed').select_related('service_type')
+    # === Calculate earnings (today, week, month, total) ===
+    completed_bookings = (
+        Booking.objects.filter(driver=driver, status='Completed')
+        .select_related('service_type')
+        .order_by('-scheduled_time')
+    )
 
+    from datetime import timedelta
+
+    today = localtime().date()
+    start_of_week = today - timedelta(days=today.weekday())
+    start_of_month = today.replace(day=1)
+
+    earnings_today = Decimal("0.00")
+    earnings_week = Decimal("0.00")
+    earnings_month = Decimal("0.00")
     total_earnings = Decimal("0.00")
+
     for ride in completed_bookings:
         fare_total = Decimal(ride.fare or 0)
         service = ride.service_type
@@ -79,8 +93,18 @@ def driver_homepage_cab_view(request):
             subtotal_before_tax = fare_total
 
         components_excl_booking = subtotal_before_tax - booking_fee
-        driver_earning = (components_excl_booking * provider_percent).quantize(Decimal("0.01"))
+        driver_earning = (components_excl_booking * provider_percent).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
         total_earnings += driver_earning
+
+        local_dt = localtime(ride.scheduled_time)
+        local_date = local_dt.date()
+        if local_date == today:
+            earnings_today += driver_earning
+        if local_date >= start_of_week:
+            earnings_week += driver_earning
+        if local_date >= start_of_month:
+            earnings_month += driver_earning
 
     return render(request, 'driver/driver_homepage.html', {
         'driver': driver,
@@ -91,6 +115,9 @@ def driver_homepage_cab_view(request):
         'all_rides': all_rides,
         'ride_requests': ride_requests,
         'total_earnings': total_earnings,
+        'earnings_today': earnings_today,
+        'earnings_week': earnings_week,
+        'earnings_month': earnings_month,
     })
 
 def accept_ride(request, ride_request_id):
