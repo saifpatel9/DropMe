@@ -270,7 +270,7 @@
         {% for ride in all_rides %}
         <div class="py-4 flex justify-between items-center ride-entry" data-ride-id="{{ ride.id }}">
           <div>
-            <p class="font-semibold">{{ ride.pickup_location }} â†' {{ ride.dropoff_location }}</p>
+            <p class="font-semibold">{{ ride.pickup_location }} to {{ ride.dropoff_location }}</p>
             {% if ride.scheduled_time %}
               <p class="text-sm text-gray-500">{{ ride.scheduled_time|date:"M d, Y" }} at {{ ride.scheduled_time|time:"h:i A" }}</p>
             {% else %}
