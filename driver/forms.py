@@ -13,3 +13,12 @@ class DriverEditProfileForm(forms.ModelForm):
             "city": forms.TextInput(attrs={"class": "form-input"}),
             "full_address": forms.Textarea(attrs={"class": "form-input h-24"}),
         }
+
+
+class RideRequestFilterForm(forms.Form):
+    """Minimal stub for future ride request filters."""
+    status = forms.ChoiceField(
+        choices=[('all', 'All')],
+        required=False,
+        widget=forms.Select(attrs={'class': 'border rounded px-3 py-2'})
+    )

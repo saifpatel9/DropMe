@@ -1,0 +1,17 @@
+{% load static %}
+{% block extra_css %}
+<script src="https://cdn.tailwindcss.com"></script>
+<title>Ride Request</title>
+<link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
+{% endblock %}
+
+{% block content %}
+<main class="max-w-5xl mx-auto p-6">
+  <div class="bg-white rounded-2xl shadow p-8 text-center">
+    <h1 class="text-2xl font-bold text-gray-900 mb-2">Ride Request</h1>
+    <p class="text-gray-600">Incoming Ride Requests will appear here.</p>
+  </div>
+</main>
+{% endblock %}
+
+

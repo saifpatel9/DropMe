@@ -271,6 +271,21 @@ def driver_rides_view(request):
     }
     return render(request, 'driver/driver_rides.html', context)
 
+@driver_login_required
+def driver_ride_request_page(request):
+    """
+    Placeholder Ride Request page for drivers.
+    """
+    driver_id = request.session.get('driver_id')
+    if not driver_id:
+        return redirect('unified_login')
+    try:
+        driver = Driver.objects.get(driver_id=driver_id)
+    except Driver.DoesNotExist:
+        return redirect('unified_login')
+
+    return render(request, 'driver/driver_ride_request.html', {'driver': driver})
+
 @require_POST
 @driver_login_required
 def end_ride_view(request, booking_id):
