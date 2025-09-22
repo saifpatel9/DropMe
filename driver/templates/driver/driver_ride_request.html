@@ -39,7 +39,7 @@
         </div>
         <div class="text-right">
           <p class="text-sm text-gray-500">Rating</p>
-          {% with passenger_avg_rating|default:{} as avgmap %}
+          {% with passenger_avg_rating as avgmap %}
             {% if rr.user_id in avgmap %}
               <p class="font-semibold text-yellow-600"><i class="fas fa-star mr-1"></i>{{ avgmap|get_item:rr.user_id|floatformat:1 }}/5</p>
             {% else %}
