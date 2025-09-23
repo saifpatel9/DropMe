@@ -3,65 +3,222 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="{% static 'css/global.css' %}">
+<style>
+  .pulse-ring {
+    animation: pulse-ring 2s infinite;
+  }
+  @keyframes pulse-ring {
+    0% { transform: scale(0.8); opacity: 1; }
+    100% { transform: scale(2.4); opacity: 0; }
+  }
+  .ride-status-indicator {
+    position: relative;
+    display: inline-block;
+  }
+  .ride-status-indicator::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: pulse-ring 2s infinite;
+  }
+  .info-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(249, 250, 251, 0.95));
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  .driver-avatar {
+    background: linear-gradient(135deg, #00A59E, #0EB9D3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1.25rem;
+  }
+  .route-line {
+    position: relative;
+  }
+  .route-line::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, #00A59E, #0EB9D3);
+  }
+  .location-dot {
+    background: white;
+    border: 3px solid #00A59E;
+  }
+  .location-dot.destination {
+    border-color: #0EB9D3;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto mt-12 bg-white p-6 rounded shadow">
-  <h2 class="text-2xl font-bold text-teal-700 mb-4">🚖 Ride Started</h2>
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8 px-4">
+  <!-- Main Container -->
+  <div class="max-w-lg mx-auto">
+    
+    <!-- Header Card with Status -->
+    <div class="info-card rounded-2xl shadow-lg p-6 mb-6 card-hover animate-fade-in-up">
+      <div class="text-center">
+        <div class="ride-status-indicator mb-4">
+          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+            <i class="fas fa-car text-green-600 text-2xl"></i>
+          </div>
+        </div>
+        <h1 class="text-3xl font-heading font-bold text-gradient mb-2">🚖 Ride Started</h1>
+        <div class="inline-flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
+          <div class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+          {{ booking.status|title }}
+        </div>
+      </div>
+      
+      <div class="mt-6 grid grid-cols-2 gap-4">
+        <div class="text-center">
+          <div class="text-sm text-gray-500 font-body">Booking ID</div>
+          <div class="text-lg font-heading font-semibold text-gray-800">{{ booking.booking_id }}</div>
+        </div>
+        <div class="text-center">
+          <div class="text-sm text-gray-500 font-body">Started At</div>
+          <div class="text-lg font-heading font-semibold text-gray-800">{{ start_time }}</div>
+        </div>
+      </div>
+    </div>
 
-  <div class="text-gray-700 mb-2">
-    <strong>Booking ID:</strong> {{ booking.booking_id }}
-  </div>
+    <!-- Route Information -->
+    <div class="info-card rounded-2xl shadow-lg p-6 mb-6 card-hover animate-fade-in-up" style="animation-delay: 0.2s;">
+      <h3 class="text-xl font-heading font-bold text-gray-800 mb-6 flex items-center">
+        <i class="fas fa-route text-gradient mr-3"></i>
+        Trip Route
+      </h3>
+      
+      <div class="route-line pl-8 space-y-6">
+        <!-- Pickup Location -->
+        <div class="relative flex items-start">
+          <div class="location-dot w-4 h-4 rounded-full absolute -left-6 top-2"></div>
+          <div>
+            <div class="text-sm text-gray-500 font-body">Pickup Location</div>
+            <div class="text-gray-800 font-medium">{{ booking.pickup_location }}</div>
+          </div>
+        </div>
+        
+        <!-- Dropoff Location -->
+        <div class="relative flex items-start">
+          <div class="location-dot destination w-4 h-4 rounded-full absolute -left-6 top-2"></div>
+          <div>
+            <div class="text-sm text-gray-500 font-body">Destination</div>
+            <div class="text-gray-800 font-medium">{{ booking.dropoff_location }}</div>
+          </div>
+        </div>
+      </div>
 
-  <div class="text-gray-700 mb-2">
-    <strong>Status:</strong> {{ booking.status }}
-  </div>
+      <div class="mt-6 grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+        <div>
+          <div class="text-sm text-gray-500 font-body">Service Type</div>
+          <div class="text-lg font-heading font-semibold text-gray-800">{{ booking.service_type.name }}</div>
+        </div>
+        <div>
+          <div class="text-sm text-gray-500 font-body">Fare</div>
+          <div class="text-xl font-heading font-bold text-gradient">₹{{ booking.fare }}</div>
+        </div>
+      </div>
+    </div>
 
-  <div class="text-gray-700 mb-2">
-    <strong>Start Time:</strong> {{ start_time }}
-  </div>
+    <!-- Driver Information -->
+    <div class="info-card rounded-2xl shadow-lg p-6 mb-6 card-hover animate-fade-in-up" style="animation-delay: 0.4s;">
+      <h3 class="text-xl font-heading font-bold text-gray-800 mb-6 flex items-center">
+        <i class="fas fa-user-tie text-gradient mr-3"></i>
+        Your Driver
+      </h3>
+      
+      <div class="flex items-center space-x-4">
+        <div class="driver-avatar w-16 h-16 rounded-full">
+          {{ booking.driver.first_name|slice:":1" }}{{ booking.driver.last_name|slice:":1" }}
+        </div>
+        
+        <div class="flex-1">
+          <div class="text-lg font-heading font-bold text-gray-800">
+            {{ booking.driver.first_name }} {{ booking.driver.last_name }}
+          </div>
+          <div class="text-gray-600 font-body flex items-center mt-1">
+            <i class="fas fa-car text-gray-400 mr-2"></i>
+            {{ booking.driver.vehicle_number }}
+          </div>
+        </div>
+      </div>
 
-  <hr class="my-4">
+      
+    </div>
 
-  <div class="text-gray-700 mb-2">
-    <strong>Pickup:</strong> {{ booking.pickup_location }}
-  </div>
-  <div class="text-gray-700 mb-2">
-    <strong>Dropoff:</strong> {{ booking.dropoff_location }}
-  </div>
-  <div class="text-gray-700 mb-2">
-    <strong>Service:</strong> {{ booking.service_type.name }}
-  </div>
-  <div class="text-gray-700 mb-2">
-    <strong>Fare:</strong> ₹{{ booking.fare }}
-  </div>
+    <!-- Action Buttons -->
+    <div class="animate-fade-in-up" style="animation-delay: 0.6s;">
+      <form action="{% url 'cancel_booking' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="booking_id" value="{{ booking.booking_id }}">
+        <button type="submit" 
+                class="w-full bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-medium card-hover transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg"
+                onclick="return confirm('Are you sure you want to cancel this ride?')">
+          <i class="fas fa-times mr-3"></i>
+          Cancel Ride
+        </button>
+      </form>
+    </div>
 
-  <hr class="my-4">
+    <!-- Additional Info Footer -->
+    <div class="mt-8 text-center">
+      <p class="text-gray-500 text-sm font-body">
+        <i class="fas fa-shield-alt mr-2"></i>
+        Your ride is being tracked for safety
+      </p>
+    </div>
 
-  <div class="text-gray-700 mb-2">
-    <strong>Driver:</strong> {{ booking.driver.first_name }} {{ booking.driver.last_name }}
-  </div>
-  <div class="text-gray-700 mb-2">
-    <strong>Vehicle Plate:</strong> {{ booking.driver.vehicle_number }}
-  </div>
-  <div class="text-gray-700 mb-2">
-    <strong>Contact:</strong>
-    <a href="tel:{{ booking.driver.phone }}" 
-       class="ml-2 inline-block btn-primary text-white px-4 py-2 rounded text-sm"
-       aria-label="Call Driver">
-       <i class="fas fa-phone"></i> Call
-    </a>
-  </div>
-
-  <div class="flex justify-center mt-6 space-x-4">
-    <form action="{% url 'cancel_booking' %}" method="post">
-      {% csrf_token %}
-      <input type="hidden" name="booking_id" value="{{ booking.booking_id }}">
-      <button type="submit" 
-              class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
-        Cancel Ride
-      </button>
-    </form>
   </div>
 </div>
+
+<script>
+// Add smooth scrolling behavior
+document.addEventListener('DOMContentLoaded', function() {
+    // Add confirmation to cancel button
+    const cancelButton = document.querySelector('button[type="submit"]');
+    if (cancelButton) {
+        cancelButton.addEventListener('click', function(e) {
+            if (!confirm('Are you sure you want to cancel this ride? This action cannot be undone.')) {
+                e.preventDefault();
+            }
+        });
+    }
+
+    // Poll booking status and redirect to ride completed when done
+    const pollIntervalMs = 3000;
+    const statusUrl = "{% url 'booking_status_api' booking.booking_id %}";
+    const completedRedirectUrl = "{% url 'ride_completed' booking.booking_id %}";
+
+    function checkStatusAndRedirect() {
+        fetch(statusUrl, { cache: 'no-store' })
+            .then(function(resp) { return resp.json(); })
+            .then(function(data) {
+                if (data && (data.status === 'Completed')) {
+                    window.location.href = completedRedirectUrl;
+                }
+            })
+            .catch(function(_) { /* ignore transient errors */ });
+    }
+
+    // Initial check and then interval polling
+    checkStatusAndRedirect();
+    const intervalId = setInterval(checkStatusAndRedirect, pollIntervalMs);
+    // Optional: clear interval on unload
+    window.addEventListener('beforeunload', function() { clearInterval(intervalId); });
+});
+</script>
 {% endblock %}

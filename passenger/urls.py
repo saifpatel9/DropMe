@@ -27,4 +27,5 @@ urlpatterns = [
     path('apply-promo/', views.apply_promo, name='apply_promo'),
     path("ride-started/<int:booking_id>/", views.ride_started_view, name="ride_started"),
     path("booking-status/<int:booking_id>/", views.booking_status_api, name="booking_status_api"),
+    path("ride-completed/<int:booking_id>/", views.ride_completed_view, name="ride_completed"),
 ]

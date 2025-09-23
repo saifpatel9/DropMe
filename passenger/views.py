@@ -949,7 +949,11 @@ def ride_started_view(request, booking_id):
     """
     Passenger-facing view to display ride started details.
     """
-    booking = get_object_or_404(Booking, booking_id=booking_id)
+    booking = get_object_or_404(Booking, booking_id=booking_id, user=request.user)
+
+    # If the ride is already completed, send the passenger to the completed page
+    if booking.status == 'Completed':
+        return redirect('ride_completed', booking_id=booking.booking_id)
 
     # Show the current time as the ride's start time (since your Booking model
     # doesn't seem to store an explicit start_time field yet).
@@ -965,3 +969,18 @@ def booking_status_api(request, booking_id):
         return JsonResponse({"status": booking.status})
     except Booking.DoesNotExist:
         return JsonResponse({"status": "not_found"})
+
+@login_required
+def ride_completed_view(request, booking_id):
+    """
+    Passenger-facing view to display ride completed details with total fare.
+    """
+    booking = get_object_or_404(Booking, booking_id=booking_id, user=request.user)
+    if booking.status != 'Completed':
+        # Optionally guard against early access; redirect to appropriate page
+        return redirect('ride_started', booking_id=booking.booking_id)
+
+    context = {
+        'booking': booking,
+    }
+    return render(request, 'passenger/ride_completed.html', context)
