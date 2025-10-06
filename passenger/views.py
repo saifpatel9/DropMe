@@ -22,6 +22,8 @@ from promo.models import PromoCode
 from django.views.decorators.http import require_POST
 import json
 from .forms import EmergencyContactForm
+from django.core.cache import cache
+from django.db.models import Q
 
 def passenger_dashboard(request):
     return render(request, 'passenger/dashboard.html') 
@@ -654,7 +656,12 @@ def confirm_booking(request):
                 messages.error(request, "Error applying promo code.")
 
         # ===== Find matching drivers =====
-        matching_drivers = Driver.objects.filter(vehicle_type__iexact=selected_vehicle_type)
+        matching_drivers = Driver.objects.filter(
+            vehicle_type__iexact=selected_vehicle_type,
+            availability=True,
+            status='Active',
+            is_deleted=False
+        )
 
         if matching_drivers.exists():
             from django.utils import timezone
@@ -697,6 +704,38 @@ def confirm_booking(request):
                 )
                 print(f"[DEBUG] Ride request created with ID: {ride_request.id}, Payment Mode: {payment_mode}")
 
+                # ===== Compute candidate driver queue: order by rating desc, shuffle ties =====
+                # Group drivers by rating, shuffle within each rating, then flatten
+                from collections import defaultdict
+                import random
+
+                rating_to_drivers = defaultdict(list)
+                for d in matching_drivers:
+                    rating_value = float(d.rating or 0.0)
+                    rating_to_drivers[rating_value].append(d)
+
+                ordered_ratings = sorted(rating_to_drivers.keys(), reverse=True)
+                candidate_ids = []
+                for r in ordered_ratings:
+                    group = rating_to_drivers[r]
+                    random.shuffle(group)
+                    candidate_ids.extend([d.driver_id for d in group])
+
+                # Persist queue in cache for 10 minutes
+                queue_key = f"ride_request:{ride_request.id}:driver_queue"
+                cache.set(queue_key, candidate_ids, timeout=60 * 10)
+
+                # Assign the first available driver immediately (soft assignment)
+                if candidate_ids:
+                    first_driver_id = candidate_ids[0]
+                    try:
+                        assigned_driver = Driver.objects.get(driver_id=first_driver_id)
+                        ride_request.driver = assigned_driver
+                        ride_request.save(update_fields=['driver'])
+                        print(f"[DEBUG] Initially assigned Driver {first_driver_id} to RideRequest {ride_request.id}")
+                    except Driver.DoesNotExist:
+                        pass
+
             except Exception as e:
                 print(f"ERROR: Failed to create ride request: {e}")
                 return render(request, 'passenger/ride_confirmed.html', {
@@ -715,6 +754,60 @@ def confirm_booking(request):
             return render(request, 'passenger/ride_confirmed.html', context)
 
     return redirect('choose_ride')
+
+@login_required
+@require_POST
+def reassign_next_driver(request, ride_request_id):
+    """
+    Reassign the ride request to the next available driver from the cached queue
+    if the current assigned driver has not accepted within the allowed time.
+    Simple, stateless trigger suitable for JS timer/polling.
+    """
+    try:
+        ride_request = RideRequest.objects.select_related('booking', 'user', 'service_type').get(id=ride_request_id)
+    except RideRequest.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Ride request not found'}, status=404)
+
+    # Only the owner passenger can trigger reassignment
+    if ride_request.user != request.user:
+        return JsonResponse({'success': False, 'message': 'Not authorized'}, status=403)
+
+    # If already accepted and booking created, do nothing
+    if ride_request.status in ['Accepted', 'Rejected', 'Expired'] or getattr(ride_request, 'booking', None):
+        return JsonResponse({'success': True, 'message': 'Ride already resolved'})
+
+    queue_key = f"ride_request:{ride_request.id}:driver_queue"
+    candidate_ids = cache.get(queue_key) or []
+
+    # Remove current assignment from queue head if it matches
+    if ride_request.driver_id and candidate_ids and candidate_ids[0] == ride_request.driver_id:
+        candidate_ids = candidate_ids[1:]
+
+    # Find the next available driver
+    next_driver = None
+    while candidate_ids:
+        candidate_id = candidate_ids[0]
+        try:
+            d = Driver.objects.get(driver_id=candidate_id, availability=True, status='Active', is_deleted=False)
+        except Driver.DoesNotExist:
+            candidate_ids = candidate_ids[1:]
+            continue
+        next_driver = d
+        break
+
+    # Update cache with the remaining queue
+    cache.set(queue_key, candidate_ids, timeout=60 * 10)
+
+    if next_driver is None:
+        # No more drivers available, mark as expired
+        ride_request.status = 'Expired'
+        ride_request.save(update_fields=['status'])
+        return JsonResponse({'success': True, 'exhausted': True})
+
+    # Soft-assign to next driver
+    ride_request.driver = next_driver
+    ride_request.save(update_fields=['driver'])
+    return JsonResponse({'success': True, 'driver_id': next_driver.driver_id})
 
 @login_required
 def waiting_for_driver_view(request, ride_request_id):
@@ -966,9 +1059,18 @@ def ride_started_view(request, booking_id):
 def booking_status_api(request, booking_id):
     try:
         booking = Booking.objects.get(booking_id=booking_id)
-        return JsonResponse({"status": booking.status})
+        arrived = cache.get(f"booking:{booking_id}:arrived", False)
+        return JsonResponse({"status": booking.status, "arrived": bool(arrived)})
     except Booking.DoesNotExist:
         return JsonResponse({"status": "not_found"})
+
+def driver_arrived_view(request, booking_id):
+    booking = get_object_or_404(Booking, booking_id=booking_id, user=request.user)
+    context = {
+        'booking': booking,
+        'driver': booking.driver,
+    }
+    return render(request, 'passenger/driver_arrived.html', context)
 
 @login_required
 def ride_completed_view(request, booking_id):

@@ -30,6 +30,7 @@
 
 <script>
   const rideRequestId = "{{ ride_request_id }}";
+  let reassignedOnce = false; // avoid spamming; only trigger after first 2 minutes if still pending
 
   function checkRideStatus() {
     console.log(`Polling for ride request ID: ${rideRequestId}`);
@@ -57,6 +58,23 @@
   document.addEventListener('DOMContentLoaded', () => {
     if (rideRequestId && rideRequestId !== 'None') {
       setInterval(checkRideStatus, 3000); // poll every 3 seconds
+      // Trigger reassignment if still not accepted after 2 minutes
+      setTimeout(() => {
+        if (reassignedOnce) return;
+        fetch("{% url 'reassign_next_driver' ride_request_id %}", {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': (document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)')||[])[2] || ''
+          }
+        })
+        .then(res => res.json())
+        .then(data => {
+          console.log('Reassign response:', data);
+          reassignedOnce = true;
+        })
+        .catch(err => console.error('Error triggering reassignment:', err));
+      }, 120000); // 120,000 ms = 2 minutes
     } else {
       console.error('Ride request ID not found.');
       document.getElementById('status-message').innerText = "Error: Ride request ID is missing.";

@@ -15,6 +15,7 @@ from django.db import transaction
 from rating.models import Rating
 import json
 from .forms import DriverEditProfileForm
+from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 
@@ -131,10 +132,12 @@ def accept_ride(request, ride_request_id):
     driver = get_object_or_404(Driver, driver_id=driver_id)
 
     with transaction.atomic():
+        # Only allow the currently assigned driver to accept
         ride_request = get_object_or_404(
             RideRequest,
             id=ride_request_id,
             status='Requested',
+            driver=driver,
             service_type__name__iexact=driver.vehicle_type
         )
 
@@ -156,8 +159,8 @@ def accept_ride(request, ride_request_id):
         )
 
         ride_request.booking = booking
-        ride_request.status = 'Confirmed'
-        ride_request.save()
+        ride_request.status = 'Accepted'
+        ride_request.save(update_fields=['booking', 'status'])
 
         logger.debug(f"RideRequest {ride_request_id} accepted, Booking {booking.booking_id} created.")
 
@@ -260,9 +263,11 @@ def driver_rides_view(request):
 
     all_rides = Booking.objects.filter(driver=driver)
 
+    # Present groups in the desired order with the new Arrived state at the top
     context = {
         'ride_groups': [
             ('Confirmed', all_rides.filter(status='Confirmed')),
+            ('Arrived', all_rides.filter(status='Arrived')),
             ('Ongoing', all_rides.filter(status='Ongoing')),
             ('Completed', all_rides.filter(status='Completed')),
             ('Scheduled', all_rides.filter(status='Scheduled')),
@@ -270,6 +275,35 @@ def driver_rides_view(request):
         ]
     }
     return render(request, 'driver/driver_rides.html', context)
+
+
+@require_POST
+@driver_login_required
+def arrived_ride_view(request, booking_id):
+    """
+    Mark that the driver has arrived at the pickup location for a booking.
+    Uses cache to signal passenger side without DB schema change.
+    """
+    driver_id = request.session.get('driver_id')
+    if not driver_id:
+        return redirect('unified_login')
+    try:
+        driver = Driver.objects.get(driver_id=driver_id)
+    except Driver.DoesNotExist:
+        return redirect('unified_login')
+
+    booking = get_object_or_404(Booking, booking_id=booking_id, driver=driver)
+    # Only allow arrival announcement before ride start
+    if booking.status in ['Confirmed', 'Scheduled']:
+        # Persist status change to 'Arrived'
+        booking.status = 'Arrived'
+        booking.save(update_fields=['status'])
+        cache_key = f"booking:{booking.booking_id}:arrived"
+        cache.set(cache_key, True, timeout=60 * 60)  # 1 hour TTL
+        messages.success(request, f"Arrival notified for booking #{booking.booking_id}.")
+    else:
+        messages.error(request, "Arrival can only be marked before the ride starts.")
+    return redirect('driver_rides')
 
 @driver_login_required
 def driver_ride_request_page(request):
@@ -288,9 +322,10 @@ def driver_ride_request_page(request):
         return redirect('unified_login')
 
     # Pending ride requests matching the driver's vehicle type
+    # Show only ride requests currently assigned to this driver
     ride_requests = (
         RideRequest.objects
-        .filter(status='Requested', service_type__name__iexact=driver.vehicle_type)
+        .filter(status='Requested', driver=driver, service_type__name__iexact=driver.vehicle_type)
         .select_related('user', 'service_type')
         .order_by('-created_at')
     )
@@ -362,7 +397,7 @@ def start_ride_view(request, booking_id):
 
     booking = get_object_or_404(Booking, booking_id=booking_id, driver=driver)
 
-    if booking.status == 'Confirmed':
+    if booking.status in ['Confirmed', 'Arrived']:
         booking.status = 'Ongoing'
         booking.save()
         messages.success(request, f"Ride #{booking.booking_id} started.")

@@ -22,10 +22,12 @@ urlpatterns = [
     path('cancel-booking/', views.cancel_booking, name='cancel_booking'),
     path('waiting-for-driver/<int:ride_request_id>/', views.waiting_for_driver_view, name='waiting_for_driver'),
     path('check-ride-status/<int:ride_request_id>/', views.check_ride_status, name='check_ride_status'),
+    path('reassign-next-driver/<int:ride_request_id>/', views.reassign_next_driver, name='reassign_next_driver'),
     path('booking-confirmed/<int:booking_id>/', views.booking_confirmed_view, name='booking_confirmed'),
     path('apply-promo_code/', views.apply_promo_code, name='apply_promo_code'),
     path('apply-promo/', views.apply_promo, name='apply_promo'),
     path("ride-started/<int:booking_id>/", views.ride_started_view, name="ride_started"),
     path("booking-status/<int:booking_id>/", views.booking_status_api, name="booking_status_api"),
+    path("driver-arrived/<int:booking_id>/", views.driver_arrived_view, name="driver_arrived"),
     path("ride-completed/<int:booking_id>/", views.ride_completed_view, name="ride_completed"),
 ]
