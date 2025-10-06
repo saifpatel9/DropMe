@@ -923,12 +923,11 @@ def check_ride_status(request, ride_request_id):
     except RideRequest.DoesNotExist:
         return JsonResponse({'status': 'Not Found'})
 
-    if ride_request.status == "Confirmed":
-        booking_id = None
-        if hasattr(ride_request, 'booking') and ride_request.booking:
-            booking_id = ride_request.booking.booking_id  # or booking.pk depending on URL
-        return JsonResponse({'status': 'Confirmed', 'booking_id': booking_id})
-    elif ride_request.status in ["Rejected", "Expired", "Cancelled"]:
+    # Treat existence of a Booking as the signal to move passenger forward
+    if getattr(ride_request, 'booking', None):
+        return JsonResponse({'status': 'Confirmed', 'booking_id': ride_request.booking.booking_id})
+
+    if ride_request.status in ["Rejected", "Expired", "Cancelled"]:
         return JsonResponse({'status': ride_request.status})
     return JsonResponse({'status': 'Requested'})
 
