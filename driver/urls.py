@@ -13,10 +13,12 @@ urlpatterns = [
     path("driver/profile/", views.driver_profile_view, name="driver_profile"),
     path('rides/end/<int:booking_id>/', views.end_ride_view, name='end_ride'),
     path('rides/start/<int:booking_id>/', views.start_ride_view, name='start_ride'),
+    path('rides/arrived/<int:booking_id>/', views.arrived_ride_view, name='arrived_ride'),
     path('driver/earnings/', views.driver_earnings_view, name='driver_earnings'),
     path('driver/ride-request/', views.driver_ride_request_page, name='driver_ride_request'),
     path('toggle-availability/', views.toggle_availability, name='toggle_availability'),
     path("driver/edit-profile/", views.driver_edit_profile_view, name="driver_edit_profile"),
     path('ratings/', views.driver_rating_page, name='driver_rating_page'),
     path('submit-rating/', views.submit_driver_rating, name='submit_driver_rating'),
+    path('api/assigned-requests/', views.api_assigned_requests, name='api_assigned_requests'),
 ]

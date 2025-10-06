@@ -851,10 +851,14 @@ def waiting_for_driver_view(request, ride_request_id):
 @csrf_exempt
 def check_driver_assignment(request, ride_request_id):
     try:
-        # Check for a booking associated with the ride request
-        ride_request = RideRequest.objects.get(id=ride_request_id)
-        booking = Booking.objects.select_related('driver').get(ride_request=ride_request, status='Confirmed')
-        if booking.driver:
+        rr = RideRequest.objects.select_related('booking').get(id=ride_request_id)
+    except RideRequest.DoesNotExist:
+        return JsonResponse({'driver_assigned': False})
+
+    # If a Booking exists, navigate to confirmation regardless of Booking.status
+    if getattr(rr, 'booking', None):
+        booking = rr.booking
+        if booking and booking.driver:
             driver = booking.driver
             driver_name = f"{driver.first_name} {driver.last_name}" if driver.first_name and driver.last_name else driver.name
             driver_phone = getattr(driver, 'phone', "N/A")
@@ -866,10 +870,11 @@ def check_driver_assignment(request, ride_request_id):
                 'vehicle_info': vehicle_info,
                 'booking_id': booking.booking_id
             })
+        # Booking exists but no driver? treat as not yet
         return JsonResponse({'driver_assigned': False})
-    except (RideRequest.DoesNotExist, Booking.DoesNotExist):
-        # Return false if either the ride request or booking doesn't exist, which implies no driver is assigned
-        return JsonResponse({'driver_assigned': False})
+
+    # Fallback: no booking yet
+    return JsonResponse({'driver_assigned': False})
 
 
 @login_required

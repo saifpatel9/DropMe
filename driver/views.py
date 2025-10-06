@@ -47,10 +47,10 @@ def driver_homepage_cab_view(request):
         status__in=['Confirmed', 'Scheduled']
     )
 
-    # **FIX:** Retrieve active ride requests for this driver's vehicle type
-    # This is the key change to make the requests visible on the driver dashboard
+    # Retrieve active ride requests assigned to this driver only
     ride_requests = RideRequest.objects.filter(
         status='Requested',
+        driver=driver,
         service_type__name__iexact=driver.vehicle_type
     )
 
@@ -349,6 +349,25 @@ def driver_ride_request_page(request):
         'passenger_avg_rating': ratings_map,
     }
     return render(request, 'driver/driver_ride_request.html', context)
+
+def api_assigned_requests(request):
+    """
+    Lightweight API that returns the list of RideRequest IDs currently assigned to the
+    authenticated driver. Used by client-side polling to auto-hide reassigned requests.
+    """
+    driver_id = request.session.get('driver_id')
+    if not driver_id:
+        return JsonResponse({'assigned_request_ids': []})
+    try:
+        driver = Driver.objects.get(driver_id=driver_id)
+    except Driver.DoesNotExist:
+        return JsonResponse({'assigned_request_ids': []})
+    ids = list(
+        RideRequest.objects
+        .filter(status='Requested', driver=driver)
+        .values_list('id', flat=True)
+    )
+    return JsonResponse({'assigned_request_ids': ids})
 
 @require_POST
 @driver_login_required
