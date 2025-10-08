@@ -183,7 +183,8 @@ if (typeof Chart === 'undefined') {
     console.log('✅ Chart.js loaded, version:', Chart.version);
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+// Expose an initializer that can be called after dynamic swaps
+window.initPaymentDashboardCharts = function() {
     console.log("📊 Initializing Payment Dashboard Charts...");
     
     try {
@@ -252,6 +253,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // Create fallback charts with sample data
         console.log("🔄 Creating fallback charts with sample data...");
         createFallbackCharts();
+    }
+};
+
+// Run immediately on full page load; spa-nav will call again on swaps
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('statusChart')) {
+        window.initPaymentDashboardCharts();
     }
 });
 

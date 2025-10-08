@@ -112,13 +112,15 @@
       <!-- Status Toggle -->
       <div class="md:col-span-2 flex items-center gap-4">
         <label class="font-semibold text-gray-700">Status</label>
-        <label class="relative inline-block w-12 h-6 cursor-pointer">
-          <input type="checkbox" id="statusToggle" class="sr-only peer"
-                {% if form.status.value == 'Active' %}checked{% endif %}>
-          <div class="w-full h-full bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors duration-300"></div>
-          <div class="absolute top-[2px] left-[2px] bg-white w-5 h-5 rounded-full transition-transform duration-300 peer-checked:translate-x-6"></div>
-        </label>
-        <span id="statusText" class="text-gray-700">{{ form.status.value }}</span>
+        <div class="flex items-center gap-4">
+          <label class="relative inline-block w-12 h-6 cursor-pointer overflow-hidden mr-1 align-middle">
+            <input type="checkbox" id="statusToggle" class="sr-only peer"
+                  {% if form.status.value == 'Active' %}checked{% endif %}>
+            <div class="w-full h-full bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors duration-300"></div>
+            <div class="absolute top-[2px] left-[2px] bg-white w-5 h-5 rounded-full transition-transform duration-300 peer-checked:translate-x-6"></div>
+          </label>
+          <span id="statusText" class="text-gray-700">{{ form.status.value }}</span>
+        </div>
         <input type="hidden" name="status" id="statusHidden" value="{{ form.status.value }}">
       </div>
     </div>

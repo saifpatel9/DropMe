@@ -258,7 +258,7 @@
 </div>
 
 <script>
-  // Poll every 7 seconds for booking status with enhanced UX
+  // Poll every 5 seconds for booking status (arrived or ongoing)
   let pollInterval;
   
   function startPolling() {
@@ -266,8 +266,12 @@
       try {
         const response = await fetch("{% url 'booking_status_api' booking_id=booking_id %}");
         const data = await response.json();
-        
-        if (data.status === "Ongoing") {
+        if ((data.status === "Arrived") || (data.arrived === true && data.status !== "Ongoing" && data.status !== "Completed")) {
+          document.body.style.opacity = '0.7';
+          setTimeout(() => {
+            window.location.href = "{% url 'driver_arrived' booking_id=booking_id %}";
+          }, 200);
+        } else if (data.status === "Ongoing") {
           // Add a smooth transition effect before redirect
           document.body.style.opacity = '0.7';
           setTimeout(() => {
@@ -277,7 +281,7 @@
       } catch (error) {
         console.error('Polling error:', error);
       }
-    }, 7000);
+    }, 5000);
   }
 
   // Start polling when page loads

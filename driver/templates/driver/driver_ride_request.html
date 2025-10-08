@@ -23,7 +23,7 @@
   {% if ride_requests %}
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     {% for rr in ride_requests %}
-    <div class="bg-white rounded-2xl shadow p-6" data-rr-id="{{ rr.id }}">
+    <div class="bg-white rounded-2xl shadow p-6">
       <div class="flex items-start justify-between mb-4">
         <div>
           <p class="text-sm text-gray-500">Pickup</p>
@@ -84,7 +84,7 @@
   </div>
   {% else %}
     <div class="bg-white rounded-2xl shadow p-8 text-center">
-      <p class="text-gray-600">No assigned ride requests right now.</p>
+      <p class="text-gray-600">No incoming ride requests right now.</p>
     </div>
   {% endif %}
   </main>
@@ -92,24 +92,3 @@
 {% endblock %}
 
 
-<script>
-  // Poll server for currently assigned requests. Remove any cards that are no longer assigned
-  function syncAssignedRequests() {
-    fetch("{% url 'driver:api_assigned_requests' %}")
-      .then(r => r.json())
-      .then(data => {
-        const assigned = new Set(data.assigned_request_ids || []);
-        document.querySelectorAll('[data-rr-id]')
-          .forEach(card => {
-            const id = parseInt(card.getAttribute('data-rr-id'));
-            if (!assigned.has(id)) {
-              card.remove();
-            }
-          });
-      })
-      .catch(() => {});
-  }
-  document.addEventListener('DOMContentLoaded', () => {
-    setInterval(syncAssignedRequests, 5000);
-  });
-</script>

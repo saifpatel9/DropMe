@@ -33,10 +33,14 @@
         <span class="text-sm text-gray-500">Total Fare</span>
         <span class="text-2xl font-heading font-bold text-gray-900">₹{{ booking.fare }}</span>
       </div>
-      <div class="mt-8">
+      <div class="mt-8 space-y-3">
         <a href="#" class="w-full btn-primary text-white px-6 py-3 rounded-xl inline-flex items-center justify-center font-medium card-hover" aria-label="Rate Your Driver">
           <i class="fas fa-star mr-3"></i>
           Rate Your Driver
+        </a>
+        <a href="{% url 'homepage' %}" class="w-full btn-primary text-white px-6 py-3 rounded-xl inline-flex items-center justify-center font-medium card-hover" aria-label="Rate Later">
+          <i class="fas fa-clock mr-3"></i>
+          Rate Later
         </a>
       </div>
     </div>

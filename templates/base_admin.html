@@ -41,7 +41,7 @@
 
       <!-- Main Content -->
       <div class="pc-container">
-        <div class="pc-content">
+        <div class="pc-content" id="app-content">
           {% block content %}
           <!-- Page-specific content here -->
           {% endblock %}
@@ -60,6 +60,7 @@
     <script src="{% static 'js/component.js' %}"></script>
     <script src="{% static 'js/theme.js' %}"></script>
     <script src="{% static 'js/script.js' %}"></script>
+    <script src="{% static 'js/spa-nav.js' %}"></script>
 
     {% block extrajs %}{% endblock %}
   </body>
