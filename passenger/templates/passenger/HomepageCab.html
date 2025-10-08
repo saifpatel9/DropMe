@@ -19,38 +19,38 @@
 
 {% block content %}
 <!-- Header -->
-<header class="bg-white shadow-sm border-b border-gray-100">
+<header class="bg-gray-900 shadow-sm border-b border-gray-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center py-3">
             <!-- Tagline & Contact -->
             <div class="flex items-center space-x-6">
-                <div class="hidden md:flex items-center text-sm text-gray-600 font-body">
-                    <i class="fas fa-clock text-teal-600 mr-2"></i>
+                <div class="hidden md:flex items-center text-sm text-gray-300 font-body">
+                    <i class="fas fa-clock text-teal-400 mr-2"></i>
                     <span>24/7 Available</span>
                 </div>
-                <div class="hidden md:flex items-center text-sm text-gray-600 font-body">
-                    <i class="fas fa-phone text-teal-600 mr-2"></i>
+                <div class="hidden md:flex items-center text-sm text-gray-300 font-body">
+                    <i class="fas fa-phone text-teal-400 mr-2"></i>
                     <span>1800 180 8000</span>
                 </div>
-                <div class="hidden md:flex items-center text-sm text-gray-600 font-body">
-                    <i class="fas fa-envelope text-teal-600 mr-2"></i>
+                <div class="hidden md:flex items-center text-sm text-gray-300 font-body">
+                    <i class="fas fa-envelope text-teal-400 mr-2"></i>
                     <span>info@hospione.com</span>
                 </div>
             </div>
             
             <!-- Social Media Links -->
             <div class="flex items-center space-x-4">
-                <a href="#" class="text-gray-400 hover:text-teal-600 transition-colors duration-300">
-                    <i class="fab fa-facebook-f text-lg"></i>
+                <a href="#" class="w-9 h-9 bg-gradient-to-r from-teal-500 to-teal-600 rounded-full flex items-center justify-center text-white hover:from-teal-600 hover:to-teal-700 transition-all duration-300 transform hover:scale-110">
+                    <i class="fab fa-facebook-f text-sm"></i>
                 </a>
-                <a href="#" class="text-gray-400 hover:text-teal-600 transition-colors duration-300">
-                    <i class="fab fa-instagram text-lg"></i>
+                <a href="#" class="w-9 h-9 bg-gradient-to-r from-teal-500 to-teal-600 rounded-full flex items-center justify-center text-white hover:from-teal-600 hover:to-teal-700 transition-all duration-300 transform hover:scale-110">
+                    <i class="fab fa-instagram text-sm"></i>
                 </a>
-                <a href="#" class="text-gray-400 hover:text-teal-600 transition-colors duration-300">
-                    <i class="fab fa-twitter text-lg"></i>
+                <a href="#" class="w-9 h-9 bg-gradient-to-r from-teal-500 to-teal-600 rounded-full flex items-center justify-center text-white hover:from-teal-600 hover:to-teal-700 transition-all duration-300 transform hover:scale-110">
+                    <i class="fab fa-twitter text-sm"></i>
                 </a>
-                <a href="#" class="text-gray-400 hover:text-teal-600 transition-colors duration-300">
-                    <i class="fab fa-linkedin-in text-lg"></i>
+                <a href="#" class="w-9 h-9 bg-gradient-to-r from-teal-500 to-teal-600 rounded-full flex items-center justify-center text-white hover:from-teal-600 hover:to-teal-700 transition-all duration-300 transform hover:scale-110">
+                    <i class="fab fa-linkedin-in text-sm"></i>
                 </a>
             </div>
         </div>
@@ -131,7 +131,6 @@
     </div>
   </div>
 </nav>
-
 
 <!-- Hero Banner -->
 <section id="home" class="hero-bg min-h-screen flex items-center relative overflow-hidden">
@@ -308,115 +307,115 @@
         
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             <!-- Daily Rides -->
-            <div class="card-hover bg-gradient-to-br from-teal-50 to-teal-100 p-8 rounded-2xl border border-teal-200">
-                <div class="w-16 h-16 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center mb-6">
-                    <i class="fas fa-car text-2xl text-white"></i>
+            <div class="card-hover bg-gradient-to-br from-teal-50 to-teal-100 p-6 rounded-2xl border border-teal-200 flex flex-col">
+                <div class="w-14 h-14 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center mb-4">
+                    <i class="fas fa-car text-xl text-white"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-gray-900 font-heading mb-4">Daily Rides</h3>
-                <p class="text-gray-700 font-body mb-6 leading-relaxed">
+                <h3 class="text-xl font-bold text-gray-900 font-heading mb-3">Daily Rides</h3>
+                <p class="text-gray-700 font-body mb-4 text-sm leading-relaxed">
                     Quick and convenient rides for your daily commute, shopping trips, or short-distance travel within the city.
                 </p>
-                <ul class="text-gray-600 font-body space-y-2 mb-6">
-                    <li class="flex items-center"><i class="fas fa-check text-teal-600 mr-2"></i>Instant booking</li>
-                    <li class="flex items-center"><i class="fas fa-check text-teal-600 mr-2"></i>Real-time tracking</li>
-                    <li class="flex items-center"><i class="fas fa-check text-teal-600 mr-2"></i>Multiple payment options</li>
+                <ul class="text-gray-600 font-body space-y-1.5 mb-4 text-sm flex-grow">
+                    <li class="flex items-center"><i class="fas fa-check text-teal-600 mr-2 text-xs"></i>Instant booking</li>
+                    <li class="flex items-center"><i class="fas fa-check text-teal-600 mr-2 text-xs"></i>Real-time tracking</li>
+                    <li class="flex items-center"><i class="fas fa-check text-teal-600 mr-2 text-xs"></i>Multiple payment options</li>
                 </ul>
-                <button class="btn-primary text-white px-6 py-3 rounded-full font-medium font-body w-full">
+                <button class="btn-primary text-white px-5 py-2.5 rounded-full font-medium font-body w-full text-sm mt-auto">
                     Book Daily Ride
                 </button>
             </div>
             
             <!-- Rental Services -->
-            <div class="card-hover bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-2xl border border-blue-200">
-                <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-6">
-                    <i class="fas fa-calendar-alt text-2xl text-white"></i>
+            <div class="card-hover bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-2xl border border-blue-200 flex flex-col">
+                <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4">
+                    <i class="fas fa-calendar-alt text-xl text-white"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-gray-900 font-heading mb-4">Rental Services</h3>
-                <p class="text-gray-700 font-body mb-6 leading-relaxed">
+                <h3 class="text-xl font-bold text-gray-900 font-heading mb-3">Rental Services</h3>
+                <p class="text-gray-700 font-body mb-4 text-sm leading-relaxed">
                     Flexible hourly or daily rental options perfect for business meetings, events, or extended city tours.
                 </p>
-                <ul class="text-gray-600 font-body space-y-2 mb-6">
-                    <li class="flex items-center"><i class="fas fa-check text-blue-600 mr-2"></i>Hourly & daily packages</li>
-                    <li class="flex items-center"><i class="fas fa-check text-blue-600 mr-2"></i>Professional chauffeurs</li>
-                    <li class="flex items-center"><i class="fas fa-check text-blue-600 mr-2"></i>Premium vehicles</li>
+                <ul class="text-gray-600 font-body space-y-1.5 mb-4 text-sm flex-grow">
+                    <li class="flex items-center"><i class="fas fa-check text-blue-600 mr-2 text-xs"></i>Hourly & daily packages</li>
+                    <li class="flex items-center"><i class="fas fa-check text-blue-600 mr-2 text-xs"></i>Professional chauffeurs</li>
+                    <li class="flex items-center"><i class="fas fa-check text-blue-600 mr-2 text-xs"></i>Premium vehicles</li>
                 </ul>
-                <button class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-500 text-white px-6 py-3 rounded-full font-medium font-body w-full transition-all duration-300 hover:shadow-lg">
+                <button class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-500 text-white px-5 py-2.5 rounded-full font-medium font-body w-full transition-all duration-300 hover:shadow-lg text-sm mt-auto">
                     Book Rental
                 </button>
             </div>
             
             <!-- Outstation Travel -->
-            <div class="card-hover bg-gradient-to-br from-green-50 to-green-100 p-8 rounded-2xl border border-green-200">
-                <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-6">
-                    <i class="fas fa-map-marked-alt text-2xl text-white"></i>
+            <div class="card-hover bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-2xl border border-green-200 flex flex-col">
+                <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-4">
+                    <i class="fas fa-map-marked-alt text-xl text-white"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-gray-900 font-heading mb-4">Outstation Travel</h3>
-                <p class="text-gray-700 font-body mb-6 leading-relaxed">
+                <h3 class="text-xl font-bold text-gray-900 font-heading mb-3">Outstation Travel</h3>
+                <p class="text-gray-700 font-body mb-4 text-sm leading-relaxed">
                     Comfortable long-distance travel to other cities with experienced drivers and well-maintained vehicles.
                 </p>
-                <ul class="text-gray-600 font-body space-y-2 mb-6">
-                    <li class="flex items-center"><i class="fas fa-check text-green-600 mr-2"></i>Interstate permits</li>
-                    <li class="flex items-center"><i class="fas fa-check text-green-600 mr-2"></i>24/7 roadside assistance</li>
-                    <li class="flex items-center"><i class="fas fa-check text-green-600 mr-2"></i>Round trip & one-way</li>
+                <ul class="text-gray-600 font-body space-y-1.5 mb-4 text-sm flex-grow">
+                    <li class="flex items-center"><i class="fas fa-check text-green-600 mr-2 text-xs"></i>Interstate permits</li>
+                    <li class="flex items-center"><i class="fas fa-check text-green-600 mr-2 text-xs"></i>24/7 roadside assistance</li>
+                    <li class="flex items-center"><i class="fas fa-check text-green-600 mr-2 text-xs"></i>Round trip & one-way</li>
                 </ul>
-                <button class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-500 text-white px-6 py-3 rounded-full font-medium font-body w-full transition-all duration-300 hover:shadow-lg">
+                <button class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-500 text-white px-5 py-2.5 rounded-full font-medium font-body w-full transition-all duration-300 hover:shadow-lg text-sm mt-auto">
                     Plan Outstation
                 </button>
             </div>
             
             <!-- Bike Rides -->
-            <div class="card-hover bg-gradient-to-br from-purple-50 to-purple-100 p-8 rounded-2xl border border-purple-200">
-                <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-6">
-                    <i class="fas fa-motorcycle text-2xl text-white"></i>
+            <div class="card-hover bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-2xl border border-purple-200 flex flex-col">
+                <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4">
+                    <i class="fas fa-motorcycle text-xl text-white"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-gray-900 font-heading mb-4">Bike Rides</h3>
-                <p class="text-gray-700 font-body mb-6 leading-relaxed">
+                <h3 class="text-xl font-bold text-gray-900 font-heading mb-3">Bike Rides</h3>
+                <p class="text-gray-700 font-body mb-4 text-sm leading-relaxed">
                     Quick and affordable two-wheeler rides for solo travel across the city.
                 </p>
-                <ul class="text-gray-600 font-body space-y-2 mb-6">
-                    <li class="flex items-center"><i class="fas fa-check text-purple-600 mr-2"></i>Faster urban commute</li>
-                    <li class="flex items-center"><i class="fas fa-check text-purple-600 mr-2"></i>Lower cost</li>
-                    <li class="flex items-center"><i class="fas fa-check text-purple-600 mr-2"></i>Available on-demand</li>
+                <ul class="text-gray-600 font-body space-y-1.5 mb-4 text-sm flex-grow">
+                    <li class="flex items-center"><i class="fas fa-check text-purple-600 mr-2 text-xs"></i>Faster urban commute</li>
+                    <li class="flex items-center"><i class="fas fa-check text-purple-600 mr-2 text-xs"></i>Lower cost</li>
+                    <li class="flex items-center"><i class="fas fa-check text-purple-600 mr-2 text-xs"></i>Available on-demand</li>
                 </ul>
-                <button class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-500 text-white px-6 py-3 rounded-full font-medium font-body w-full transition-all duration-300 hover:shadow-lg">
+                <button class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-500 text-white px-5 py-2.5 rounded-full font-medium font-body w-full transition-all duration-300 hover:shadow-lg text-sm mt-auto">
                     Book Bike Ride
                 </button>
             </div>
             
             <!-- Auto Rickshaw -->
-            <div class="card-hover bg-gradient-to-br from-orange-50 to-orange-100 p-8 rounded-2xl border border-orange-200">
-                <div class="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-6">
-                    <i class="fas fa-taxi text-2xl text-white"></i>
+            <div class="card-hover bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-2xl border border-orange-200 flex flex-col">
+                <div class="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-4">
+                    <i class="fas fa-taxi text-xl text-white"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-gray-900 font-heading mb-4">Auto Rickshaw</h3>
-                <p class="text-gray-700 font-body mb-6 leading-relaxed">
+                <h3 class="text-xl font-bold text-gray-900 font-heading mb-3">Auto Rickshaw</h3>
+                <p class="text-gray-700 font-body mb-4 text-sm leading-relaxed">
                     Book hassle-free and economical auto rickshaw rides anytime.
                 </p>
-                <ul class="text-gray-600 font-body space-y-2 mb-6">
-                    <li class="flex items-center"><i class="fas fa-check text-orange-600 mr-2"></i>Wide city coverage</li>
-                    <li class="flex items-center"><i class="fas fa-check text-orange-600 mr-2"></i>Eco-friendly travel</li>
-                    <li class="flex items-center"><i class="fas fa-check text-orange-600 mr-2"></i>Quick availability</li>
+                <ul class="text-gray-600 font-body space-y-1.5 mb-4 text-sm flex-grow">
+                    <li class="flex items-center"><i class="fas fa-check text-orange-600 mr-2 text-xs"></i>Wide city coverage</li>
+                    <li class="flex items-center"><i class="fas fa-check text-orange-600 mr-2 text-xs"></i>Eco-friendly travel</li>
+                    <li class="flex items-center"><i class="fas fa-check text-orange-600 mr-2 text-xs"></i>Quick availability</li>
                 </ul>
-                <button class="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-500 text-white px-6 py-3 rounded-full font-medium font-body w-full transition-all duration-300 hover:shadow-lg">
+                <button class="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-500 text-white px-5 py-2.5 rounded-full font-medium font-body w-full transition-all duration-300 hover:shadow-lg text-sm mt-auto">
                     Book Auto Ride
                 </button>
             </div>
 
             <!-- Schedule Ride -->
-            <div class="card-hover bg-gradient-to-br from-pink-50 to-pink-100 p-8 rounded-2xl border border-pink-200">
-                <div class="w-16 h-16 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center mb-6">
-                    <i class="fas fa-calendar-check text-2xl text-white"></i>
+            <div class="card-hover bg-gradient-to-br from-pink-50 to-pink-100 p-6 rounded-2xl border border-pink-200 flex flex-col">
+                <div class="w-14 h-14 bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl flex items-center justify-center mb-4">
+                    <i class="fas fa-calendar-check text-xl text-white"></i>
                 </div>
-                <h3 class="text-2xl font-bold text-gray-900 font-heading mb-4">Schedule Ride</h3>
-                <p class="text-gray-700 font-body mb-6 leading-relaxed">
+                <h3 class="text-xl font-bold text-gray-900 font-heading mb-3">Schedule Ride</h3>
+                <p class="text-gray-700 font-body mb-4 text-sm leading-relaxed">
                     Plan your rides in advance and enjoy hassle-free, on-time pickups.
                 </p>
-                <ul class="text-gray-600 font-body space-y-2 mb-6">
-                    <li class="flex items-center"><i class="fas fa-check text-pink-600 mr-2"></i>Advance booking</li>
-                    <li class="flex items-center"><i class="fas fa-check text-pink-600 mr-2"></i>Reliable scheduling</li>
-                    <li class="flex items-center"><i class="fas fa-check text-pink-600 mr-2"></i>Priority driver allocation</li>
+                <ul class="text-gray-600 font-body space-y-1.5 mb-4 text-sm flex-grow">
+                    <li class="flex items-center"><i class="fas fa-check text-pink-600 mr-2 text-xs"></i>Advance booking</li>
+                    <li class="flex items-center"><i class="fas fa-check text-pink-600 mr-2 text-xs"></i>Reliable scheduling</li>
+                    <li class="flex items-center"><i class="fas fa-check text-pink-600 mr-2 text-xs"></i>Priority driver allocation</li>
                 </ul>
-                <button class="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-500 text-white px-6 py-3 rounded-full font-medium font-body w-full transition-all duration-300 hover:shadow-lg">
+                <button class="bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-500 text-white px-5 py-2.5 rounded-full font-medium font-body w-full transition-all duration-300 hover:shadow-lg text-sm mt-auto">
                     Schedule Ride
                 </button>
             </div>
