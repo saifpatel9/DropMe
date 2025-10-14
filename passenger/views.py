@@ -64,6 +64,12 @@ STATIC_DISTANCES = {
 def choose_ride_view(request):
     pickup = request.GET.get('pickup')
     dropoff = request.GET.get('dropoff')
+    pickup_lat = request.GET.get('pickup_lat')
+    pickup_lng = request.GET.get('pickup_lng')
+    drop_lat = request.GET.get('drop_lat')
+    drop_lng = request.GET.get('drop_lng')
+    dynamic_distance_km = request.GET.get('distance_km')
+    dynamic_duration_min = request.GET.get('duration_min')
     ride_date = request.GET.get('date')
     ride_time = request.GET.get('time')
     ride_type = request.GET.get('ride_type', 'daily') 
@@ -98,9 +104,17 @@ def choose_ride_view(request):
     }
 
     if pickup and dropoff:
-        distance = STATIC_DISTANCES.get((pickup, dropoff)) or STATIC_DISTANCES.get((dropoff, pickup))
+        # Prefer dynamic distance from Leaflet routing if available
+        distance = None
+        if dynamic_distance_km:
+            try:
+                distance = Decimal(dynamic_distance_km)
+            except Exception:
+                distance = None
+        if distance is None:
+            distance = STATIC_DISTANCES.get((pickup, dropoff)) or STATIC_DISTANCES.get((dropoff, pickup))
         if distance:
-            time_minutes = distance * 2 
+            time_minutes = Decimal(dynamic_duration_min) if dynamic_duration_min else distance * 2 
             if ride_type == 'outstation':
                 services = ServiceType.objects.exclude(name__in=['Auto', 'Bike'])
                 for service in services:
@@ -284,6 +298,10 @@ def choose_ride_view(request):
     context = {
         'pickup': pickup,
         'dropoff': dropoff,
+        'pickup_lat': pickup_lat,
+        'pickup_lng': pickup_lng,
+        'drop_lat': drop_lat,
+        'drop_lng': drop_lng,
         'ride_date': ride_date,
         'ride_time': ride_time,
         'ride_type': ride_type,
