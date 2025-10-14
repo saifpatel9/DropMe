@@ -54,6 +54,9 @@
 			if (typeof menu_click === 'function') {
 				menu_click();
 			}
+			if (typeof window.initAdminUI === 'function') {
+				window.initAdminUI();
+			}
 		} catch (e) {}
 	}
 

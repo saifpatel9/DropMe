@@ -4,87 +4,261 @@
 {% block title %}Driver Documents{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-  <div class="bg-white shadow rounded-xl p-6">
-    <h2 class="text-2xl font-semibold text-gray-800 mb-6">
-      {{ driver.first_name }} {{ driver.last_name }} – Documents
-    </h2>
-    <form id="doc-status-csrf" style="display:none;">{% csrf_token %}</form>
-    <div class="divide-y divide-gray-200">
-      <!-- Driving License -->
-      <div class="flex flex-col sm:flex-row justify-between items-center py-4">
-        <div class="w-full sm:w-1/3 font-medium text-gray-700">Driving License</div>
-        <div class="w-full sm:w-1/3 text-center">
-          {% if driver.license_document %}
-            <a href="{{ driver.license_document.url }}" class="text-blue-600 hover:underline" target="_blank">View File</a>
-          {% else %}
-            <span class="text-gray-400">Not Uploaded</span>
-          {% endif %}
-        </div>
-        <div class="w-full sm:w-1/3 flex flex-col sm:flex-row justify-end items-center gap-3 mt-2 sm:mt-0">
-          <span id="badge-license_document" class="badge-status px-3 py-1 rounded-full text-xs font-semibold 
-            {% if driver.license_document_status == 'Verified' %}bg-green-100 text-green-700
-            {% elif driver.license_document_status == 'Rejected' %}bg-red-100 text-red-700
-            {% else %}bg-yellow-100 text-yellow-700{% endif %}">
-            {{ driver.license_document_status }}
-          </span>
-          <button type="button" class="btn btn-xs bg-green-500 hover:bg-green-600 text-white rounded px-3 py-1"
-            onclick="updateStatus('license_document', 'Verified')">Verify</button>
-          <button type="button" class="btn btn-xs bg-red-600 hover:bg-red-700 text-white rounded px-3 py-1"
-            onclick="updateStatus('license_document', 'Rejected')">Reject</button>
-        </div>
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-12">
+  <!-- Header Section -->
+  <div class="bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg rounded-t-xl p-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-3xl font-bold text-black mb-1">
+          {{ driver.first_name }} {{ driver.last_name }}
+        </h2>
+        <p class="text-blue-100 text-sm">Document Verification Center</p>
       </div>
-      <!-- ID Proof -->
-      <div class="flex flex-col sm:flex-row justify-between items-center py-4">
-        <div class="w-full sm:w-1/3 font-medium text-gray-700">ID Proof</div>
-        <div class="w-full sm:w-1/3 text-center">
-          {% if driver.id_proof %}
-            <a href="{{ driver.id_proof.url }}" class="text-blue-600 hover:underline" target="_blank">View File</a>
-          {% else %}
-            <span class="text-gray-400">Not Uploaded</span>
-          {% endif %}
-        </div>
-        <div class="w-full sm:w-1/3 flex flex-col sm:flex-row justify-end items-center gap-3 mt-2 sm:mt-0">
-          <span id="badge-id_proof" class="badge-status px-3 py-1 rounded-full text-xs font-semibold 
-            {% if driver.id_proof_status == 'Verified' %}bg-green-100 text-green-700
-            {% elif driver.id_proof_status == 'Rejected' %}bg-red-100 text-red-700
-            {% else %}bg-yellow-100 text-yellow-700{% endif %}">
-            {{ driver.id_proof_status }}
-          </span>
-          <button type="button" class="btn btn-xs bg-green-500 hover:bg-green-600 text-white rounded px-3 py-1"
-            onclick="updateStatus('id_proof', 'Verified')">Verify</button>
-          <button type="button" class="btn btn-xs bg-red-600 hover:bg-red-700 text-white rounded px-3 py-1"
-            onclick="updateStatus('id_proof', 'Rejected')">Reject</button>
-        </div>
-      </div>
-      <!-- Vehicle RC -->
-      <div class="flex flex-col sm:flex-row justify-between items-center py-4">
-        <div class="w-full sm:w-1/3 font-medium text-gray-700">Vehicle RC</div>
-        <div class="w-full sm:w-1/3 text-center">
-          {% if driver.vehicle_rc %}
-            <a href="{{ driver.vehicle_rc.url }}" class="text-blue-600 hover:underline" target="_blank">View File</a>
-          {% else %}
-            <span class="text-gray-400">Not Uploaded</span>
-          {% endif %}
-        </div>
-        <div class="w-full sm:w-1/3 flex flex-col sm:flex-row justify-end items-center gap-3 mt-2 sm:mt-0">
-          <span id="badge-vehicle_rc" class="badge-status px-3 py-1 rounded-full text-xs font-semibold 
-            {% if driver.vehicle_rc_status == 'Verified' %}bg-green-100 text-green-700
-            {% elif driver.vehicle_rc_status == 'Rejected' %}bg-red-100 text-red-700
-            {% else %}bg-yellow-100 text-yellow-700{% endif %}">
-            {{ driver.vehicle_rc_status }}
-          </span>
-          <button type="button" class="btn btn-xs bg-green-500 hover:bg-green-600 text-white rounded px-3 py-1"
-            onclick="updateStatus('vehicle_rc', 'Verified')">Verify</button>
-          <button type="button" class="btn btn-xs bg-red-600 hover:bg-red-700 text-white rounded px-3 py-1"
-            onclick="updateStatus('vehicle_rc', 'Rejected')">Reject</button>
-        </div>
+      <div class="hidden sm:block">
+        <svg class="w-16 h-16 text-blue-300 opacity-50" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+          <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path>
+        </svg>
       </div>
     </div>
+  </div>
+
+  <!-- Main Content Card -->
+  <div class="bg-white shadow-lg rounded-b-xl overflow-hidden">
+    <form id="doc-status-csrf" style="display:none;">{% csrf_token %}</form>
+    
+    <!-- Document Cards -->
+    <div class="p-6 space-y-4">
+      
+      <!-- Driving License -->
+      <div class="border border-gray-200 rounded-lg hover:shadow-md transition-shadow duration-200">
+        <div class="p-5">
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <!-- Document Info -->
+            <div class="flex items-center gap-4 lg:w-1/3">
+              <div class="flex-shrink-0">
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path>
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <h3 class="text-base font-semibold text-gray-800">Driving License</h3>
+                <p class="text-sm text-gray-500 mt-0.5">License verification</p>
+              </div>
+            </div>
+
+            <!-- Status Badge -->
+            <div class="lg:w-1/4 flex justify-start lg:justify-center">
+              <span id="badge-license_document" class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold 
+                {% if driver.license_document_status == 'Verified' %}bg-green-100 text-green-700
+                {% elif driver.license_document_status == 'Rejected' %}bg-red-100 text-red-700
+                {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                <span class="w-2 h-2 rounded-full mr-2 
+                  {% if driver.license_document_status == 'Verified' %}bg-green-500
+                  {% elif driver.license_document_status == 'Rejected' %}bg-red-500
+                  {% else %}bg-yellow-500{% endif %}"></span>
+                {{ driver.license_document_status }}
+              </span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="lg:w-5/12 flex flex-wrap items-center gap-2">
+              {% if driver.license_document %}
+                <a href="{{ driver.license_document.url }}" target="_blank" 
+                   class="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  </svg>
+                  View
+                </a>
+              {% else %}
+                <span class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-400 text-sm font-medium rounded-lg cursor-not-allowed">
+                  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                  </svg>
+                  Not Uploaded
+                </span>
+              {% endif %}
+              <button type="button" 
+                      onclick="updateStatus('license_document', 'Verified')"
+                      class="inline-flex items-center px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Verify
+              </button>
+              <button type="button" 
+                      onclick="updateStatus('license_document', 'Rejected')"
+                      class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ID Proof -->
+      <div class="border border-gray-200 rounded-lg hover:shadow-md transition-shadow duration-200">
+        <div class="p-5">
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <!-- Document Info -->
+            <div class="flex items-center gap-4 lg:w-1/3">
+              <div class="flex-shrink-0">
+                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path>
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <h3 class="text-base font-semibold text-gray-800">ID Proof</h3>
+                <p class="text-sm text-gray-500 mt-0.5">Identity verification</p>
+              </div>
+            </div>
+
+            <!-- Status Badge -->
+            <div class="lg:w-1/4 flex justify-start lg:justify-center">
+              <span id="badge-id_proof" class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold 
+                {% if driver.id_proof_status == 'Verified' %}bg-green-100 text-green-700
+                {% elif driver.id_proof_status == 'Rejected' %}bg-red-100 text-red-700
+                {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                <span class="w-2 h-2 rounded-full mr-2 
+                  {% if driver.id_proof_status == 'Verified' %}bg-green-500
+                  {% elif driver.id_proof_status == 'Rejected' %}bg-red-500
+                  {% else %}bg-yellow-500{% endif %}"></span>
+                {{ driver.id_proof_status }}
+              </span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="lg:w-5/12 flex flex-wrap items-center gap-2">
+              {% if driver.id_proof %}
+                <a href="{{ driver.id_proof.url }}" target="_blank" 
+                   class="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  </svg>
+                  View
+                </a>
+              {% else %}
+                <span class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-400 text-sm font-medium rounded-lg cursor-not-allowed">
+                  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                  </svg>
+                  Not Uploaded
+                </span>
+              {% endif %}
+              <button type="button" 
+                      onclick="updateStatus('id_proof', 'Verified')"
+                      class="inline-flex items-center px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Verify
+              </button>
+              <button type="button" 
+                      onclick="updateStatus('id_proof', 'Rejected')"
+                      class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vehicle RC -->
+      <div class="border border-gray-200 rounded-lg hover:shadow-md transition-shadow duration-200">
+        <div class="p-5">
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <!-- Document Info -->
+            <div class="flex items-center gap-4 lg:w-1/3">
+              <div class="flex-shrink-0">
+                <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                  <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <h3 class="text-base font-semibold text-gray-800">Vehicle RC</h3>
+                <p class="text-sm text-gray-500 mt-0.5">Registration certificate</p>
+              </div>
+            </div>
+
+            <!-- Status Badge -->
+            <div class="lg:w-1/4 flex justify-start lg:justify-center">
+              <span id="badge-vehicle_rc" class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold 
+                {% if driver.vehicle_rc_status == 'Verified' %}bg-green-100 text-green-700
+                {% elif driver.vehicle_rc_status == 'Rejected' %}bg-red-100 text-red-700
+                {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                <span class="w-2 h-2 rounded-full mr-2 
+                  {% if driver.vehicle_rc_status == 'Verified' %}bg-green-500
+                  {% elif driver.vehicle_rc_status == 'Rejected' %}bg-red-500
+                  {% else %}bg-yellow-500{% endif %}"></span>
+                {{ driver.vehicle_rc_status }}
+              </span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="lg:w-5/12 flex flex-wrap items-center gap-2">
+              {% if driver.vehicle_rc %}
+                <a href="{{ driver.vehicle_rc.url }}" target="_blank" 
+                   class="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  </svg>
+                  View
+                </a>
+              {% else %}
+                <span class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-400 text-sm font-medium rounded-lg cursor-not-allowed">
+                  <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                  </svg>
+                  Not Uploaded
+                </span>
+              {% endif %}
+              <button type="button" 
+                      onclick="updateStatus('vehicle_rc', 'Verified')"
+                      class="inline-flex items-center px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Verify
+              </button>
+              <button type="button" 
+                      onclick="updateStatus('vehicle_rc', 'Rejected')"
+                      class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
     <!-- Back Button -->
-    <div class="mt-8 text-right">
-      <a href="{% url 'admin_drivers' %}" class="btn btn-sm bg-gray-200 hover:bg-gray-300 text-gray-800 rounded">
-        ← Back to Driver Dashboard
+    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
+      <a href="{% url 'admin_drivers' %}" 
+         class="inline-flex items-center px-5 py-2.5 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        Back to Driver Dashboard
       </a>
     </div>
   </div>
@@ -97,19 +271,38 @@ function getCSRFToken() {
   const input = form.querySelector('input[name="csrfmiddlewaretoken"]');
   return input ? input.value : '';
 }
+
 function setBadgeStatus(docType, newStatus) {
   const badge = document.getElementById('badge-' + docType);
   if (!badge) return;
-  badge.textContent = newStatus;
+  
+  // Update text
+  const textNode = Array.from(badge.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
+  if (textNode) {
+    textNode.textContent = newStatus;
+  }
+  
+  // Update badge colors
   badge.classList.remove('bg-green-100', 'text-green-700', 'bg-yellow-100', 'text-yellow-700', 'bg-red-100', 'text-red-700');
+  
+  // Update dot color
+  const dot = badge.querySelector('span');
+  if (dot) {
+    dot.classList.remove('bg-green-500', 'bg-yellow-500', 'bg-red-500');
+  }
+  
   if (newStatus === 'Verified') {
     badge.classList.add('bg-green-100', 'text-green-700');
+    if (dot) dot.classList.add('bg-green-500');
   } else if (newStatus === 'Rejected') {
     badge.classList.add('bg-red-100', 'text-red-700');
+    if (dot) dot.classList.add('bg-red-500');
   } else {
     badge.classList.add('bg-yellow-100', 'text-yellow-700');
+    if (dot) dot.classList.add('bg-yellow-500');
   }
 }
+
 function updateStatus(documentType, newStatus) {
   const csrfToken = getCSRFToken();
   fetch("{% url 'update_driver_document_status' driver.driver_id %}", {

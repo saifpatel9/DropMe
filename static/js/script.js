@@ -226,6 +226,70 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 });
 
+// Expose idempotent initializer to re-bind behaviors after dynamic content loads
+window.initAdminUI = function () {
+  try {
+    if (window.feather && typeof window.feather.replace === 'function') {
+      window.feather.replace();
+    }
+
+    // Ensure scrollbars are initialized
+    add_scroller();
+
+    // Re-init header dropdown scrollbars
+    if (document.querySelector('.header-notification-scroll')) {
+      new SimpleBar(document.querySelector('.header-notification-scroll'));
+    }
+    if (document.querySelector('.profile-notification-scroll')) {
+      new SimpleBar(document.querySelector('.profile-notification-scroll'));
+    }
+    if (document.querySelector('.component-list-card .scroll-div')) {
+      new SimpleBar(document.querySelector('.component-list-card .scroll-div'));
+    }
+
+    // Mobile collapse toggle (bind once)
+    var mobile_collapse_over = document.querySelector('#mobile-collapse');
+    if (mobile_collapse_over && !mobile_collapse_over.dataset.bound) {
+      mobile_collapse_over.dataset.bound = '1';
+      mobile_collapse_over.addEventListener('click', function () {
+        var mobile_sidebar = document.querySelector('.pc-sidebar');
+        if (mobile_sidebar) {
+          if (document.querySelector('.pc-sidebar').classList.contains('mob-sidebar-active')) {
+            rm_menu();
+          } else {
+            document.querySelector('.pc-sidebar').classList.add('mob-sidebar-active');
+            document.querySelector('.pc-sidebar').insertAdjacentHTML('beforeend', '<div class="pc-menu-overlay"></div>');
+            document.querySelector('.pc-menu-overlay').addEventListener('click', function () {
+              rm_menu();
+            });
+          }
+        }
+      });
+    }
+
+    // Sidebar hide toggle (bind once)
+    var sidebar_hide = document.querySelector('#sidebar-hide');
+    if (sidebar_hide && !sidebar_hide.dataset.bound) {
+      sidebar_hide.dataset.bound = '1';
+      sidebar_hide.addEventListener('click', function () {
+        if (document.querySelector('.pc-sidebar').classList.contains('pc-sidebar-hide')) {
+          document.querySelector('.pc-sidebar').classList.remove('pc-sidebar-hide');
+        } else {
+          document.querySelector('.pc-sidebar').classList.add('pc-sidebar-hide');
+        }
+      });
+    }
+
+    // Re-apply layout settings
+    setLayout();
+
+    // Re-run menu wiring
+    if (typeof menu_click === 'function') {
+      menu_click();
+    }
+  } catch (e) {}
+};
+
 // Function to set the layout based on data stored in localStorage
 function setLayout() {
   var layout = localStorage.getItem('layout'); // Retrieve layout data from localStorage

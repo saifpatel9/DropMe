@@ -33,10 +33,22 @@ def adminpanel_dashboard(request):
     total_drivers = Driver.objects.count()
     total_bookings = Booking.objects.count()
 
+    # Revenue metrics
+    today = timezone.now().date()
+    completed_payments = Payment.objects.filter(status='completed')
+    total_revenue = completed_payments.aggregate(total=Sum('amount'))['total'] or 0
+    todays_revenue = completed_payments.filter(paid_at__date=today).aggregate(total=Sum('amount'))['total'] or 0
+
+    # Today's bookings (based on scheduled_time date if available)
+    todays_bookings = Booking.objects.filter(scheduled_time__date=today).count()
+
     context = {
         'total_users': total_users,
         'total_drivers': total_drivers,
         'total_bookings': total_bookings,
+        'total_revenue': total_revenue,
+        'todays_revenue': todays_revenue,
+        'todays_bookings': todays_bookings,
     }
 
     return render(request, 'adminpanel/dashboard.html', context)
