@@ -4,6 +4,31 @@
 {% block extra_css %}
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+<style>
+  /* Ensure the Leaflet map never overflows and respects rounded corners */
+  #ride-map {
+    height: 320px;
+    width: 100%;
+  }
+  .map-shell {
+    overflow: hidden; /* clip any overflowing tiles/controls */
+    border-radius: 0.75rem; /* rounded-xl */
+  }
+  .leaflet-container {
+    font: inherit; /* keep consistent typography */
+  }
+  .leaflet-top, .leaflet-bottom {
+    z-index: 10; /* stay under sticky headers if any */
+  }
+  @media (min-width: 1024px) {
+    #ride-map { height: 360px; }
+  }
+  @media (max-width: 640px) {
+    #ride-map { height: 260px; }
+  }
+}</style>
 {% endblock %}
 
 {% block content %}
@@ -61,6 +86,15 @@
 
     <div class="lg:col-span-2">
       <div class="bg-white shadow-md rounded-2xl p-6">
+        <div class="mb-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-gray-800">Route Preview</h3>
+            <span id="route-distance" class="hidden text-sm bg-teal-50 text-teal-700 px-3 py-1 rounded-full border border-teal-200">Distance: --</span>
+          </div>
+          <div class="mt-3 map-shell border">
+            <div id="ride-map"></div>
+          </div>
+        </div>
         <div class="space-y-4 mb-6">
           {% if estimated_fares %}
             {% for fare in estimated_fares %}
@@ -196,6 +230,110 @@
       }
       window.location.href = url;
     });
+  });
+</script>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const pickupInput = document.querySelector('input[name="pickup"]').value;
+    const dropoffInput = document.querySelector('input[name="dropoff"]').value;
+    const mapContainer = document.getElementById('ride-map');
+    const distanceBadge = document.getElementById('route-distance');
+
+    if (!mapContainer) return;
+
+    const map = L.map('ride-map', { scrollWheelZoom: false });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Basic initial view (India center fallback)
+    map.setView([20.5937, 78.9629], 5);
+
+    if (!pickupInput || !dropoffInput) {
+      // No locations yet; nothing to route
+      return;
+    }
+
+    function geocode(place) {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}&limit=1`;
+      return fetch(url, { headers: { 'Accept': 'application/json' } })
+        .then(r => r.json())
+        .then(res => {
+          if (Array.isArray(res) && res.length) {
+            return [parseFloat(res[0].lat), parseFloat(res[0].lon)];
+          }
+          throw new Error('No results');
+        });
+    }
+
+    Promise.all([geocode(pickupInput), geocode(dropoffInput)])
+      .then(([pickupLatLng, dropoffLatLng]) => {
+        const pickupMarker = L.marker(pickupLatLng).addTo(map).bindPopup('Pickup');
+        const dropoffMarker = L.marker(dropoffLatLng).addTo(map).bindPopup('Dropoff');
+
+        const control = L.Routing.control({
+          waypoints: [
+            L.latLng(pickupLatLng[0], pickupLatLng[1]),
+            L.latLng(dropoffLatLng[0], dropoffLatLng[1])
+          ],
+          router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
+          addWaypoints: false,
+          draggableWaypoints: false,
+          fitSelectedRoutes: true,
+          show: false,
+          lineOptions: {
+            styles: [
+              { color: '#14b8a6', opacity: 0.9, weight: 6 },
+              { color: '#0f766e', opacity: 0.7, weight: 2 }
+            ]
+          }
+        }).addTo(map);
+
+        control.on('routesfound', function (e) {
+          const route = e.routes && e.routes[0];
+          if (!route) return;
+          const meters = route.summary.totalDistance || 0;
+          const km = (meters / 1000).toFixed(2);
+          distanceBadge.textContent = `Distance: ${km} km`;
+          distanceBadge.classList.remove('hidden');
+
+          // Also expose distance for other scripts if needed
+          window.__routeDistanceKm = km;
+
+          // Ensure bounds fit nicely using route coordinates (more reliable than only markers)
+          const coordinates = route.coordinates || [];
+          if (coordinates.length) {
+            const latLngs = coordinates.map(c => L.latLng(c.lat, c.lng));
+            const routeBounds = L.latLngBounds(latLngs);
+            map.fitBounds(routeBounds.pad(0.25));
+          } else {
+            const group = new L.FeatureGroup([pickupMarker, dropoffMarker]);
+            map.fitBounds(group.getBounds().pad(0.25));
+          }
+
+          // Invalidate size after fitting to ensure proper rendering
+          setTimeout(() => map.invalidateSize(), 100);
+        });
+
+        control.on('routingerror', function () {
+          // Fallback: just fit to markers
+          const group = new L.FeatureGroup([pickupMarker, dropoffMarker]);
+          map.fitBounds(group.getBounds().pad(0.25));
+          setTimeout(() => map.invalidateSize(), 100);
+        });
+      })
+      .catch(() => {
+        // If geocoding fails, no-op
+      });
+
+    // Invalidate size after initial render and when tiles finish loading
+    setTimeout(() => map.invalidateSize(), 300);
+    map.whenReady(() => setTimeout(() => map.invalidateSize(), 100));
+    map.on('load', () => setTimeout(() => map.invalidateSize(), 50));
+    window.addEventListener('resize', () => map.invalidateSize());
   });
 </script>
 {% endblock %}

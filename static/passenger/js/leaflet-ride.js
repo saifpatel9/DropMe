@@ -24,6 +24,11 @@
 		return fetch(url, { headers: { 'Accept': 'application/json' } }).then(function(r){ return r.json(); });
 	}
 
+	function reverseGeocode(lat, lng){
+		var url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lng);
+		return fetch(url, { headers: { 'Accept': 'application/json' } }).then(function(r){ return r.json(); });
+	}
+
 	function renderSuggestions(container, results, onPick){
 		container.innerHTML='';
 		if(!results || results.length===0){ container.classList.add('hidden'); return; }
@@ -95,6 +100,53 @@
 			if(tasks.length){
 				Promise.all(tasks).then(function(){ tryRoute(); });
 			}
+		});
+	}
+
+	// Geolocate button behavior: detect current position, center optional map, set pickup
+	var geoBtn = document.getElementById('pickup_geolocate_btn');
+	if(geoBtn && navigator.geolocation){
+		geoBtn.addEventListener('click', function(){
+			var originalClasses = geoBtn.className;
+			geoBtn.classList.add('opacity-70');
+			var icon = geoBtn.querySelector('i');
+			if(icon) icon.classList.add('fa-spin');
+
+			navigator.geolocation.getCurrentPosition(function(pos){
+				var lat = pos.coords.latitude;
+				var lng = pos.coords.longitude;
+				pickupLat.value = lat;
+				pickupLng.value = lng;
+
+				reverseGeocode(lat, lng).then(function(data){
+					var address = (data && (data.display_name || (data.address && data.address.road))) || 'Current location';
+					pickupInput.value = address;
+				}).catch(function(){
+					pickupInput.value = 'Current location';
+				}).finally(function(){
+					tryRoute();
+				});
+
+				// If a homepage Leaflet map exists globally, center and add/update a marker
+				var homeMap = window.__homeLeafletMap;
+				if(homeMap && typeof homeMap.setView === 'function'){
+					homeMap.setView([lat, lng], 15);
+					if(!window.__homeUserMarker){
+						window.__homeUserMarker = L.marker([lat, lng]).addTo(homeMap).bindPopup('You are here');
+					}else{
+						window.__homeUserMarker.setLatLng([lat, lng]);
+					}
+					window.__homeUserMarker.openPopup();
+					setTimeout(function(){ try{ homeMap.invalidateSize(); }catch(e){} }, 100);
+				}
+
+				geoBtn.className = originalClasses;
+				if(icon) icon.classList.remove('fa-spin');
+			}, function(err){
+				geoBtn.className = originalClasses;
+				if(icon) icon.classList.remove('fa-spin');
+				alert('Unable to access your location. Please allow location permissions in your browser.');
+			}, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
 		});
 	}
 })();
