@@ -250,6 +250,36 @@ body {
     font-size: 20px;
 }
 
+/* Passenger Marker Icon */
+.passenger-icon-div {
+    background: transparent;
+    border: none;
+}
+
+.passenger-marker-icon {
+    background: #dc2626;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    border: 4px solid white;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+}
+
+.passenger-marker-icon i {
+    transform: rotate(45deg);
+}
+
+/* Route Info Card */
+.route-info-card {
+    z-index: 1000;
+}
+
 /* Ride Request Notification Popup */
 .ride-request-overlay {
     position: fixed;
@@ -818,7 +848,7 @@ body {
 <div id="ride-request-overlay" class="ride-request-overlay" onclick="if(event.target === this) closeRideRequest()">
     <div class="ride-request-popup" onclick="event.stopPropagation()">
         <div class="popup-header">
-            <div class="countdown-timer" id="countdown-timer">120</div>
+            <div class="countdown-timer" id="countdown-timer">30</div>
             <p class="countdown-text">New Ride Request</p>
         </div>
 
@@ -975,8 +1005,14 @@ body {
     // Ride Request Notification
     let notificationSound = null;
     let countdownInterval = null;
-    let countdownTime = 120; // 2 minutes
+    let countdownTime = 30; // 30 seconds
     let currentRideRequest = null;
+    let processedRequestIds = new Set(); // Track which requests we've already shown
+    
+    // Map route and markers
+    let passengerMarker = null;
+    let routePolyline = null;
+    let routeInfoCard = null;
 
     // Initialize Map
     function initMap() {
@@ -1103,8 +1139,13 @@ body {
     }
 
     function showRideRequest(rideData) {
+        // Don't show if already processed
+        if (processedRequestIds.has(rideData.id)) {
+            return;
+        }
+        
         currentRideRequest = rideData;
-        countdownTime = 120; // Reset countdown
+        countdownTime = 30; // Reset countdown to 30 seconds
 
         // Update popup content
         document.getElementById('popup-passenger-name').textContent = rideData.passengerName || 'Passenger';
@@ -1127,6 +1168,9 @@ body {
         // Show actions, hide timeout message
         document.getElementById('popup-actions').style.display = 'flex';
         document.getElementById('timeout-message').classList.remove('show');
+        
+        // Mark as processed
+        processedRequestIds.add(rideData.id);
     }
 
     function startCountdown() {
@@ -1169,21 +1213,43 @@ body {
             clearInterval(countdownInterval);
         }
 
-        // Here you would typically send an AJAX request to accept the ride
-        // For now, just close the popup and show a success message
-        closeRideRequest();
-        
-        // You can add actual API call here:
-        // fetch('/driver/accept-ride/' + currentRideRequest.id + '/', {
-        //     method: 'POST',
-        //     headers: {
-        //         'X-CSRFToken': '{{ csrf_token }}',
-        //     }
-        // })
-
-        alert('Ride accepted! Redirecting...');
-        // Optionally redirect to active trip page
-        // window.location.href = '/driver/active-trip/';
+        // Send AJAX request to accept the ride
+        fetch("{% url 'driver:accept_ride' 0 %}".replace('0', currentRideRequest.id), {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'csrfmiddlewaretoken={{ csrf_token }}'
+        })
+        .then(response => {
+            if (response.ok || response.redirected) {
+                // Close popup
+                closeRideRequest();
+                
+                // Draw route to passenger pickup location
+                if (currentRideRequest.pickupLat && currentRideRequest.pickupLng && currentLat && currentLng) {
+                    drawRouteToPassenger(
+                        [currentLat, currentLng],
+                        [currentRideRequest.pickupLat, currentRideRequest.pickupLng],
+                        currentRideRequest.pickup
+                    );
+                }
+                
+                // Optionally redirect after a short delay
+                setTimeout(() => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    }
+                }, 1000);
+            } else {
+                alert('Failed to accept ride. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error accepting ride:', error);
+            alert('Network error. Please check your connection.');
+        });
     }
 
     function rejectRideRequest() {
@@ -1194,16 +1260,22 @@ body {
             clearInterval(countdownInterval);
         }
 
-        // Here you would typically send an AJAX request to reject the ride
-        closeRideRequest();
-        
-        // You can add actual API call here:
-        // fetch('/driver/reject_ride/' + currentRideRequest.id + '/', {
-        //     method: 'POST',
-        //     headers: {
-        //         'X-CSRFToken': '{{ csrf_token }}',
-        //     }
-        // })
+        // Send AJAX request to reject the ride
+        fetch("{% url 'driver:reject_ride' 0 %}".replace('0', currentRideRequest.id), {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'csrfmiddlewaretoken={{ csrf_token }}'
+        })
+        .then(response => {
+            closeRideRequest();
+        })
+        .catch(error => {
+            console.error('Error rejecting ride:', error);
+            closeRideRequest();
+        });
     }
 
     function closeRideRequest() {
@@ -1216,7 +1288,104 @@ body {
         }
 
         currentRideRequest = null;
-        countdownTime = 120;
+        countdownTime = 30;
+    }
+
+    // Draw route from driver to passenger pickup location
+    function drawRouteToPassenger(driverCoords, passengerCoords, pickupAddress) {
+        if (!map) return;
+
+        // Clear existing route and markers
+        clearRoute();
+
+        // Create passenger pickup marker
+        const passengerIcon = L.divIcon({
+            className: 'passenger-icon-div',
+            html: '<div class="passenger-marker-icon"><i class="fas fa-map-marker-alt"></i></div>',
+            iconSize: [50, 50],
+            iconAnchor: [25, 50]
+        });
+
+        passengerMarker = L.marker(passengerCoords, { icon: passengerIcon }).addTo(map);
+        
+        // Add popup to passenger marker
+        passengerMarker.bindPopup(`<b>Pickup Location</b><br>${pickupAddress}`).openPopup();
+
+        // Draw route polyline
+        const routePoints = [driverCoords, passengerCoords];
+        routePolyline = L.polyline(routePoints, {
+            color: '#00A59E',
+            weight: 5,
+            opacity: 0.7,
+            dashArray: '10, 10'
+        }).addTo(map);
+
+        // Calculate distance and ETA
+        const distance = calculateDistance(driverCoords[0], driverCoords[1], passengerCoords[0], passengerCoords[1]);
+        const eta = Math.ceil(distance / 0.5); // Assuming average speed of 30 km/h (0.5 km/min)
+
+        // Fit map to show both locations
+        const group = new L.featureGroup([driverMarker, passengerMarker]);
+        map.fitBounds(group.getBounds().pad(0.2));
+
+        // Show route info card
+        showRouteInfo(distance, eta);
+    }
+
+    // Calculate distance between two coordinates (Haversine formula)
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Earth's radius in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
+    // Show route info card on map
+    function showRouteInfo(distance, eta) {
+        // Remove existing info card if any
+        if (routeInfoCard) {
+            map.removeControl(routeInfoCard);
+        }
+
+        // Create custom control
+        const RouteInfoControl = L.Control.extend({
+            onAdd: function(map) {
+                const div = L.DomUtil.create('div', 'route-info-card');
+                div.innerHTML = `
+                    <div style="background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-width: 200px;">
+                        <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">Distance to Pickup</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #00A59E; margin-bottom: 15px;">${distance.toFixed(1)} km</div>
+                        <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">Estimated Time</div>
+                        <div style="font-size: 20px; font-weight: 600; color: #1f2937;">${eta} min</div>
+                    </div>
+                `;
+                return div;
+            }
+        });
+
+        routeInfoCard = new RouteInfoControl({ position: 'topright' });
+        routeInfoCard.addTo(map);
+    }
+
+    // Clear route and passenger marker
+    function clearRoute() {
+        if (passengerMarker) {
+            map.removeLayer(passengerMarker);
+            passengerMarker = null;
+        }
+        if (routePolyline) {
+            map.removeLayer(routePolyline);
+            routePolyline = null;
+        }
+        if (routeInfoCard) {
+            map.removeControl(routeInfoCard);
+            routeInfoCard = null;
+        }
     }
 
     // Simulate ride request (for testing - remove in production)
@@ -1235,17 +1404,46 @@ body {
 
     // Check for real ride requests (polling or WebSocket)
     function checkForRideRequests() {
+        // Only check if popup is not currently showing
+        const overlay = document.getElementById('ride-request-overlay');
+        if (overlay.classList.contains('show')) {
+            return; // Don't check for new requests while one is active
+        }
+
         // Poll for new ride requests
         fetch("{% url 'driver:api_assigned_requests' %}")
             .then(response => response.json())
             .then(data => {
                 if (data.assigned_request_ids && data.assigned_request_ids.length > 0) {
-                    // Fetch ride request details
-                    // This is a placeholder - you'll need to create an endpoint for this
-                    // For now, we'll use the simulate function
+                    // Find new request IDs that we haven't processed
+                    const newRequestIds = data.assigned_request_ids.filter(id => !processedRequestIds.has(id));
+                    
+                    if (newRequestIds.length > 0) {
+                        // Fetch details for the first new request
+                        const requestId = newRequestIds[0];
+                        fetchRideRequestDetails(requestId);
+                    }
                 }
             })
             .catch(error => console.error('Error checking ride requests:', error));
+    }
+
+    // Fetch detailed ride request information
+    function fetchRideRequestDetails(requestId) {
+        fetch("{% url 'driver:api_ride_request_details' 0 %}".replace('0', requestId))
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch ride request details');
+                }
+                return response.json();
+            })
+            .then(rideData => {
+                // Show the popup with ride request details
+                showRideRequest(rideData);
+            })
+            .catch(error => {
+                console.error('Error fetching ride request details:', error);
+            });
     }
 
     // Initialize on page load

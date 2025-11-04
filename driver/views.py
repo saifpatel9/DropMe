@@ -369,6 +369,56 @@ def api_assigned_requests(request):
     )
     return JsonResponse({'assigned_request_ids': ids})
 
+@driver_login_required
+def api_ride_request_details(request, ride_request_id):
+    """
+    API endpoint to fetch full details of a ride request for the popup notification.
+    """
+    driver_id = request.session.get('driver_id')
+    if not driver_id:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+    
+    try:
+        driver = Driver.objects.get(driver_id=driver_id)
+        ride_request = RideRequest.objects.get(
+            id=ride_request_id,
+            driver=driver,
+            status='Requested'
+        )
+        
+        # Get passenger rating
+        from rating.models import Rating
+        from django.db.models import Avg
+        passenger_rating = Rating.objects.filter(
+            User_id=ride_request.user_id,
+            given_by='driver'
+        ).aggregate(avg_rating=Avg('rating'))['avg_rating']
+        
+        passenger_name = f"{ride_request.user.first_name} {ride_request.user.last_name}".strip()
+        if not passenger_name:
+            passenger_name = ride_request.user.email.split('@')[0]
+        
+        return JsonResponse({
+            'id': ride_request.id,
+            'passengerName': passenger_name,
+            'rating': round(float(passenger_rating), 1) if passenger_rating else 4.5,
+            'pickup': ride_request.pickup_location,
+            'dropoff': ride_request.dropoff_location,
+            'pickupLat': float(ride_request.pickup_latitude),
+            'pickupLng': float(ride_request.pickup_longitude),
+            'dropoffLat': float(ride_request.drop_latitude),
+            'dropoffLng': float(ride_request.drop_longitude),
+            'fare': str(ride_request.fare),
+            'serviceType': ride_request.service_type.name if ride_request.service_type else 'Standard',
+            'paymentMode': ride_request.payment_mode or 'Cash',
+            'createdAt': ride_request.created_at.isoformat()
+        })
+    except RideRequest.DoesNotExist:
+        return JsonResponse({'error': 'Ride request not found'}, status=404)
+    except Exception as e:
+        logger.error(f"Error fetching ride request details: {e}")
+        return JsonResponse({'error': 'Internal server error'}, status=500)
+
 @require_POST
 @driver_login_required
 def end_ride_view(request, booking_id):
