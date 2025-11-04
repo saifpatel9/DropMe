@@ -263,7 +263,14 @@
         .then(r => r.json())
         .then(res => {
           if (Array.isArray(res) && res.length) {
-            return [parseFloat(res[0].lat), parseFloat(res[0].lon)];
+            // Nominatim returns lat and lon, ensure we use [lat, lng] format for Leaflet
+            const lat = parseFloat(res[0].lat);
+            const lon = parseFloat(res[0].lon);
+            console.log('Geocoded:', place, '->', [lat, lon]); // Debug log
+            if (isNaN(lat) || isNaN(lon)) {
+              throw new Error('Invalid coordinates');
+            }
+            return [lat, lon]; // [latitude, longitude] - correct for Leaflet
           }
           throw new Error('No results');
         });
@@ -271,13 +278,52 @@
 
     Promise.all([geocode(pickupInput), geocode(dropoffInput)])
       .then(([pickupLatLng, dropoffLatLng]) => {
-        const pickupMarker = L.marker(pickupLatLng).addTo(map).bindPopup('Pickup');
-        const dropoffMarker = L.marker(dropoffLatLng).addTo(map).bindPopup('Dropoff');
+        // Validate coordinates
+        if (!Array.isArray(pickupLatLng) || !Array.isArray(dropoffLatLng) ||
+            pickupLatLng.length !== 2 || dropoffLatLng.length !== 2) {
+          console.error('Invalid coordinate arrays:', pickupLatLng, dropoffLatLng);
+          return;
+        }
+
+        // Ensure coordinates are numbers
+        const pickupLat = parseFloat(pickupLatLng[0]);
+        const pickupLng = parseFloat(pickupLatLng[1]);
+        const dropoffLat = parseFloat(dropoffLatLng[0]);
+        const dropoffLng = parseFloat(dropoffLatLng[1]);
+
+        if (isNaN(pickupLat) || isNaN(pickupLng) || isNaN(dropoffLat) || isNaN(dropoffLng)) {
+          console.error('Invalid coordinate values:', { pickupLatLng, dropoffLatLng });
+          return;
+        }
+
+        // Create LatLng objects with correct [lat, lng] order
+        const pickupLatLngObj = L.latLng(pickupLat, pickupLng);
+        const dropoffLatLngObj = L.latLng(dropoffLat, dropoffLng);
+
+        console.log('Creating markers at:', { pickup: [pickupLat, pickupLng], dropoff: [dropoffLat, dropoffLng] });
+
+        // Create custom markers
+        const pickupIcon = L.divIcon({
+          className: 'custom-pickup-marker',
+          html: '<div style="background: #10b981; width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
+          iconSize: [30, 30],
+          iconAnchor: [15, 30]
+        });
+
+        const dropoffIcon = L.divIcon({
+          className: 'custom-dropoff-marker',
+          html: '<div style="background: #dc2626; width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
+          iconSize: [30, 30],
+          iconAnchor: [15, 30]
+        });
+
+        const pickupMarker = L.marker(pickupLatLngObj, { icon: pickupIcon }).addTo(map).bindPopup('Pickup');
+        const dropoffMarker = L.marker(dropoffLatLngObj, { icon: dropoffIcon }).addTo(map).bindPopup('Dropoff');
 
         const control = L.Routing.control({
           waypoints: [
-            L.latLng(pickupLatLng[0], pickupLatLng[1]),
-            L.latLng(dropoffLatLng[0], dropoffLatLng[1])
+            pickupLatLngObj,
+            dropoffLatLngObj
           ],
           router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
           addWaypoints: false,
@@ -306,9 +352,27 @@
           // Ensure bounds fit nicely using route coordinates (more reliable than only markers)
           const coordinates = route.coordinates || [];
           if (coordinates.length) {
-            const latLngs = coordinates.map(c => L.latLng(c.lat, c.lng));
-            const routeBounds = L.latLngBounds(latLngs);
-            map.fitBounds(routeBounds.pad(0.25));
+            // Route coordinates from OSRM are in [lat, lng] format
+            const latLngs = coordinates.map(c => {
+              // Handle both {lat, lng} object and [lat, lng] array formats
+              if (Array.isArray(c)) {
+                return L.latLng(c[0], c[1]); // [lat, lng]
+              } else if (c.lat !== undefined && c.lng !== undefined) {
+                return L.latLng(c.lat, c.lng); // {lat, lng}
+              } else if (c.latitude !== undefined && c.longitude !== undefined) {
+                return L.latLng(c.latitude, c.longitude); // {latitude, longitude}
+              }
+              console.warn('Unknown coordinate format:', c);
+              return null;
+            }).filter(c => c !== null);
+            
+            if (latLngs.length > 0) {
+              const routeBounds = L.latLngBounds(latLngs);
+              map.fitBounds(routeBounds.pad(0.25));
+            } else {
+              const group = new L.FeatureGroup([pickupMarker, dropoffMarker]);
+              map.fitBounds(group.getBounds().pad(0.25));
+            }
           } else {
             const group = new L.FeatureGroup([pickupMarker, dropoffMarker]);
             map.fitBounds(group.getBounds().pad(0.25));
@@ -318,8 +382,36 @@
           setTimeout(() => map.invalidateSize(), 100);
         });
 
-        control.on('routingerror', function () {
-          // Fallback: just fit to markers
+        control.on('routingerror', function (e) {
+          console.warn('Routing error:', e);
+          // Fallback: calculate distance using Haversine and draw simple polyline
+          const haversineDistance = (latLng1, latLng2) => {
+            const R = 6371; // Earth radius in km
+            const lat1 = latLng1.lat * Math.PI / 180;
+            const lat2 = latLng2.lat * Math.PI / 180;
+            const dLat = (latLng2.lat - latLng1.lat) * Math.PI / 180;
+            const dLng = (latLng2.lng - latLng1.lng) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1) * Math.cos(lat2) *
+                      Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+          };
+
+          const distance = haversineDistance(pickupLatLngObj, dropoffLatLngObj);
+          const km = distance.toFixed(2);
+          distanceBadge.textContent = `Distance: ${km} km (approx)`;
+          distanceBadge.classList.remove('hidden');
+
+          // Draw simple polyline as fallback
+          L.polyline([pickupLatLngObj, dropoffLatLngObj], {
+            color: '#00A59E',
+            weight: 5,
+            opacity: 0.7,
+            dashArray: '10, 10'
+          }).addTo(map);
+
+          // Fit to markers
           const group = new L.FeatureGroup([pickupMarker, dropoffMarker]);
           map.fitBounds(group.getBounds().pad(0.25));
           setTimeout(() => map.invalidateSize(), 100);

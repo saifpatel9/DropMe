@@ -73,17 +73,235 @@
 		if(!dropoffSuggestions.contains(e.target) && e.target!==dropoffInput){ dropoffSuggestions.classList.add('hidden'); }
 	});
 
+	// Global map and routing control for route visualization
+	var homeMap = null;
+	var routeControl = null;
+	var pickupMarker = null;
+	var dropoffMarker = null;
+	var routePolyline = null;
+
+	// Initialize map on homepage if container exists
+	function initHomeMap(){
+		var mapContainer = document.getElementById('home-route-map');
+		if(!mapContainer || homeMap) return;
+
+		homeMap = L.map('home-route-map', {
+			scrollWheelZoom: false,
+			zoomControl: false
+		});
+		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+			attribution: '&copy; OpenStreetMap contributors'
+		}).addTo(homeMap);
+
+		// Set initial view (India center)
+		homeMap.setView([20.5937, 78.9629], 5);
+		window.__homeLeafletMap = homeMap; // Expose for geolocation
+	}
+
+	// Draw route on map
+	function drawRouteOnMap(pickupCoords, dropoffCoords){
+		if(!homeMap) initHomeMap();
+		if(!homeMap) return; // Map container doesn't exist
+
+		// Show map container
+		var mapContainer = document.getElementById('route-map-container');
+		if(mapContainer) mapContainer.classList.remove('hidden');
+
+		// Clear existing markers and route
+		if(pickupMarker) homeMap.removeLayer(pickupMarker);
+		if(dropoffMarker) homeMap.removeLayer(dropoffMarker);
+		if(routeControl) homeMap.removeControl(routeControl);
+		if(routePolyline) homeMap.removeLayer(routePolyline);
+
+		// Ensure coordinates are numbers and in [lat, lng] format
+		var pickupLat = parseFloat(pickupCoords[0]);
+		var pickupLng = parseFloat(pickupCoords[1]);
+		var dropoffLat = parseFloat(dropoffCoords[0]);
+		var dropoffLng = parseFloat(dropoffCoords[1]);
+
+		// Validate coordinates
+		if(isNaN(pickupLat) || isNaN(pickupLng) || isNaN(dropoffLat) || isNaN(dropoffLng)){
+			console.error('Invalid coordinates:', {pickupCoords, dropoffCoords});
+			return;
+		}
+
+		// Create markers with correct [lat, lng] order
+		var pickupLatLng = L.latLng(pickupLat, pickupLng);
+		var dropoffLatLng = L.latLng(dropoffLat, dropoffLng);
+
+		// Create custom markers
+		var pickupIcon = L.divIcon({
+			className: 'custom-pickup-marker',
+			html: '<div style="background: #10b981; width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"><i class="fas fa-map-marker-alt" style="transform: rotate(45deg); color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(45deg);"></i></div>',
+			iconSize: [30, 30],
+			iconAnchor: [15, 30]
+		});
+
+		var dropoffIcon = L.divIcon({
+			className: 'custom-dropoff-marker',
+			html: '<div style="background: #dc2626; width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"><i class="fas fa-flag-checkered" style="transform: rotate(45deg); color: white; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(45deg); font-size: 12px;"></i></div>',
+			iconSize: [30, 30],
+			iconAnchor: [15, 30]
+		});
+
+		pickupMarker = L.marker(pickupLatLng, {icon: pickupIcon}).addTo(homeMap);
+		pickupMarker.bindPopup('<b>Pickup</b><br>' + (pickupInput.value || 'Pickup Location')).openPopup();
+
+		dropoffMarker = L.marker(dropoffLatLng, {icon: dropoffIcon}).addTo(homeMap);
+		dropoffMarker.bindPopup('<b>Dropoff</b><br>' + (dropoffInput.value || 'Dropoff Location'));
+
+		// Create routing control
+		routeControl = L.Routing.control({
+			waypoints: [pickupLatLng, dropoffLatLng],
+			router: L.Routing.osrmv1({
+				serviceUrl: 'https://router.project-osrm.org/route/v1'
+			}),
+			addWaypoints: false,
+			draggableWaypoints: false,
+			fitSelectedRoutes: true,
+			show: false,
+			lineOptions: {
+				styles: [
+					{color: '#00A59E', opacity: 0.8, weight: 6},
+					{color: '#0EB9D3', opacity: 0.6, weight: 4}
+				]
+			}
+		}).addTo(homeMap);
+
+		// Handle route found
+		routeControl.on('routesfound', function(e){
+			var route = e.routes && e.routes[0];
+			if(!route) return;
+
+			var meters = route.summary.totalDistance || 0;
+			var seconds = route.summary.totalTime || 0;
+			var km = (meters / 1000).toFixed(2);
+			var minutes = Math.round(seconds / 60);
+
+			// Update hidden fields
+			if(distanceKmField) distanceKmField.value = km;
+			if(durationMinField) durationMinField.value = minutes.toString();
+
+			// Update distance display if it exists
+			var distanceDisplay = document.getElementById('home-distance-display');
+			if(distanceDisplay){
+				distanceDisplay.textContent = km + ' km';
+				distanceDisplay.classList.remove('hidden');
+			}
+
+			// Fit map to route
+			var coordinates = route.coordinates || [];
+			if(coordinates.length){
+				var latLngs = coordinates.map(function(c){
+					return L.latLng(c.lat, c.lng);
+				});
+				var routeBounds = L.latLngBounds(latLngs);
+				homeMap.fitBounds(routeBounds.pad(0.2));
+			} else {
+				var group = new L.FeatureGroup([pickupMarker, dropoffMarker]);
+				homeMap.fitBounds(group.getBounds().pad(0.2));
+			}
+
+			setTimeout(function(){ homeMap.invalidateSize(); }, 100);
+		});
+
+		routeControl.on('routingerror', function(){
+			// Fallback: calculate distance using Haversine
+			var distance = haversineDistance(pickupLatLng, dropoffLatLng);
+			var km = distance.toFixed(2);
+			if(distanceKmField) distanceKmField.value = km;
+			if(durationMinField) durationMinField.value = Math.round(distance / 0.5).toString(); // Assume 30 km/h
+
+			// Update distance display
+			var distanceDisplay = document.getElementById('home-distance-display');
+			if(distanceDisplay){
+				distanceDisplay.textContent = km + ' km (approx)';
+				distanceDisplay.classList.remove('hidden');
+			}
+
+			// Draw simple polyline as fallback
+			routePolyline = L.polyline([pickupLatLng, dropoffLatLng], {
+				color: '#00A59E',
+				weight: 5,
+				opacity: 0.7,
+				dashArray: '10, 10'
+			}).addTo(homeMap);
+
+			// Fit to markers
+			var group = new L.FeatureGroup([pickupMarker, dropoffMarker]);
+			homeMap.fitBounds(group.getBounds().pad(0.2));
+			setTimeout(function(){ homeMap.invalidateSize(); }, 100);
+		});
+	}
+
+	// Haversine distance calculation (fallback)
+	function haversineDistance(latLng1, latLng2){
+		var R = 6371; // Earth radius in km
+		var lat1 = latLng1.lat * Math.PI / 180;
+		var lat2 = latLng2.lat * Math.PI / 180;
+		var dLat = (latLng2.lat - latLng1.lat) * Math.PI / 180;
+		var dLng = (latLng2.lng - latLng1.lng) * Math.PI / 180;
+		var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+			Math.cos(lat1) * Math.cos(lat2) *
+			Math.sin(dLng/2) * Math.sin(dLng/2);
+		var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+		return R * c;
+	}
+
 	function tryRoute(){
 		if(!pickupLat.value || !pickupLng.value || !dropLat.value || !dropLng.value) return;
-		var p = L.latLng(parseFloat(pickupLat.value), parseFloat(pickupLng.value));
-		var d = L.latLng(parseFloat(dropLat.value), parseFloat(dropLng.value));
-		L.Routing.control({ waypoints:[p,d], addWaypoints:false, draggableWaypoints:false, routeWhileDragging:false, fitSelectedRoutes:false, show:false }).on('routesfound', function(e){
+
+		// Ensure coordinates are numbers
+		var pickupLatVal = parseFloat(pickupLat.value);
+		var pickupLngVal = parseFloat(pickupLng.value);
+		var dropLatVal = parseFloat(dropLat.value);
+		var dropLngVal = parseFloat(dropLng.value);
+
+		if(isNaN(pickupLatVal) || isNaN(pickupLngVal) || isNaN(dropLatVal) || isNaN(dropLngVal)){
+			console.error('Invalid coordinates in tryRoute');
+			return;
+		}
+
+		// Draw route on homepage map
+		drawRouteOnMap([pickupLatVal, pickupLngVal], [dropLatVal, dropLngVal]);
+
+		// Also calculate distance for form submission (using routing API)
+		var p = L.latLng(pickupLatVal, pickupLngVal);
+		var d = L.latLng(dropLatVal, dropLngVal);
+		
+		// Create a temporary routing control just for distance calculation
+		var tempControl = L.Routing.control({
+			waypoints: [p, d],
+			router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
+			addWaypoints: false,
+			draggableWaypoints: false,
+			routeWhileDragging: false,
+			fitSelectedRoutes: false,
+			show: false
+		});
+
+		// Use a dummy map for calculation (but route is already shown on homeMap)
+		var dummyMap = L.map(document.createElement('div'));
+		tempControl.addTo(dummyMap);
+
+		tempControl.on('routesfound', function(e){
 			var route = e.routes[0];
 			var meters = route.summary.totalDistance || 0;
 			var seconds = route.summary.totalTime || 0;
-			distanceKmField.value = (meters/1000).toFixed(2);
-			durationMinField.value = Math.round(seconds/60).toString();
-		}).on('routingerror', function(){ /* ignore */ }).addTo(L.map(document.createElement('div')));
+			if(distanceKmField) distanceKmField.value = (meters/1000).toFixed(2);
+			if(durationMinField) durationMinField.value = Math.round(seconds/60).toString();
+			
+			// Clean up dummy map
+			dummyMap.remove();
+		});
+
+		tempControl.on('routingerror', function(){
+			// Fallback: use Haversine
+			var distance = haversineDistance(p, d);
+			if(distanceKmField) distanceKmField.value = distance.toFixed(2);
+			if(durationMinField) durationMinField.value = Math.round(distance / 0.5).toString();
+			dummyMap.remove();
+		});
 	}
 
 	var form = document.getElementById('rideForm');

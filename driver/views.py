@@ -398,16 +398,22 @@ def api_ride_request_details(request, ride_request_id):
         if not passenger_name:
             passenger_name = ride_request.user.email.split('@')[0]
         
+        # Ensure coordinates are valid numbers or None
+        pickup_lat = float(ride_request.pickup_latitude) if ride_request.pickup_latitude is not None else None
+        pickup_lng = float(ride_request.pickup_longitude) if ride_request.pickup_longitude is not None else None
+        dropoff_lat = float(ride_request.drop_latitude) if ride_request.drop_latitude is not None else None
+        dropoff_lng = float(ride_request.drop_longitude) if ride_request.drop_longitude is not None else None
+        
         return JsonResponse({
             'id': ride_request.id,
             'passengerName': passenger_name,
             'rating': round(float(passenger_rating), 1) if passenger_rating else 4.5,
             'pickup': ride_request.pickup_location,
             'dropoff': ride_request.dropoff_location,
-            'pickupLat': float(ride_request.pickup_latitude),
-            'pickupLng': float(ride_request.pickup_longitude),
-            'dropoffLat': float(ride_request.drop_latitude),
-            'dropoffLng': float(ride_request.drop_longitude),
+            'pickupLat': pickup_lat,
+            'pickupLng': pickup_lng,
+            'dropoffLat': dropoff_lat,
+            'dropoffLng': dropoff_lng,
             'fare': str(ride_request.fare),
             'serviceType': ride_request.service_type.name if ride_request.service_type else 'Standard',
             'paymentMode': ride_request.payment_mode or 'Cash',

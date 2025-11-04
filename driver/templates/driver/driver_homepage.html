@@ -1167,6 +1167,29 @@ body {
             return;
         }
         
+        // Validate and parse coordinates
+        const pickupLat = rideData.pickupLat !== null && rideData.pickupLat !== undefined ? parseFloat(rideData.pickupLat) : null;
+        const pickupLng = rideData.pickupLng !== null && rideData.pickupLng !== undefined ? parseFloat(rideData.pickupLng) : null;
+        
+        // Log coordinate validation
+        console.log('Ride request data received:', {
+            id: rideData.id,
+            pickupLat: pickupLat,
+            pickupLng: pickupLng,
+            pickupLatRaw: rideData.pickupLat,
+            pickupLngRaw: rideData.pickupLng,
+            pickup: rideData.pickup
+        });
+        
+        // Validate coordinates are valid numbers
+        if (isNaN(pickupLat) || isNaN(pickupLng) || pickupLat === null || pickupLng === null) {
+            console.error('Invalid pickup coordinates:', { pickupLat, pickupLng });
+        }
+        
+        // Store validated coordinates back in rideData
+        rideData.pickupLat = pickupLat;
+        rideData.pickupLng = pickupLng;
+        
         currentRideRequest = rideData;
         countdownTime = 30; // Reset countdown to 30 seconds
 
@@ -1229,7 +1252,10 @@ body {
     }
 
     function acceptRideRequest() {
-        if (!currentRideRequest) return;
+        if (!currentRideRequest) {
+            console.error('No current ride request to accept');
+            return;
+        }
 
         // Stop countdown
         if (countdownInterval) {
@@ -1239,53 +1265,129 @@ body {
         // Store ride data before closing popup
         const rideData = { ...currentRideRequest };
         
+        // Validate and parse coordinates
+        const pickupLat = rideData.pickupLat !== null && rideData.pickupLat !== undefined ? parseFloat(rideData.pickupLat) : null;
+        const pickupLng = rideData.pickupLng !== null && rideData.pickupLng !== undefined ? parseFloat(rideData.pickupLng) : null;
+        const driverLat = currentLat ? parseFloat(currentLat) : null;
+        const driverLng = currentLng ? parseFloat(currentLng) : null;
+
+        // Log coordinate validation
+        console.log('Accepting ride request:', {
+            rideId: rideData.id,
+            driverCoords: driverLat && driverLng ? [driverLat, driverLng] : 'Not available',
+            passengerCoords: pickupLat && pickupLng ? [pickupLat, pickupLng] : 'Not available',
+            pickupAddress: rideData.pickup
+        });
+
         // Close popup immediately for better UX
         closeRideRequest();
 
-        // Draw route to passenger pickup location (this should always happen)
-        if (rideData.pickupLat && rideData.pickupLng && currentLat && currentLng) {
+        // Draw route to passenger pickup location
+        if (pickupLat !== null && pickupLng !== null && !isNaN(pickupLat) && !isNaN(pickupLng) &&
+            driverLat !== null && driverLng !== null && !isNaN(driverLat) && !isNaN(driverLng)) {
+            // All coordinates are valid - draw route
             drawRouteToPassenger(
-                [currentLat, currentLng],
-                [rideData.pickupLat, rideData.pickupLng],
-                rideData.pickup
-            );
-        } else {
-            // Fallback: use mock coordinates if not available
-            console.warn('Coordinates not available, using fallback');
-            const mockPickupLat = currentLat ? currentLat + 0.01 : 19.0860;
-            const mockPickupLng = currentLng ? currentLng + 0.01 : 72.8877;
-            drawRouteToPassenger(
-                [currentLat || 19.0760, currentLng || 72.8777],
-                [mockPickupLat, mockPickupLng],
+                [driverLat, driverLng],
+                [pickupLat, pickupLng],
                 rideData.pickup || 'Pickup Location'
             );
+        } else {
+            // Missing or invalid coordinates - try to fetch fresh data
+            console.warn('Coordinates missing or invalid. Attempting to fetch fresh ride data...', {
+                pickupLat, pickupLng, driverLat, driverLng
+            });
+            
+            // Fetch fresh ride request details
+            fetch("{% url 'driver:api_ride_request_details' 0 %}".replace('0', rideData.id))
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch ride details: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(freshRideData => {
+                    const freshPickupLat = freshRideData.pickupLat !== null && freshRideData.pickupLat !== undefined ? parseFloat(freshRideData.pickupLat) : null;
+                    const freshPickupLng = freshRideData.pickupLng !== null && freshRideData.pickupLng !== undefined ? parseFloat(freshRideData.pickupLng) : null;
+                    
+                    if (freshPickupLat !== null && freshPickupLng !== null && !isNaN(freshPickupLat) && !isNaN(freshPickupLng) &&
+                        driverLat !== null && driverLng !== null && !isNaN(driverLat) && !isNaN(driverLng)) {
+                        console.log('Using fresh coordinates:', { freshPickupLat, freshPickupLng });
+                        drawRouteToPassenger(
+                            [driverLat, driverLng],
+                            [freshPickupLat, freshPickupLng],
+                            freshRideData.pickup || rideData.pickup || 'Pickup Location'
+                        );
+                    } else {
+                        // Still no valid coordinates - use fallback
+                        console.warn('Still no valid coordinates after refresh, using fallback');
+                        const mockPickupLat = driverLat ? driverLat + 0.01 : 19.0860;
+                        const mockPickupLng = driverLng ? driverLng + 0.01 : 72.8877;
+                        drawRouteToPassenger(
+                            [driverLat || 19.0760, driverLng || 72.8777],
+                            [mockPickupLat, mockPickupLng],
+                            rideData.pickup || 'Pickup Location'
+                        );
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching fresh ride data:', error);
+                    // Fallback: use mock coordinates
+                    const mockPickupLat = driverLat ? driverLat + 0.01 : 19.0860;
+                    const mockPickupLng = driverLng ? driverLng + 0.01 : 72.8877;
+                    drawRouteToPassenger(
+                        [driverLat || 19.0760, driverLng || 72.8777],
+                        [mockPickupLat, mockPickupLng],
+                        rideData.pickup || 'Pickup Location'
+                    );
+                });
         }
 
         // Send AJAX request to accept the ride (non-blocking)
-        fetch("{% url 'driver:accept_ride' 0 %}".replace('0', rideData.id), {
+        const acceptUrl = "{% url 'driver:accept_ride' 0 %}".replace('0', rideData.id);
+        console.log('Sending accept request to:', acceptUrl);
+        
+        fetch(acceptUrl, {
             method: 'POST',
             headers: {
                 'X-CSRFToken': '{{ csrf_token }}',
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: 'csrfmiddlewaretoken={{ csrf_token }}',
-            redirect: 'manual' // Don't follow redirects automatically
+            redirect: 'manual', // Don't follow redirects automatically
+            credentials: 'same-origin' // Include cookies for authentication
         })
         .then(response => {
+            console.log('Accept ride response:', {
+                status: response.status,
+                statusText: response.statusText,
+                ok: response.ok,
+                redirected: response.redirected,
+                url: response.url
+            });
+            
             // Handle success (200-299) or redirect (300-399)
             if (response.ok || (response.status >= 300 && response.status < 400)) {
                 console.log('Ride accepted successfully');
-                // Show non-blocking success message
                 showToast('Ride accepted successfully!', 'success');
+            } else if (response.status === 0) {
+                // Status 0 usually means network error or CORS issue
+                console.warn('Network error or CORS issue (status 0). Ride may still be accepted on server.');
+                showToast('Ride accepted locally. Please check connection.', 'info');
             } else {
-                console.warn('Ride acceptance returned non-ok status:', response.status);
-                // Still show success since map already updated
+                console.warn('Ride acceptance returned non-ok status:', response.status, response.statusText);
+                // Try to read response body for more details
+                response.text().then(text => {
+                    console.warn('Response body:', text);
+                }).catch(() => {});
                 showToast('Ride accepted! Map updated.', 'success');
             }
         })
         .catch(error => {
-            console.error('Error accepting ride (non-blocking):', error);
-            // Don't show alert - map is already updated, just log the error
+            console.error('Error accepting ride:', error);
+            // Check if it's a network error
+            if (error.message && error.message.includes('fetch')) {
+                console.error('Network error - check internet connection or CORS settings');
+            }
             showToast('Ride accepted locally. Syncing with server...', 'info');
         });
     }
@@ -1377,10 +1479,47 @@ body {
             return;
         }
 
+        // Validate coordinates
+        if (!Array.isArray(driverCoords) || driverCoords.length !== 2 ||
+            !Array.isArray(passengerCoords) || passengerCoords.length !== 2) {
+            console.error('Invalid coordinate arrays:', { driverCoords, passengerCoords });
+            return;
+        }
+
+        const driverLat = parseFloat(driverCoords[0]);
+        const driverLng = parseFloat(driverCoords[1]);
+        const passengerLat = parseFloat(passengerCoords[0]);
+        const passengerLng = parseFloat(passengerCoords[1]);
+
+        if (isNaN(driverLat) || isNaN(driverLng) || isNaN(passengerLat) || isNaN(passengerLng)) {
+            console.error('Invalid coordinate values:', {
+                driverCoords,
+                passengerCoords,
+                parsed: { driverLat, driverLng, passengerLat, passengerLng }
+            });
+            return;
+        }
+
+        // Ensure coordinates are in valid range
+        if (driverLat < -90 || driverLat > 90 || driverLng < -180 || driverLng > 180 ||
+            passengerLat < -90 || passengerLat > 90 || passengerLng < -180 || passengerLng > 180) {
+            console.error('Coordinates out of valid range:', {
+                driver: [driverLat, driverLng],
+                passenger: [passengerLat, passengerLng]
+            });
+            return;
+        }
+
+        console.log('Drawing route:', {
+            driver: [driverLat, driverLng],
+            passenger: [passengerLat, passengerLng],
+            address: pickupAddress
+        });
+
         // Clear existing route and markers
         clearRoute();
 
-        // Create passenger pickup marker
+        // Create passenger pickup marker with correct [lat, lng] order
         const passengerIcon = L.divIcon({
             className: 'passenger-icon-div',
             html: '<div class="passenger-marker-icon"><i class="fas fa-map-marker-alt"></i></div>',
@@ -1388,13 +1527,13 @@ body {
             iconAnchor: [25, 50]
         });
 
-        passengerMarker = L.marker(passengerCoords, { icon: passengerIcon }).addTo(map);
+        passengerMarker = L.marker([passengerLat, passengerLng], { icon: passengerIcon }).addTo(map);
         
         // Add popup to passenger marker
         passengerMarker.bindPopup(`<b>Pickup Location</b><br>${pickupAddress || 'Passenger Location'}`).openPopup();
 
-        // Draw route polyline with smooth animation
-        const routePoints = [driverCoords, passengerCoords];
+        // Draw route polyline with smooth animation (using validated coordinates)
+        const routePoints = [[driverLat, driverLng], [passengerLat, passengerLng]];
         routePolyline = L.polyline(routePoints, {
             color: '#00A59E',
             weight: 5,
@@ -1403,7 +1542,7 @@ body {
         }).addTo(map);
 
         // Calculate distance and ETA
-        const distance = calculateDistance(driverCoords[0], driverCoords[1], passengerCoords[0], passengerCoords[1]);
+        const distance = calculateDistance(driverLat, driverLng, passengerLat, passengerLng);
         const eta = Math.ceil(distance / 0.5); // Assuming average speed of 30 km/h (0.5 km/min)
 
         // Fit map to show both locations with padding
@@ -1419,8 +1558,8 @@ body {
         showRouteInfo(distance, eta);
 
         console.log('Route drawn successfully:', {
-            driver: driverCoords,
-            passenger: passengerCoords,
+            driver: [driverLat, driverLng],
+            passenger: [passengerLat, passengerLng],
             distance: distance.toFixed(2) + ' km',
             eta: eta + ' min'
         });
@@ -1524,19 +1663,51 @@ body {
 
     // Fetch detailed ride request information
     function fetchRideRequestDetails(requestId) {
-        fetch("{% url 'driver:api_ride_request_details' 0 %}".replace('0', requestId))
+        const url = "{% url 'driver:api_ride_request_details' 0 %}".replace('0', requestId);
+        console.log('Fetching ride request details from:', url);
+        
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            },
+            credentials: 'same-origin' // Include cookies for authentication
+        })
             .then(response => {
+                console.log('Ride request details response:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    ok: response.ok
+                });
+                
                 if (!response.ok) {
-                    throw new Error('Failed to fetch ride request details');
+                    return response.text().then(text => {
+                        console.error('Error response body:', text);
+                        throw new Error(`Failed to fetch ride request details: ${response.status} - ${text}`);
+                    });
                 }
                 return response.json();
             })
             .then(rideData => {
+                console.log('Ride request details received:', {
+                    id: rideData.id,
+                    pickupLat: rideData.pickupLat,
+                    pickupLng: rideData.pickupLng,
+                    pickup: rideData.pickup
+                });
+                
+                // Validate coordinates in response
+                if (rideData.pickupLat === null || rideData.pickupLat === undefined ||
+                    rideData.pickupLng === null || rideData.pickupLng === undefined) {
+                    console.error('Missing coordinates in API response:', rideData);
+                }
+                
                 // Show the popup with ride request details
                 showRideRequest(rideData);
             })
             .catch(error => {
                 console.error('Error fetching ride request details:', error);
+                showToast('Failed to load ride request details', 'error');
             });
     }
 
