@@ -1,0 +1,451 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passenger Dashboard - Hospione</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
+    <style>
+        .section-transition {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+        .section-hidden {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .section-visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .info-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(249, 250, 251, 0.95));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .text-gradient {
+            background: linear-gradient(90deg, #00A59E, #0EB9D3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
+    <div class="container mx-auto px-4 py-6 max-w-4xl">
+        
+        <!-- SECTION 1: BOOKING FORM -->
+        <div id="bookingSection" class="section-transition {% if current_state != 'booking' %}section-hidden{% else %}section-visible{% endif %}">
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-car text-teal-600 mr-2"></i>Book Your Ride
+                </h2>
+                
+                <form id="bookingForm" class="space-y-4">
+                    <div class="flex bg-gray-100 rounded-xl p-1 mb-4">
+                        <button type="button" class="booking-tab flex-1 py-2 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-lg font-medium text-sm" data-tab="daily">
+                            <i class="fas fa-car mr-2"></i>Daily Ride
+                        </button>
+                        <button type="button" class="booking-tab flex-1 py-2 text-gray-600 font-medium text-sm hover:bg-gray-200 transition" data-tab="outstation">
+                            <i class="fas fa-map-marked-alt mr-2"></i>Outstation
+                        </button>
+                        <button type="button" class="booking-tab flex-1 py-2 text-gray-600 font-medium text-sm hover:bg-gray-200 transition rounded-lg" data-tab="rental">
+                            <i class="fas fa-route mr-2"></i>Rental
+                        </button>
+                    </div>
+                    
+                    <input type="hidden" name="ride_type" id="rideTypeInput" value="daily">
+                    
+                    <div class="relative">
+                        <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
+                            <div class="w-3 h-3 bg-green-500 rounded-full pulse-animation"></div>
+                        </div>
+                        <input type="text" name="pickup" id="pickupInput" placeholder="Pickup location" 
+                               class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none" required>
+                    </div>
+                    
+                    <div class="relative">
+                        <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
+                            <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        </div>
+                        <input type="text" name="dropoff" id="dropoffInput" placeholder="Drop-off location" 
+                               class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none" required>
+                    </div>
+                    
+                    <div id="scheduleFields" class="grid grid-cols-2 gap-4 hidden">
+                        <input type="date" name="date" class="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none">
+                        <input type="time" name="time" class="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none">
+                    </div>
+                    
+                    <button type="submit" class="w-full py-3 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                        <i class="fas fa-search mr-2"></i>Find Your Ride
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- SECTION 2: CHOOSE SERVICE (Hidden initially, shown via AJAX) -->
+        <div id="chooseServiceSection" class="section-transition section-hidden">
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-6">
+                    <i class="fas fa-list text-teal-600 mr-2"></i>Choose Your Service
+                </h2>
+                <div id="serviceOptions" class="space-y-3">
+                    <!-- Services will be loaded here via AJAX -->
+                </div>
+                <button id="confirmBookingBtn" class="w-full mt-4 py-3 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all hidden">
+                    <i class="fas fa-check mr-2"></i>Confirm Booking
+                </button>
+            </div>
+        </div>
+
+        <!-- SECTION 3: WAITING FOR DRIVER -->
+        <div id="waitingForDriverSection" class="section-transition {% if current_state != 'waiting_for_driver' %}section-hidden{% else %}section-visible{% endif %}">
+            <div class="info-card rounded-2xl shadow-lg p-8 text-center">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-blue-100 flex items-center justify-center">
+                    <i class="fas fa-search text-blue-600 text-3xl animate-spin"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Searching for a Driver...</h2>
+                <p class="text-gray-600 mb-4" id="waitingDetails">We're looking for a driver for your ride.</p>
+                <div class="flex items-center justify-center space-x-2 mb-4">
+                    <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-teal-500"></div>
+                    <p class="text-sm text-gray-500">Waiting for a driver to accept...</p>
+                </div>
+                <p class="text-sm text-gray-400" id="waitingFare"></p>
+            </div>
+        </div>
+
+        <!-- SECTION 4: RIDE CONFIRMED -->
+        <div id="rideConfirmedSection" class="section-transition {% if current_state != 'confirmed' %}section-hidden{% else %}section-visible{% endif %}">
+            <div class="info-card rounded-2xl shadow-lg p-8">
+                <div class="text-center mb-6">
+                    <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-600 text-3xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-2">Ride Confirmed!</h2>
+                    <p class="text-gray-600">Your driver is on the way</p>
+                </div>
+                
+                <div id="confirmedDriverInfo" class="bg-white rounded-xl p-6 mb-4">
+                    <!-- Driver info will be populated here -->
+                </div>
+                
+                <div class="bg-gray-50 rounded-xl p-4 mb-4">
+                    <div class="flex items-center mb-2">
+                        <i class="fas fa-map-marker-alt text-green-500 mr-2"></i>
+                        <span class="text-sm text-gray-600">Pickup:</span>
+                        <span class="ml-2 font-medium" id="confirmedPickup"></span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-flag-checkered text-red-500 mr-2"></i>
+                        <span class="text-sm text-gray-600">Dropoff:</span>
+                        <span class="ml-2 font-medium" id="confirmedDropoff"></span>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <p class="text-sm text-gray-500">ETA: <span id="confirmedETA">5-10 minutes</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 5: DRIVER ARRIVED -->
+        <div id="driverArrivedSection" class="section-transition {% if current_state != 'driver_arrived' %}section-hidden{% else %}section-visible{% endif %}">
+            <div class="info-card rounded-2xl shadow-lg p-8 text-center">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center">
+                    <i class="fas fa-map-marker-alt text-emerald-600 text-3xl"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-gradient mb-2">Driver Has Arrived</h2>
+                <p class="text-gray-600 mb-6">Your driver has arrived at the pickup location.</p>
+                
+                <div id="arrivedDriverInfo" class="bg-white rounded-xl p-6 mb-4">
+                    <!-- Driver info will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 6: RIDE STARTED -->
+        <div id="rideStartedSection" class="section-transition {% if current_state != 'ride_started' %}section-hidden{% else %}section-visible{% endif %}">
+            <div class="info-card rounded-2xl shadow-lg p-8">
+                <div class="text-center mb-6">
+                    <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+                        <i class="fas fa-car text-green-600 text-3xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gradient mb-2">🚖 Ride Started</h2>
+                    <div class="inline-flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
+                        <div class="w-2 h-2 bg-green-500 rounded-full mr-2 pulse-animation"></div>
+                        Ride in Progress
+                    </div>
+                </div>
+                
+                <div id="startedRideInfo" class="space-y-4">
+                    <!-- Ride info will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 7: RIDE COMPLETED -->
+        <div id="rideCompletedSection" class="section-transition section-hidden">
+            <div class="info-card rounded-2xl shadow-lg p-8 text-center">
+                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
+                    <i class="fas fa-check text-green-600 text-4xl"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-gradient mb-2">Ride Completed</h2>
+                <p class="text-gray-600 mb-6">Your ride has been completed successfully.</p>
+                
+                <div class="bg-white rounded-xl p-6 mb-6">
+                    <p class="text-sm text-gray-500 mb-2">Total Fare</p>
+                    <p class="text-3xl font-bold text-gray-900" id="completedFare">₹0</p>
+                </div>
+                
+                <div class="space-y-3">
+                    <a href="#" id="rateDriverBtn" class="block w-full bg-gradient-to-r from-teal-500 to-teal-600 text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition">
+                        <i class="fas fa-star mr-2"></i>Rate Your Driver
+                    </a>
+                    <button onclick="resetToBooking()" class="block w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-medium hover:bg-gray-200 transition">
+                        <i class="fas fa-home mr-2"></i>Book Another Ride
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // State management
+        let currentRideState = '{{ current_state }}';
+        let activeBookingId = {% if active_booking %}{{ active_booking.booking_id }}{% else %}null{% endif %};
+        let activeRideRequestId = {% if active_ride_request %}{{ active_ride_request.id }}{% else %}null{% endif %};
+        let pollInterval = null;
+
+        // Show specific section
+        function showSection(sectionId) {
+            document.querySelectorAll('[id$="Section"]').forEach(section => {
+                section.classList.remove('section-visible');
+                section.classList.add('section-hidden');
+            });
+            
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.remove('section-hidden');
+                targetSection.classList.add('section-visible');
+                targetSection.classList.add('fade-in');
+            }
+        }
+
+        // Initialize based on current state
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching for booking form
+            document.querySelectorAll('.booking-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.booking-tab').forEach(t => {
+                        t.classList.remove('bg-gradient-to-r', 'from-teal-500', 'to-teal-600', 'text-white');
+                        t.classList.add('text-gray-600', 'hover:bg-gray-200');
+                    });
+                    this.classList.add('bg-gradient-to-r', 'from-teal-500', 'to-teal-600', 'text-white');
+                    this.classList.remove('text-gray-600', 'hover:bg-gray-200');
+                    document.getElementById('rideTypeInput').value = this.dataset.tab;
+                });
+            });
+
+            // Booking form submission
+            document.getElementById('bookingForm')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const pickup = document.getElementById('pickupInput').value;
+                const dropoff = document.getElementById('dropoffInput').value;
+                const rideType = document.getElementById('rideTypeInput').value;
+                
+                // Redirect to choose_ride with parameters
+                window.location.href = `{% url 'choose_ride' %}?pickup=${encodeURIComponent(pickup)}&dropoff=${encodeURIComponent(dropoff)}&ride_type=${rideType}`;
+            });
+
+            // Start polling if there's an active ride
+            if (currentRideState === 'waiting_for_driver' && activeRideRequestId) {
+                startPollingRideRequest();
+            } else if (activeBookingId) {
+                startPollingBooking();
+            }
+
+            // Load initial data if needed
+            if (currentRideState === 'confirmed' && activeBookingId) {
+                loadBookingDetails(activeBookingId);
+            } else if (currentRideState === 'driver_arrived' && activeBookingId) {
+                loadBookingDetails(activeBookingId);
+            } else if (currentRideState === 'ride_started' && activeBookingId) {
+                loadBookingDetails(activeBookingId);
+            }
+        });
+
+        // Poll ride request status
+        function startPollingRideRequest() {
+            if (!activeRideRequestId) return;
+            
+            pollInterval = setInterval(() => {
+                fetch(`{% url 'check_ride_status' 0 %}`.replace('0', activeRideRequestId))
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.status === 'Confirmed' && data.booking_id) {
+                            activeBookingId = data.booking_id;
+                            currentRideState = 'confirmed';
+                            clearInterval(pollInterval);
+                            loadBookingDetails(data.booking_id);
+                            showSection('rideConfirmedSection');
+                        } else if (['Rejected', 'Expired', 'Cancelled'].includes(data.status)) {
+                            clearInterval(pollInterval);
+                            alert(`Your ride request was ${data.status.toLowerCase()}.`);
+                            resetToBooking();
+                        }
+                    })
+                    .catch(err => console.error('Polling error:', err));
+            }, 3000);
+        }
+
+        // Poll booking status
+        function startPollingBooking() {
+            if (!activeBookingId) return;
+            
+            pollInterval = setInterval(() => {
+                const url = "{% url 'booking_status_api' 0 %}".replace('0', activeBookingId);
+                fetch(url)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.status === 'Arrived' && currentRideState !== 'driver_arrived') {
+                            currentRideState = 'driver_arrived';
+                            loadBookingDetails(activeBookingId);
+                            showSection('driverArrivedSection');
+                        } else if (data.status === 'Ongoing' && currentRideState !== 'ride_started') {
+                            currentRideState = 'ride_started';
+                            loadBookingDetails(activeBookingId);
+                            showSection('rideStartedSection');
+                        } else if (data.status === 'Completed') {
+                            clearInterval(pollInterval);
+                            currentRideState = 'completed';
+                            loadBookingDetails(activeBookingId);
+                            showSection('rideCompletedSection');
+                        }
+                    })
+                    .catch(err => console.error('Polling error:', err));
+            }, 3000);
+        }
+
+        // Load booking details via AJAX
+        function loadBookingDetails(bookingId) {
+            const url = "{% url 'booking_details_api' 0 %}".replace('0', bookingId);
+            fetch(url)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        updateSectionData(data);
+                    }
+                })
+                .catch(err => console.error('Error loading booking:', err));
+        }
+
+        // Update section data
+        function updateSectionData(data) {
+            // Update confirmed section
+            if (data.driver) {
+                const driverInitials = (data.driver.first_name[0] || '') + (data.driver.last_name[0] || '');
+                const confirmedDriverInfo = document.getElementById('confirmedDriverInfo');
+                const arrivedDriverInfo = document.getElementById('arrivedDriverInfo');
+                
+                const driverHtml = `
+                    <div class="flex items-center">
+                        <div class="w-16 h-16 rounded-full bg-gradient-to-r from-teal-500 to-teal-600 flex items-center justify-center text-white font-bold text-xl mr-4">
+                            ${driverInitials}
+                        </div>
+                        <div>
+                            <p class="font-semibold text-lg">${data.driver.first_name} ${data.driver.last_name}</p>
+                            <p class="text-sm text-gray-600">${data.driver.vehicle_type} • ${data.driver.vehicle_number}</p>
+                            <p class="text-xs text-gray-500 mt-1"><i class="fas fa-phone mr-1"></i>${data.driver.phone}</p>
+                        </div>
+                    </div>
+                `;
+                
+                if (confirmedDriverInfo) confirmedDriverInfo.innerHTML = driverHtml;
+                if (arrivedDriverInfo) arrivedDriverInfo.innerHTML = driverHtml;
+            }
+            
+            if (data.pickup) {
+                const pickupEl = document.getElementById('confirmedPickup');
+                if (pickupEl) pickupEl.textContent = data.pickup;
+            }
+            if (data.dropoff) {
+                const dropoffEl = document.getElementById('confirmedDropoff');
+                if (dropoffEl) dropoffEl.textContent = data.dropoff;
+            }
+            
+            // Update ride started section
+            const startedRideInfo = document.getElementById('startedRideInfo');
+            if (startedRideInfo && data.pickup && data.dropoff) {
+                startedRideInfo.innerHTML = `
+                    <div class="bg-gray-50 rounded-xl p-4 mb-4">
+                        <div class="flex items-center mb-2">
+                            <i class="fas fa-map-marker-alt text-green-500 mr-2"></i>
+                            <span class="text-sm text-gray-600">Pickup:</span>
+                            <span class="ml-2 font-medium">${data.pickup}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-flag-checkered text-red-500 mr-2"></i>
+                            <span class="text-sm text-gray-600">Dropoff:</span>
+                            <span class="ml-2 font-medium">${data.dropoff}</span>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl p-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm text-gray-500">Service Type</p>
+                                <p class="font-semibold">${data.service_type}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Fare</p>
+                                <p class="text-xl font-bold text-teal-600">₹${data.fare}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Update completed section
+            if (data.fare) {
+                const fareEl = document.getElementById('completedFare');
+                if (fareEl) fareEl.textContent = `₹${data.fare}`;
+            }
+        }
+
+        // Reset to booking
+        function resetToBooking() {
+            currentRideState = 'booking';
+            activeBookingId = null;
+            activeRideRequestId = null;
+            if (pollInterval) clearInterval(pollInterval);
+            showSection('bookingSection');
+            window.location.reload();
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (pollInterval) clearInterval(pollInterval);
+        });
+    </script>
+</body>
+</html>
+

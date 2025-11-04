@@ -2064,28 +2064,196 @@ body {
             credentials: 'same-origin',
             mode: 'same-origin'
         })
-        .then(response => {
-            if (response.ok || response.redirected) {
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
                 console.log('Driver arrived notification sent');
-                showToast('Passenger notified: Driver has arrived!', 'success');
+                showToast(data.message || 'Passenger notified: Driver has arrived!', 'success');
                 updateStatusCard('Driver Arrived', 'Waiting for passenger');
-                if (btn) {
-                    btn.innerHTML = '<i class="fas fa-check"></i><span>Arrived</span>';
-                    setTimeout(() => {
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="fas fa-map-marker-alt"></i><span>Driver Arrived</span>';
-                    }, 2000);
+                
+                // Replace "Driver Arrived" button with "Start Ride" button
+                const container = document.getElementById('driver-arrived-button-container');
+                if (container) {
+                    container.innerHTML = `
+                        <button id="start-ride-btn" class="driver-arrived-btn" style="background: linear-gradient(135deg, #9333ea, #a855f7);">
+                            <i class="fas fa-play"></i>
+                            <span>Start Ride</span>
+                        </button>
+                    `;
+                    
+                    // Add event listener to the new Start Ride button
+                    const startRideBtn = document.getElementById('start-ride-btn');
+                    if (startRideBtn) {
+                        startRideBtn.addEventListener('click', handleStartRide);
+                    }
                 }
             } else {
-                throw new Error(`Failed to send arrival notification: ${response.status}`);
+                throw new Error(data.error || 'Failed to send arrival notification');
             }
         })
         .catch(error => {
             console.error('Error sending arrival notification:', error);
-            showToast('Failed to send arrival notification', 'error');
+            showToast(error.message || 'Failed to send arrival notification', 'error');
             if (btn) {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-map-marker-alt"></i><span>Driver Arrived</span>';
+            }
+        });
+    }
+
+    // Handle Start Ride button click
+    async function handleStartRide() {
+        if (!currentBookingId) {
+            showToast('No active booking found. Please refresh the page.', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('start-ride-btn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Starting...</span>';
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrfToken = getCookie('csrftoken') || '{{ csrf_token }}';
+        const startRideUrl = "{% url 'driver:start_ride' 0 %}".replace('0', currentBookingId);
+
+        fetch(startRideUrl, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `csrfmiddlewaretoken=${encodeURIComponent(csrfToken)}`,
+            credentials: 'same-origin',
+            mode: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Ride started');
+                showToast(data.message || 'Ride started! Passenger has been notified.', 'success');
+                updateStatusCard('Ride in Progress', 'Trip is ongoing');
+                
+                // Replace "Start Ride" button with "End Ride" button
+                const container = document.getElementById('driver-arrived-button-container');
+                if (container) {
+                    container.innerHTML = `
+                        <button id="end-ride-btn" class="driver-arrived-btn" style="background: linear-gradient(135deg, #dc2626, #ef4444);">
+                            <i class="fas fa-stop"></i>
+                            <span>End Ride</span>
+                        </button>
+                    `;
+                    
+                    // Add event listener to the new End Ride button
+                    const endRideBtn = document.getElementById('end-ride-btn');
+                    if (endRideBtn) {
+                        endRideBtn.addEventListener('click', handleEndRide);
+                    }
+                }
+            } else {
+                throw new Error(data.error || 'Failed to start ride');
+            }
+        })
+        .catch(error => {
+            console.error('Error starting ride:', error);
+            showToast(error.message || 'Failed to start ride', 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-play"></i><span>Start Ride</span>';
+            }
+        });
+    }
+
+    // Handle End Ride button click
+    async function handleEndRide() {
+        if (!currentBookingId) {
+            showToast('No active booking found. Please refresh the page.', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('end-ride-btn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Ending...</span>';
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrfToken = getCookie('csrftoken') || '{{ csrf_token }}';
+        const endRideUrl = "{% url 'driver:end_ride' 0 %}".replace('0', currentBookingId);
+
+        fetch(endRideUrl, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `csrfmiddlewaretoken=${encodeURIComponent(csrfToken)}`,
+            credentials: 'same-origin',
+            mode: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Ride ended');
+                showToast(data.message || 'Ride completed! Payment recorded.', 'success');
+                updateStatusCard('Ride Completed', 'Trip finished successfully');
+                
+                // Replace "End Ride" button with completed indicator
+                const container = document.getElementById('driver-arrived-button-container');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="driver-arrived-btn" style="background: linear-gradient(135deg, #10b981, #059669); cursor: default;">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Ride Completed</span>
+                        </div>
+                    `;
+                }
+                
+                // Optionally redirect to earnings page after a delay
+                setTimeout(() => {
+                    window.location.href = "{% url 'driver:driver_earnings' %}";
+                }, 2000);
+            } else {
+                throw new Error(data.error || 'Failed to end ride');
+            }
+        })
+        .catch(error => {
+            console.error('Error ending ride:', error);
+            showToast(error.message || 'Failed to end ride', 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-stop"></i><span>End Ride</span>';
             }
         });
     }

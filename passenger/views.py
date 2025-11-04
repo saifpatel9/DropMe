@@ -25,8 +25,56 @@ from .forms import EmergencyContactForm
 from django.core.cache import cache
 from django.db.models import Q
 
+@login_required
 def passenger_dashboard(request):
-    return render(request, 'passenger/dashboard.html') 
+    """
+    Unified passenger dashboard that handles all ride states in a single page.
+    """
+    # Check if user has an active ride
+    active_booking = None
+    active_ride_request = None
+    current_state = 'booking'  # Default state
+    
+    # Check for active booking (Confirmed, Arrived, or Ongoing)
+    active_booking = Booking.objects.filter(
+        user=request.user,
+        status__in=['Confirmed', 'Arrived', 'Ongoing']
+    ).order_by('-booking_id').first()
+    
+    if active_booking:
+        if active_booking.status == 'Confirmed':
+            current_state = 'confirmed'
+        elif active_booking.status == 'Arrived':
+            current_state = 'driver_arrived'
+        elif active_booking.status == 'Ongoing':
+            current_state = 'ride_started'
+    
+    # Check for pending ride request (waiting for driver)
+    if not active_booking:
+        active_ride_request = RideRequest.objects.filter(
+            user=request.user,
+            status='Requested'
+        ).order_by('-id').first()
+        
+        if active_ride_request:
+            # Check if it has a booking
+            if hasattr(active_ride_request, 'booking') and active_ride_request.booking:
+                active_booking = active_ride_request.booking
+                current_state = 'confirmed'
+            else:
+                current_state = 'waiting_for_driver'
+    
+    # Get rental packages for the booking form
+    rental_packages = RentalPackage.objects.all()
+    
+    context = {
+        'active_booking': active_booking,
+        'active_ride_request': active_ride_request,
+        'current_state': current_state,
+        'rental_packages': rental_packages,
+    }
+    
+    return render(request, 'passenger/dashboard.html', context) 
 
 def homepage_cab_view(request):
     rental_packages = RentalPackage.objects.all()
@@ -1085,6 +1133,43 @@ def booking_status_api(request, booking_id):
         return JsonResponse({"status": booking.status, "arrived": bool(arrived)})
     except Booking.DoesNotExist:
         return JsonResponse({"status": "not_found"})
+
+@login_required
+def booking_details_api(request, booking_id):
+    """
+    API endpoint to fetch booking details for the unified dashboard.
+    """
+    try:
+        booking = Booking.objects.select_related('driver', 'service_type', 'user').get(
+            booking_id=booking_id,
+            user=request.user
+        )
+        
+        driver_data = None
+        if booking.driver:
+            driver_data = {
+                'first_name': booking.driver.first_name or '',
+                'last_name': booking.driver.last_name or '',
+                'vehicle_type': booking.driver.vehicle_type or '',
+                'vehicle_number': booking.driver.vehicle_number or '',
+                'phone': getattr(booking.driver, 'phone', 'N/A'),
+            }
+        
+        return JsonResponse({
+            'success': True,
+            'booking_id': booking.booking_id,
+            'status': booking.status,
+            'pickup': booking.pickup_location,
+            'dropoff': booking.dropoff_location,
+            'fare': str(booking.fare),
+            'service_type': booking.service_type.name if booking.service_type else '',
+            'driver': driver_data,
+            'scheduled_time': booking.scheduled_time.isoformat() if booking.scheduled_time else None,
+        })
+    except Booking.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Booking not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 def driver_arrived_view(request, booking_id):
     booking = get_object_or_404(Booking, booking_id=booking_id, user=request.user)

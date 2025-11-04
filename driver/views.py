@@ -271,18 +271,14 @@ def driver_rides_view(request):
     except Driver.DoesNotExist:
         return redirect('unified_login')
 
-    all_rides = Booking.objects.filter(driver=driver)
+    # Only show completed rides
+    completed_rides = Booking.objects.filter(
+        driver=driver,
+        status='Completed'
+    ).order_by('-scheduled_time')
 
-    # Present groups in the desired order with the new Arrived state at the top
     context = {
-        'ride_groups': [
-            ('Confirmed', all_rides.filter(status='Confirmed')),
-            ('Arrived', all_rides.filter(status='Arrived')),
-            ('Ongoing', all_rides.filter(status='Ongoing')),
-            ('Completed', all_rides.filter(status='Completed')),
-            ('Scheduled', all_rides.filter(status='Scheduled')),
-            ('Cancelled', all_rides.filter(status='Cancelled')),
-        ]
+        'completed_rides': completed_rides,
     }
     return render(request, 'driver/driver_rides.html', context)
 
@@ -296,10 +292,14 @@ def arrived_ride_view(request, booking_id):
     """
     driver_id = request.session.get('driver_id')
     if not driver_id:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Not authenticated'}, status=401)
         return redirect('unified_login')
     try:
         driver = Driver.objects.get(driver_id=driver_id)
     except Driver.DoesNotExist:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Driver not found'}, status=404)
         return redirect('unified_login')
 
     booking = get_object_or_404(Booking, booking_id=booking_id, driver=driver)
@@ -310,9 +310,23 @@ def arrived_ride_view(request, booking_id):
         booking.save(update_fields=['status'])
         cache_key = f"booking:{booking.booking_id}:arrived"
         cache.set(cache_key, True, timeout=60 * 60)  # 1 hour TTL
+        
+        # Return JSON for AJAX requests
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': f'Arrival notified for booking #{booking.booking_id}.',
+                'booking_id': booking.booking_id,
+                'status': 'Arrived'
+            })
+        
         messages.success(request, f"Arrival notified for booking #{booking.booking_id}.")
     else:
-        messages.error(request, "Arrival can only be marked before the ride starts.")
+        error_msg = "Arrival can only be marked before the ride starts."
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': error_msg}, status=400)
+        messages.error(request, error_msg)
+    
     return redirect('driver_rides')
 
 @driver_login_required
@@ -446,10 +460,14 @@ def api_ride_request_details(request, ride_request_id):
 def end_ride_view(request, booking_id):
     driver_id = request.session.get('driver_id')
     if not driver_id:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Not authenticated'}, status=401)
         return redirect('unified_login')
     try:
         driver = Driver.objects.get(driver_id=driver_id)
     except Driver.DoesNotExist:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Driver not found'}, status=404)
         return redirect('unified_login')
 
     booking = get_object_or_404(Booking, booking_id=booking_id, driver=driver)
@@ -468,9 +486,21 @@ def end_ride_view(request, booking_id):
             status='completed' if payment_mode.lower() == 'cash' else 'completed'
         )
 
+        # Return JSON for AJAX requests
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': f'Ride #{booking.booking_id} marked as completed and payment recorded.',
+                'booking_id': booking.booking_id,
+                'status': 'Completed'
+            })
+        
         messages.success(request, f"Ride #{booking.booking_id} marked as completed and payment recorded.")
     else:
-        messages.error(request, "You can only complete an ongoing ride.")
+        error_msg = "You can only complete an ongoing ride."
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': error_msg}, status=400)
+        messages.error(request, error_msg)
     return redirect('driver_rides')
 
 
@@ -479,11 +509,15 @@ def end_ride_view(request, booking_id):
 def start_ride_view(request, booking_id):
     driver_id = request.session.get('driver_id')
     if not driver_id:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Not authenticated'}, status=401)
         return redirect('unified_login')
     
     try:
         driver = Driver.objects.get(driver_id=driver_id)
     except Driver.DoesNotExist:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Driver not found'}, status=404)
         return redirect('unified_login')
 
     booking = get_object_or_404(Booking, booking_id=booking_id, driver=driver)
@@ -491,9 +525,22 @@ def start_ride_view(request, booking_id):
     if booking.status in ['Confirmed', 'Arrived']:
         booking.status = 'Ongoing'
         booking.save()
+        
+        # Return JSON for AJAX requests
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'message': f'Ride #{booking.booking_id} started.',
+                'booking_id': booking.booking_id,
+                'status': 'Ongoing'
+            })
+        
         messages.success(request, f"Ride #{booking.booking_id} started.")
     else:
-        messages.error(request, "Only confirmed rides can be started.")
+        error_msg = "Only confirmed or arrived rides can be started."
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': error_msg}, status=400)
+        messages.error(request, error_msg)
 
     return redirect('driver_rides')
 
