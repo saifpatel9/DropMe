@@ -692,6 +692,79 @@ body {
     }
 }
 
+/* Driver Arrived Button */
+.driver-arrived-container {
+    position: fixed;
+    bottom: 140px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    animation: slideUpFade 0.3s ease-out;
+}
+
+.driver-arrived-btn {
+    background: linear-gradient(135deg, #00A59E, #0EB9D3);
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 50px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(0, 165, 158, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    min-width: 200px;
+    justify-content: center;
+}
+
+.driver-arrived-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0, 165, 158, 0.5);
+    background: linear-gradient(135deg, #0EB9D3, #00A59E);
+}
+
+.driver-arrived-btn:active {
+    transform: translateY(0);
+}
+
+.driver-arrived-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.driver-arrived-btn i {
+    font-size: 18px;
+}
+
+@keyframes slideUpFade {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .driver-arrived-container {
+        bottom: 120px;
+        left: 20px;
+        right: 20px;
+        transform: none;
+    }
+    
+    .driver-arrived-btn {
+        width: 100%;
+        min-width: auto;
+    }
+}
+
 /* Menu Button */
 .menu-button {
     background: rgba(255, 255, 255, 0.2);
@@ -766,13 +839,13 @@ body {
                     {% if driver.availability %}Online{% else %}Offline{% endif %}
                 </p>
     </div>
-  </div>
+    </div>
         
         <div class="navbar-right">
             <div class="wallet-info">
                 <i class="fas fa-wallet wallet-icon"></i>
                 <span>₹{{ total_earnings|floatformat:0 }}</span>
-            </div>
+    </div>
             
       <div class="toggle-container">
         <input type="checkbox" id="availability-toggle" class="toggle-input" {% if driver.availability %}checked{% endif %}>
@@ -780,7 +853,7 @@ body {
           <span class="toggle-track"></span>
           <span class="toggle-thumb"></span>
         </label>
-            </div>
+      </div>
             
             <button class="menu-button" onclick="toggleSidebar()">
                 <i class="fas fa-bars"></i>
@@ -798,8 +871,8 @@ body {
         <div id="location-error" class="location-error" style="display: none;">
             <i class="fas fa-exclamation-triangle"></i>
             <div>Location access denied. Please enable location services.</div>
-      </div>
     </div>
+  </div>
 
     <!-- Bottom Status Card -->
     <div class="bottom-status-card" id="status-card">
@@ -811,7 +884,7 @@ body {
                 <span class="status-indicator"></span>
                 You're Offline
             {% endif %}
-  </div>
+    </div>
         <div class="status-submessage" id="status-submessage">
             {% if driver.availability %}
                 Waiting for Ride Requests
@@ -819,6 +892,14 @@ body {
                 Turn on availability to start receiving rides
             {% endif %}
     </div>
+    </div>
+
+    <!-- Driver Arrived Button (shown after ride acceptance) -->
+    <div id="driver-arrived-button-container" class="driver-arrived-container" style="display: none;">
+        <button id="driver-arrived-btn" class="driver-arrived-btn">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>Driver Arrived</span>
+        </button>
     </div>
 
     <!-- Quick Actions -->
@@ -871,44 +952,44 @@ body {
 <div id="ride-request-overlay" class="ride-request-overlay" onclick="if(event.target === this) closeRideRequest()">
     <div class="ride-request-popup" onclick="event.stopPropagation()">
         <div class="popup-header">
-            <div class="countdown-timer" id="countdown-timer">30</div>
+            <div class="countdown-timer" id="countdown-timer">120</div>
             <p class="countdown-text">New Ride Request</p>
-        </div>
+    </div>
 
         <div class="passenger-info-section">
             <div class="passenger-avatar-popup">
                 <i class="fas fa-user"></i>
-            </div>
+    </div>
             <div class="passenger-details-popup">
                 <h3 class="passenger-name-popup" id="popup-passenger-name">John Doe</h3>
                 <div class="passenger-rating-popup">
                     <i class="fas fa-star"></i>
                     <span id="popup-passenger-rating">4.8</span>
-                </div>
     </div>
     </div>
+  </div>
 
         <div class="trip-details-section">
             <div class="location-item-popup pickup">
                 <div class="location-icon-popup">
                     <i class="fas fa-map-marker-alt"></i>
-    </div>
+        </div>
                 <div class="location-info-popup">
                     <p class="location-label-popup">Pickup</p>
                     <p class="location-address-popup" id="popup-pickup">123 Main Street, City</p>
+      </div>
     </div>
-  </div>
 
             <div class="location-item-popup dropoff">
                 <div class="location-icon-popup">
                     <i class="fas fa-flag-checkered"></i>
-                </div>
+          </div>
                 <div class="location-info-popup">
                     <p class="location-label-popup">Dropoff</p>
                     <p class="location-address-popup" id="popup-dropoff">456 Park Avenue, City</p>
+          </div>
         </div>
       </div>
-    </div>
 
         <div class="fare-section-popup">
             <div class="fare-item-popup">
@@ -918,8 +999,8 @@ body {
             <div class="fare-item-popup">
                 <span class="fare-label-popup">Service Type</span>
                 <span class="fare-label-popup" id="popup-service-type">Standard</span>
-          </div>
-        </div>
+    </div>
+  </div>
 
         <div class="timeout-message" id="timeout-message">
             <i class="fas fa-clock"></i>
@@ -1028,7 +1109,7 @@ body {
     // Ride Request Notification
     let notificationSound = null;
     let countdownInterval = null;
-    let countdownTime = 30; // 30 seconds
+    let countdownTime = 120; // 120 seconds (2 minutes)
     let currentRideRequest = null;
     let processedRequestIds = new Set(); // Track which requests we've already shown
     
@@ -1036,6 +1117,9 @@ body {
     let passengerMarker = null;
     let routePolyline = null;
     let routeInfoCard = null;
+    
+    // Active booking tracking
+    let currentBookingId = null;
 
     // Initialize Map
     function initMap() {
@@ -1141,6 +1225,102 @@ body {
         );
     }
 
+    // Geocode an address to get coordinates
+    async function geocodeAddress(address) {
+        if (!address) {
+            throw new Error('No address provided');
+        }
+        
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`;
+        console.log('Geocoding address:', address);
+        
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    'Accept': 'application/json',
+                    'User-Agent': 'DropMeDriverApp/1.0'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Geocoding failed: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (!Array.isArray(data) || data.length === 0) {
+                throw new Error('No results found for address');
+            }
+            
+            const lat = parseFloat(data[0].lat);
+            const lng = parseFloat(data[0].lon);
+            
+            if (isNaN(lat) || isNaN(lng)) {
+                throw new Error('Invalid coordinates from geocoding');
+            }
+            
+            console.log('Geocoded address:', address, '->', [lat, lng]);
+            return { lat, lng, display_name: data[0].display_name };
+        } catch (error) {
+            console.error('Geocoding error:', error);
+            throw error;
+        }
+    }
+
+    // Calculate distance between two coordinates (Haversine formula) - moved up for use in validation
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; // Earth's radius in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
+
+    // Validate coordinates are reasonable for India region (rough bounds)
+    function isValidIndiaCoordinate(lat, lng) {
+        // India approximate bounds: lat 6.5-37, lng 68-97
+        // But we'll be more lenient: lat 5-40, lng 65-100
+        const isValid = lat >= 5 && lat <= 40 && lng >= 65 && lng <= 100;
+        if (!isValid) {
+            console.warn('Coordinate outside India region:', { lat, lng });
+        }
+        return isValid;
+    }
+
+    // Validate coordinates are reasonable (not in ocean, valid ranges)
+    function areReasonableCoordinates(lat, lng) {
+        // Basic global bounds
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+            return false;
+        }
+        
+        // For now, check if they're in reasonable range for India
+        // If driver is in India, passenger should also be nearby
+        if (currentLat && currentLng) {
+            const driverLat = parseFloat(currentLat);
+            const driverLng = parseFloat(currentLng);
+            
+            // If driver is in India region, passenger should be within reasonable distance
+            if (isValidIndiaCoordinate(driverLat, driverLng)) {
+                // Passenger should also be in India or nearby
+                if (!isValidIndiaCoordinate(lat, lng)) {
+                    // Check if distance is reasonable (not thousands of km)
+                    const distance = calculateDistance(driverLat, driverLng, lat, lng);
+                    if (distance > 500) { // More than 500km is suspicious for local rides
+                        console.warn('Unusually large distance detected:', distance, 'km');
+                        return false;
+                    }
+                }
+            }
+        }
+        
+        return true;
+    }
+
     // Ride Request Notification Functions
     function createNotificationSound() {
         // Create a simple notification sound using Web Audio API
@@ -1191,7 +1371,7 @@ body {
         rideData.pickupLng = pickupLng;
         
         currentRideRequest = rideData;
-        countdownTime = 30; // Reset countdown to 30 seconds
+        countdownTime = 120; // Reset countdown to 120 seconds (2 minutes)
 
         // Update popup content
         document.getElementById('popup-passenger-name').textContent = rideData.passengerName || 'Passenger';
@@ -1282,79 +1462,107 @@ body {
         // Close popup immediately for better UX
         closeRideRequest();
 
-        // Draw route to passenger pickup location
-        if (pickupLat !== null && pickupLng !== null && !isNaN(pickupLat) && !isNaN(pickupLng) &&
-            driverLat !== null && driverLng !== null && !isNaN(driverLat) && !isNaN(driverLng)) {
-            // All coordinates are valid - draw route
-            drawRouteToPassenger(
-                [driverLat, driverLng],
-                [pickupLat, pickupLng],
-                rideData.pickup || 'Pickup Location'
-            );
-        } else {
-            // Missing or invalid coordinates - try to fetch fresh data
-            console.warn('Coordinates missing or invalid. Attempting to fetch fresh ride data...', {
-                pickupLat, pickupLng, driverLat, driverLng
-            });
+        // Function to get passenger coordinates with fallback to geocoding
+        async function getPassengerCoordinates() {
+            const pickupAddress = rideData.pickup;
             
-            // Fetch fresh ride request details
-            fetch("{% url 'driver:api_ride_request_details' 0 %}".replace('0', rideData.id))
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch ride details: ${response.status}`);
+            // First, try to use provided coordinates if they're valid
+            if (pickupLat !== null && pickupLng !== null && !isNaN(pickupLat) && !isNaN(pickupLng)) {
+                // Validate coordinates are reasonable
+                if (areReasonableCoordinates(pickupLat, pickupLng)) {
+                    console.log('Using provided coordinates:', [pickupLat, pickupLng]);
+                    return [pickupLat, pickupLng];
+                } else {
+                    console.warn('Provided coordinates seem invalid/unreasonable, geocoding address instead');
+                }
+            }
+            
+            // If coordinates are invalid or missing, geocode the pickup address
+            if (pickupAddress) {
+                try {
+                    console.log('Geocoding pickup address (coordinates invalid/missing):', pickupAddress);
+                    const geocoded = await geocodeAddress(pickupAddress);
+                    return [geocoded.lat, geocoded.lng];
+                } catch (error) {
+                    console.error('Geocoding failed:', error);
+                    // Fall back to provided coordinates even if they seem wrong
+                    if (pickupLat !== null && pickupLng !== null && !isNaN(pickupLat) && !isNaN(pickupLng)) {
+                        console.warn('Using provided coordinates as last resort (may be incorrect):', [pickupLat, pickupLng]);
+                        return [pickupLat, pickupLng];
                     }
-                    return response.json();
-                })
-                .then(freshRideData => {
-                    const freshPickupLat = freshRideData.pickupLat !== null && freshRideData.pickupLat !== undefined ? parseFloat(freshRideData.pickupLat) : null;
-                    const freshPickupLng = freshRideData.pickupLng !== null && freshRideData.pickupLng !== undefined ? parseFloat(freshRideData.pickupLng) : null;
-                    
-                    if (freshPickupLat !== null && freshPickupLng !== null && !isNaN(freshPickupLat) && !isNaN(freshPickupLng) &&
-                        driverLat !== null && driverLng !== null && !isNaN(driverLat) && !isNaN(driverLng)) {
-                        console.log('Using fresh coordinates:', { freshPickupLat, freshPickupLng });
-                        drawRouteToPassenger(
-                            [driverLat, driverLng],
-                            [freshPickupLat, freshPickupLng],
-                            freshRideData.pickup || rideData.pickup || 'Pickup Location'
-                        );
-                    } else {
-                        // Still no valid coordinates - use fallback
-                        console.warn('Still no valid coordinates after refresh, using fallback');
-                        const mockPickupLat = driverLat ? driverLat + 0.01 : 19.0860;
-                        const mockPickupLng = driverLng ? driverLng + 0.01 : 72.8877;
-                        drawRouteToPassenger(
-                            [driverLat || 19.0760, driverLng || 72.8777],
-                            [mockPickupLat, mockPickupLng],
-                            rideData.pickup || 'Pickup Location'
-                        );
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching fresh ride data:', error);
-                    // Fallback: use mock coordinates
-                    const mockPickupLat = driverLat ? driverLat + 0.01 : 19.0860;
-                    const mockPickupLng = driverLng ? driverLng + 0.01 : 72.8877;
-                    drawRouteToPassenger(
-                        [driverLat || 19.0760, driverLng || 72.8777],
-                        [mockPickupLat, mockPickupLng],
-                        rideData.pickup || 'Pickup Location'
-                    );
-                });
+                }
+            }
+            
+            // Last resort: use mock coordinates near driver
+            console.warn('No valid coordinates or address, using fallback');
+            return null;
         }
 
+        // Get passenger coordinates with geocoding fallback
+        getPassengerCoordinates().then(passengerCoords => {
+            if (!passengerCoords) {
+                // No valid coordinates available
+                console.error('Could not determine passenger pickup location');
+                showToast('Unable to determine pickup location. Please try again.', 'error');
+                return;
+            }
+
+            if (driverLat !== null && driverLng !== null && !isNaN(driverLat) && !isNaN(driverLng)) {
+                console.log('Final coordinates for route:', {
+                    driver: [driverLat, driverLng],
+                    passenger: passengerCoords,
+                    pickupAddress: rideData.pickup
+                });
+                
+                // Draw route with validated coordinates
+                drawRouteToPassenger(
+                    [driverLat, driverLng],
+                    passengerCoords,
+                    rideData.pickup || 'Pickup Location'
+                );
+            } else {
+                console.error('Driver coordinates not available');
+                showToast('Driver location not available. Please enable location services.', 'error');
+            }
+        }).catch(error => {
+            console.error('Error getting passenger coordinates:', error);
+            showToast('Error determining pickup location', 'error');
+        });
+
         // Send AJAX request to accept the ride (non-blocking)
+        // Use relative URL to avoid CORS issues
         const acceptUrl = "{% url 'driver:accept_ride' 0 %}".replace('0', rideData.id);
         console.log('Sending accept request to:', acceptUrl);
+        
+        // Get CSRF token from cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        const csrfToken = getCookie('csrftoken') || '{{ csrf_token }}';
         
         fetch(acceptUrl, {
             method: 'POST',
             headers: {
-                'X-CSRFToken': '{{ csrf_token }}',
+                'X-CSRFToken': csrfToken,
                 'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
             },
-            body: 'csrfmiddlewaretoken={{ csrf_token }}',
+            body: `csrfmiddlewaretoken=${encodeURIComponent(csrfToken)}`,
             redirect: 'manual', // Don't follow redirects automatically
-            credentials: 'same-origin' // Include cookies for authentication
+            credentials: 'same-origin', // Include cookies for authentication
+            mode: 'same-origin' // Explicitly set to same-origin to avoid CORS
         })
         .then(response => {
             console.log('Accept ride response:', {
@@ -1367,8 +1575,26 @@ body {
             
             // Handle success (200-299) or redirect (300-399)
             if (response.ok || (response.status >= 300 && response.status < 400)) {
-                console.log('Ride accepted successfully');
-                showToast('Ride accepted successfully!', 'success');
+                // Try to parse JSON response if available (AJAX request)
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    response.clone().json().then(data => {
+                        if (data.booking_id) {
+                            currentBookingId = data.booking_id;
+                            console.log('Booking ID received from accept response:', currentBookingId);
+                        }
+                        console.log('Ride accepted successfully');
+                        showToast('Ride accepted successfully!', 'success');
+                        showDriverArrivedButton();
+                        updateStatusCard('Ride Accepted', 'Heading to pickup location');
+                    }).catch(() => {
+                        // If JSON parsing fails, treat as redirect
+                        handleAcceptSuccess(rideData.id);
+                    });
+                } else {
+                    // Redirect response - fetch booking_id separately
+                    handleAcceptSuccess(rideData.id);
+                }
             } else if (response.status === 0) {
                 // Status 0 usually means network error or CORS issue
                 console.warn('Network error or CORS issue (status 0). Ride may still be accepted on server.');
@@ -1469,7 +1695,7 @@ body {
         }
 
         currentRideRequest = null;
-        countdownTime = 30;
+        countdownTime = 120;
     }
 
     // Draw route from driver to passenger pickup location
@@ -1508,6 +1734,16 @@ body {
                 passenger: [passengerLat, passengerLng]
             });
             return;
+        }
+
+        // Additional validation: check if coordinates are reasonable
+        if (!areReasonableCoordinates(passengerLat, passengerLng)) {
+            console.error('Passenger coordinates seem invalid/unreasonable:', {
+                passenger: [passengerLat, passengerLng],
+                pickupAddress: pickupAddress
+            });
+            // Don't return - still try to draw, but log the warning
+            console.warn('Drawing route with potentially invalid coordinates');
         }
 
         console.log('Drawing route:', {
@@ -1565,18 +1801,6 @@ body {
         });
     }
 
-    // Calculate distance between two coordinates (Haversine formula)
-    function calculateDistance(lat1, lon1, lat2, lon2) {
-        const R = 6371; // Earth's radius in km
-        const dLat = (lat2 - lat1) * Math.PI / 180;
-        const dLon = (lon2 - lon1) * Math.PI / 180;
-        const a = 
-            Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        return R * c;
-    }
 
     // Show route info card on map
     function showRouteInfo(distance, eta) {
@@ -1595,7 +1819,7 @@ body {
                         <div style="font-size: 24px; font-weight: 700; color: #00A59E; margin-bottom: 15px;">${distance.toFixed(1)} km</div>
                         <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">Estimated Time</div>
                         <div style="font-size: 20px; font-weight: 600; color: #1f2937;">${eta} min</div>
-                    </div>
+      </div>
                 `;
                 return div;
             }
@@ -1711,6 +1935,161 @@ body {
             });
     }
 
+    // Show Driver Arrived button
+    function showDriverArrivedButton() {
+        const container = document.getElementById('driver-arrived-button-container');
+        if (container) {
+            container.style.display = 'block';
+        }
+    }
+
+    // Hide Driver Arrived button
+    function hideDriverArrivedButton() {
+        const container = document.getElementById('driver-arrived-button-container');
+        if (container) {
+            container.style.display = 'none';
+        }
+    }
+
+    // Update status card
+    function updateStatusCard(statusText, subMessage) {
+        const statusMessage = document.getElementById('status-message');
+        const statusSubmessage = document.getElementById('status-submessage');
+        if (statusMessage) {
+            statusMessage.innerHTML = `<span class="status-indicator"></span>${statusText}`;
+        }
+        if (statusSubmessage) {
+            statusSubmessage.textContent = subMessage;
+        }
+    }
+
+    // Handle successful ride acceptance
+    function handleAcceptSuccess(rideRequestId) {
+        console.log('Ride accepted successfully (redirect)');
+        showToast('Ride accepted successfully!', 'success');
+        showDriverArrivedButton();
+        updateStatusCard('Ride Accepted', 'Heading to pickup location');
+        
+        // Try to get booking_id by fetching the ride request details
+        // The booking should be linked to the ride_request after acceptance
+        setTimeout(() => {
+            getBookingIdFromRideRequest(rideRequestId);
+        }, 1000);
+    }
+
+    // Get booking ID from ride request ID
+    async function getBookingIdFromRideRequest(rideRequestId) {
+        try {
+            const response = await fetch("{% url 'driver:api_ride_request_details' 0 %}".replace('0', rideRequestId));
+            if (response.ok) {
+                const data = await response.json();
+                if (data.booking_id) {
+                    currentBookingId = data.booking_id;
+                    console.log('Booking ID retrieved:', currentBookingId);
+                } else {
+                    console.warn('Booking ID not yet available in ride request');
+                }
+            }
+        } catch (error) {
+            console.error('Error getting booking ID:', error);
+        }
+    }
+
+    // Handle Driver Arrived button click
+    async function handleDriverArrived() {
+        // If we don't have booking_id, try to get it from the current ride request
+        if (!currentBookingId && currentRideRequest) {
+            try {
+                const response = await fetch("{% url 'driver:api_ride_request_details' 0 %}".replace('0', currentRideRequest.id));
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.booking_id) {
+                        currentBookingId = data.booking_id;
+                        console.log('Booking ID retrieved:', currentBookingId);
+                        // Continue with the arrival notification
+                    } else {
+                        showToast('Booking not found. Please refresh the page.', 'error');
+                        return;
+                    }
+                } else {
+                    showToast('Unable to get booking information', 'error');
+                    return;
+                }
+            } catch (error) {
+                console.error('Error fetching booking ID:', error);
+                showToast('Unable to get booking information', 'error');
+                return;
+            }
+        }
+        
+        if (!currentBookingId) {
+            console.error('No active booking ID');
+            showToast('No active booking found. Please refresh the page.', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('driver-arrived-btn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Notifying...</span>';
+        }
+
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrfToken = getCookie('csrftoken') || '{{ csrf_token }}';
+        const arrivedUrl = "{% url 'driver:arrived_ride' 0 %}".replace('0', currentBookingId);
+
+        fetch(arrivedUrl, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `csrfmiddlewaretoken=${encodeURIComponent(csrfToken)}`,
+            credentials: 'same-origin',
+            mode: 'same-origin'
+        })
+        .then(response => {
+            if (response.ok || response.redirected) {
+                console.log('Driver arrived notification sent');
+                showToast('Passenger notified: Driver has arrived!', 'success');
+                updateStatusCard('Driver Arrived', 'Waiting for passenger');
+                if (btn) {
+                    btn.innerHTML = '<i class="fas fa-check"></i><span>Arrived</span>';
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-map-marker-alt"></i><span>Driver Arrived</span>';
+                    }, 2000);
+                }
+            } else {
+                throw new Error(`Failed to send arrival notification: ${response.status}`);
+            }
+        })
+        .catch(error => {
+            console.error('Error sending arrival notification:', error);
+            showToast('Failed to send arrival notification', 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-map-marker-alt"></i><span>Driver Arrived</span>';
+            }
+        });
+    }
+
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', () => {
         initMap();
@@ -1719,6 +2098,12 @@ body {
         const availabilityToggle = document.getElementById('availability-toggle');
         if (availabilityToggle && availabilityToggle.checked) {
             setInterval(checkForRideRequests, 5000);
+        }
+
+        // Add event listener for Driver Arrived button
+        const driverArrivedBtn = document.getElementById('driver-arrived-btn');
+        if (driverArrivedBtn) {
+            driverArrivedBtn.addEventListener('click', handleDriverArrived);
         }
 
         // For testing: Add a button to simulate ride request (remove in production)

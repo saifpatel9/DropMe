@@ -165,6 +165,16 @@ def accept_ride(request, ride_request_id):
         logger.debug(f"RideRequest {ride_request_id} accepted, Booking {booking.booking_id} created.")
 
     messages.success(request, f"Ride #{ride_request.id} accepted successfully.")
+    
+    # If AJAX request, return JSON with booking_id
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        from django.http import JsonResponse
+        return JsonResponse({
+            'success': True,
+            'booking_id': booking.booking_id,
+            'message': f"Ride #{ride_request.id} accepted successfully."
+        })
+    
     return redirect('driver_homepage')
 
     
@@ -380,10 +390,10 @@ def api_ride_request_details(request, ride_request_id):
     
     try:
         driver = Driver.objects.get(driver_id=driver_id)
+        # Allow fetching both Requested and Accepted ride requests
         ride_request = RideRequest.objects.get(
             id=ride_request_id,
-            driver=driver,
-            status='Requested'
+            driver=driver
         )
         
         # Get passenger rating
@@ -404,7 +414,7 @@ def api_ride_request_details(request, ride_request_id):
         dropoff_lat = float(ride_request.drop_latitude) if ride_request.drop_latitude is not None else None
         dropoff_lng = float(ride_request.drop_longitude) if ride_request.drop_longitude is not None else None
         
-        return JsonResponse({
+        response_data = {
             'id': ride_request.id,
             'passengerName': passenger_name,
             'rating': round(float(passenger_rating), 1) if passenger_rating else 4.5,
@@ -418,7 +428,13 @@ def api_ride_request_details(request, ride_request_id):
             'serviceType': ride_request.service_type.name if ride_request.service_type else 'Standard',
             'paymentMode': ride_request.payment_mode or 'Cash',
             'createdAt': ride_request.created_at.isoformat()
-        })
+        }
+        
+        # Include booking_id if the ride has been accepted
+        if hasattr(ride_request, 'booking') and ride_request.booking:
+            response_data['booking_id'] = ride_request.booking.booking_id
+        
+        return JsonResponse(response_data)
     except RideRequest.DoesNotExist:
         return JsonResponse({'error': 'Ride request not found'}, status=404)
     except Exception as e:
