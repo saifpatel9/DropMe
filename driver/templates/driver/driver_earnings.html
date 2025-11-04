@@ -1,80 +1,382 @@
 {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earnings - Hospione</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts and Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
 
-{% block extra_css %}
-<!-- Tailwind CSS -->
-<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root {
+    --primary-teal: #00A59E;
+    --primary-cyan: #0EB9D3;
+}
 
-<!-- Fonts and Icons -->
-<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
-{% endblock %}
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Open Sans', sans-serif;
+    background: #f3f4f6;
+}
 
-{% block content %}
-<div class="container mx-auto px-4 py-6">
-  <div class="mb-6">
-    <a href="{% url 'driver_homepage' %}" class="inline-block px-4 py-2 bg-[#1BBC9B] text-white font-medium rounded hover:bg-teal-600 transition">
-      ← Back to Homepage
-    </a>
-  </div>
-  <h2 class="text-2xl font-semibold text-gray-800 mb-6">Earnings Summary</h2>
+.earnings-container {
+    min-height: 100vh;
+    padding-bottom: 20px;
+}
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <!-- Today's Earnings -->
-    <div class="bg-white shadow rounded-lg p-6 border border-gray-200">
-      <h3 class="text-lg font-medium text-gray-700 mb-2">Today</h3>
-      <!-- Corrected variable name from today_earnings to earnings_today -->
-      <p class="text-3xl font-semibold text-green-600">₹{{ earnings_today }}</p>
+/* Header */
+.earnings-header {
+    background: linear-gradient(135deg, #00A59E, #0EB9D3);
+    color: white;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.back-button {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.back-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.header-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* Earnings Cards */
+.earnings-cards {
+    max-width: 1200px;
+    margin: -30px auto 30px;
+    padding: 0 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    position: relative;
+    z-index: 10;
+}
+
+.earnings-card {
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.earnings-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.card-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: white;
+}
+
+.card-icon.today {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.card-icon.month {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.card-icon.year {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.card-label {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.card-amount {
+    font-size: 32px;
+    font-weight: 700;
+    color: #1f2937;
+    margin-top: 5px;
+}
+
+.card-amount.today {
+    color: #10b981;
+}
+
+.card-amount.month {
+    color: #3b82f6;
+}
+
+.card-amount.year {
+    color: #8b5cf6;
+}
+
+/* Main Content */
+.main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 30px 0 20px;
+}
+
+/* Recent Rides Table */
+.rides-table-card {
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
+}
+
+.rides-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.rides-table thead {
+    background: #f9fafb;
+    border-radius: 10px;
+}
+
+.rides-table th {
+    padding: 15px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.rides-table td {
+    padding: 20px 15px;
+    border-bottom: 1px solid #f3f4f6;
+    font-size: 14px;
+    color: #1f2937;
+}
+
+.rides-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+.rides-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.ride-id {
+    font-weight: 600;
+    color: #00A59E;
+}
+
+.ride-location {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ride-fare {
+    font-weight: 700;
+    color: #00A59E;
+    font-size: 16px;
+}
+
+.ride-earning {
+    font-weight: 700;
+    color: #10b981;
+    font-size: 16px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6b7280;
+}
+
+.empty-state i {
+    font-size: 64px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+}
+
+.empty-state p {
+    font-size: 18px;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .earnings-header {
+        padding: 15px;
+    }
+
+    .header-title {
+        font-size: 20px;
+    }
+
+    .earnings-cards {
+        grid-template-columns: 1fr;
+        margin-top: -20px;
+    }
+
+    .card-amount {
+        font-size: 28px;
+    }
+
+    .rides-table {
+        font-size: 12px;
+    }
+
+    .rides-table th,
+    .rides-table td {
+        padding: 12px 8px;
+    }
+
+    .ride-location {
+        max-width: 150px;
+    }
+}
+</style>
+</head>
+<body>
+<div class="earnings-container">
+    <!-- Header -->
+    <div class="earnings-header">
+        <div class="header-content">
+            <a href="{% url 'driver_homepage' %}" class="back-button">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 class="header-title">My Earnings</h1>
+            <div style="width: 40px;"></div>
+        </div>
     </div>
 
-    <!-- This Month's Earnings -->
-    <div class="bg-white shadow rounded-lg p-6 border border-gray-200">
-      <h3 class="text-lg font-medium text-gray-700 mb-2">This Month</h3>
-      <!-- Corrected variable name from monthly_earnings to earnings_month -->
-      <p class="text-3xl font-semibold text-blue-600">₹{{ earnings_month }}</p>
+    <!-- Earnings Cards -->
+    <div class="earnings-cards">
+        <div class="earnings-card">
+            <div class="card-header">
+                <div>
+                    <div class="card-label">Today's Earnings</div>
+                    <div class="card-amount today">₹{{ earnings_today|floatformat:2 }}</div>
+                </div>
+                <div class="card-icon today">
+                    <i class="fas fa-sun"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="earnings-card">
+            <div class="card-header">
+                <div>
+                    <div class="card-label">This Month</div>
+                    <div class="card-amount month">₹{{ earnings_month|floatformat:2 }}</div>
+                </div>
+                <div class="card-icon month">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="earnings-card">
+            <div class="card-header">
+                <div>
+                    <div class="card-label">This Year</div>
+                    <div class="card-amount year">₹{{ earnings_year|floatformat:2 }}</div>
+                </div>
+                <div class="card-icon year">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- This Year's Earnings -->
-    <div class="bg-white shadow rounded-lg p-6 border border-gray-200">
-      <h3 class="text-lg font-medium text-gray-700 mb-2">This Year</h3>
-      <!-- Corrected variable name from yearly_earnings to earnings_year -->
-      <p class="text-3xl font-semibold text-purple-600">₹{{ earnings_year }}</p>
-    </div>
-  </div>
+    <!-- Main Content -->
+    <div class="main-content">
+        <h2 class="section-title">Recent Trip Earnings</h2>
 
-  <div class="mt-10">
-    <h3 class="text-xl font-semibold text-gray-800 mb-4">Ride Earnings Breakdown</h3>
-    <div class="overflow-x-auto bg-white rounded-lg shadow border border-gray-200">
-      <table class="min-w-full text-sm text-left text-gray-700">
-        <thead class="bg-gray-100 text-xs uppercase font-semibold text-gray-600">
-          <tr>
-            <th class="px-6 py-3">Ride ID</th>
-            <th class="px-6 py-3">Pickup</th>
-            <th class="px-6 py-3">Dropoff</th>
-            <th class="px-6 py-3">Date & Time</th>
-            <th class="px-6 py-3">Fare (₹)</th>
-            <th class="px-6 py-3">Driver Earning (₹)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for ride in ride_earnings %}
-          <tr class="border-b hover:bg-gray-50">
-            <td class="px-6 py-4">{{ ride.booking_id }}</td>
-            <td class="px-6 py-4">{{ ride.pickup_location }}</td>
-            <td class="px-6 py-4">{{ ride.dropoff_location }}</td>
-            <!-- Using a Django filter to format the datetime object from the view -->
-            <td class="px-6 py-4">{{ ride.scheduled_time|date:"Y-m-d" }} {{ ride.scheduled_time|time:"H:i" }}</td>
-            <td class="px-6 py-4">₹{{ ride.fare }}</td>
-            <td class="px-6 py-4">₹{{ ride.driver_earning }}</td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="5" class="px-6 py-4 text-center text-gray-500">No completed rides found.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+        <div class="rides-table-card">
+            {% if ride_earnings %}
+            <table class="rides-table">
+                <thead>
+                    <tr>
+                        <th>Ride ID</th>
+                        <th>Pickup</th>
+                        <th>Dropoff</th>
+                        <th>Date & Time</th>
+                        <th>Fare</th>
+                        <th>Your Earning</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ride in ride_earnings %}
+                    <tr>
+                        <td><span class="ride-id">#{{ ride.booking_id }}</span></td>
+                        <td><span class="ride-location">{{ ride.pickup_location }}</span></td>
+                        <td><span class="ride-location">{{ ride.dropoff_location }}</span></td>
+                        <td>{{ ride.scheduled_time|date:"M d, Y" }}<br>{{ ride.scheduled_time|time:"h:i A" }}</td>
+                        <td><span class="ride-fare">₹{{ ride.fare|floatformat:2 }}</span></td>
+                        <td><span class="ride-earning">₹{{ ride.driver_earning|floatformat:2 }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-wallet"></i>
+                <p>No completed rides yet</p>
+            </div>
+            {% endif %}
+        </div>
     </div>
-  </div>
 </div>
-{% endblock %}
+</body>
+</html>

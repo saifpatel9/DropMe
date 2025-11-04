@@ -1,0 +1,472 @@
+{% load static %}
+<!-- Ola-style Ride Request Popup Card -->
+<div id="ride-request-popup" class="ride-request-popup hidden">
+    <div class="popup-overlay" onclick="closeRideRequest()"></div>
+    <div class="popup-card">
+        <!-- Countdown Timer -->
+        <div class="countdown-header">
+            <div class="countdown-circle">
+                <span id="countdown-timer">30</span>
+            </div>
+            <p class="countdown-text">Accept this ride</p>
+        </div>
+
+        <!-- Passenger Info -->
+        <div class="passenger-header">
+            <div class="passenger-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="passenger-info">
+                <h3 class="passenger-name">{{ ride_request.user.first_name }} {{ ride_request.user.last_name }}</h3>
+                <div class="passenger-rating">
+                    {% if passenger_rating %}
+                        <i class="fas fa-star"></i>
+                        <span>{{ passenger_rating|floatformat:1 }}</span>
+                    {% else %}
+                        <span class="text-gray-400">New User</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Trip Details -->
+        <div class="trip-details">
+            <div class="location-item pickup">
+                <div class="location-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div class="location-info">
+                    <p class="location-label">Pickup</p>
+                    <p class="location-address">{{ ride_request.pickup_location }}</p>
+                </div>
+            </div>
+
+            <div class="location-divider">
+                <div class="divider-line"></div>
+                <div class="divider-dot"></div>
+                <div class="divider-dot"></div>
+                <div class="divider-dot"></div>
+            </div>
+
+            <div class="location-item dropoff">
+                <div class="location-icon">
+                    <i class="fas fa-flag-checkered"></i>
+                </div>
+                <div class="location-info">
+                    <p class="location-label">Dropoff</p>
+                    <p class="location-address">{{ ride_request.dropoff_location }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fare and Service Type -->
+        <div class="fare-section">
+            <div class="fare-item">
+                <span class="fare-label">Estimated Fare</span>
+                <span class="fare-amount">₹{{ ride_request.fare }}</span>
+            </div>
+            <div class="fare-item">
+                <span class="fare-label">Service Type</span>
+                <span class="fare-value">{{ ride_request.service_type.name }}</span>
+            </div>
+            {% if ride_request.payment_mode %}
+            <div class="fare-item">
+                <span class="fare-label">Payment</span>
+                <span class="fare-value">{{ ride_request.payment_mode }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <form method="POST" action="{% url 'driver:reject_ride' ride_request.id %}" class="reject-form">
+                {% csrf_token %}
+                <button type="submit" class="btn-reject">
+                    <i class="fas fa-times"></i>
+                    Reject
+                </button>
+            </form>
+            <form method="POST" action="{% url 'driver:accept_ride' ride_request.id %}" class="accept-form">
+                {% csrf_token %}
+                <button type="submit" class="btn-accept">
+                    <i class="fas fa-check"></i>
+                    Accept
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Ride Request Popup Styles */
+.ride-request-popup {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 2000;
+    pointer-events: none;
+}
+
+.ride-request-popup.hidden {
+    display: none;
+}
+
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    pointer-events: all;
+}
+
+.popup-card {
+    position: relative;
+    background: white;
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    padding: 25px;
+    max-height: 85vh;
+    overflow-y: auto;
+    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.15);
+    pointer-events: all;
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* Countdown Header */
+.countdown-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.countdown-circle {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00A59E, #0EB9D3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    box-shadow: 0 4px 15px rgba(0, 165, 158, 0.3);
+}
+
+.countdown-circle span {
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.countdown-text {
+    color: #1f2937;
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* Passenger Header */
+.passenger-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.passenger-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00A59E, #0EB9D3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+}
+
+.passenger-info {
+    flex: 1;
+}
+
+.passenger-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 5px 0;
+}
+
+.passenger-rating {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #f59e0b;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Trip Details */
+.trip-details {
+    padding: 20px 0;
+}
+
+.location-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.location-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.location-item.pickup .location-icon {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.location-item.dropoff .location-icon {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.location-icon i {
+    font-size: 18px;
+}
+
+.location-info {
+    flex: 1;
+}
+
+.location-label {
+    font-size: 12px;
+    color: #6b7280;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin: 0 0 5px 0;
+    letter-spacing: 0.5px;
+}
+
+.location-address {
+    font-size: 16px;
+    color: #1f2937;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.location-divider {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 10px 0 15px 20px;
+    gap: 4px;
+}
+
+.divider-line {
+    width: 2px;
+    height: 30px;
+    background: #d1d5db;
+}
+
+.divider-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #d1d5db;
+}
+
+/* Fare Section */
+.fare-section {
+    background: #f9fafb;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.fare-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.fare-item:last-child {
+    border-bottom: none;
+}
+
+.fare-label {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.fare-amount {
+    font-size: 24px;
+    font-weight: 700;
+    color: #00A59E;
+}
+
+.fare-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.action-buttons form {
+    flex: 1;
+}
+
+.btn-reject,
+.btn-accept {
+    width: 100%;
+    padding: 18px;
+    border: none;
+    border-radius: 15px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.btn-reject {
+    background: white;
+    color: #dc2626;
+    border: 2px solid #dc2626;
+}
+
+.btn-reject:hover {
+    background: #fee2e2;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.2);
+}
+
+.btn-accept {
+    background: linear-gradient(135deg, #00A59E, #0EB9D3);
+    color: white;
+}
+
+.btn-accept:hover {
+    background: linear-gradient(135deg, #0EB9D3, #00A59E);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 165, 158, 0.3);
+}
+
+.btn-reject:active,
+.btn-accept:active {
+    transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .popup-card {
+        padding: 20px;
+        max-height: 90vh;
+    }
+
+    .passenger-avatar {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+
+    .passenger-name {
+        font-size: 18px;
+    }
+
+    .fare-amount {
+        font-size: 20px;
+    }
+
+    .btn-reject,
+    .btn-accept {
+        padding: 16px;
+        font-size: 16px;
+    }
+}
+</style>
+
+<script>
+function showRideRequest() {
+    const popup = document.getElementById('ride-request-popup');
+    if (popup) {
+        popup.classList.remove('hidden');
+        startCountdown();
+    }
+}
+
+function closeRideRequest() {
+    const popup = document.getElementById('ride-request-popup');
+    if (popup) {
+        popup.classList.add('hidden');
+        stopCountdown();
+    }
+}
+
+let countdownInterval;
+function startCountdown() {
+    const timerElement = document.getElementById('countdown-timer');
+    if (!timerElement) return;
+    
+    let timeLeft = 30;
+    timerElement.textContent = timeLeft;
+    
+    countdownInterval = setInterval(() => {
+        timeLeft--;
+        timerElement.textContent = timeLeft;
+        
+        if (timeLeft <= 0) {
+            stopCountdown();
+            closeRideRequest();
+        }
+    }, 1000);
+}
+
+function stopCountdown() {
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+}
+
+// Auto-show popup if ride request exists
+document.addEventListener('DOMContentLoaded', function() {
+    const popup = document.getElementById('ride-request-popup');
+    if (popup && !popup.classList.contains('hidden')) {
+        showRideRequest();
+    }
+});
+</script>
+

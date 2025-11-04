@@ -1,185 +1,600 @@
 {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Hospione</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts and Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
 
-{% block extra_css %}
-<!-- Tailwind CSS -->
-<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root {
+    --primary-teal: #00A59E;
+    --primary-cyan: #0EB9D3;
+}
 
-<!-- Fonts and Icons -->
-<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
-{% endblock %}
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Open Sans', sans-serif;
+    background: #f3f4f6;
+}
 
-{% block content %}
-<div class="bg-gray-50 text-gray-800">
+.profile-container {
+    min-height: 100vh;
+    padding-bottom: 30px;
+}
 
-  <!-- Header -->
-  <header class="bg-white shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 bg-gradient-to-r from-teal-500 to-teal-600 rounded-lg flex items-center justify-center">
-          <i class="fas fa-car text-white text-lg"></i>
+/* Header */
+.profile-header {
+    background: linear-gradient(135deg, #00A59E, #0EB9D3);
+    color: white;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.back-button {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.back-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.header-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* Profile Card */
+.profile-card {
+    max-width: 1200px;
+    margin: -50px auto 30px;
+    padding: 30px;
+    background: white;
+    border-radius: 25px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 10;
+}
+
+.profile-header-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 30px;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00A59E, #0EB9D3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 48px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0, 165, 158, 0.3);
+    border: 5px solid white;
+}
+
+.profile-name {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 10px 0;
+}
+
+.profile-id {
+    font-size: 14px;
+    color: #6b7280;
+    margin-bottom: 15px;
+}
+
+.status-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.badge {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge.active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.badge.rating {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.edit-button {
+    margin-top: 20px;
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #00A59E, #0EB9D3);
+    color: white;
+    border: none;
+    border-radius: 15px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.edit-button:hover {
+    background: linear-gradient(135deg, #0EB9D3, #00A59E);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 165, 158, 0.3);
+}
+
+/* Info Sections */
+.info-section {
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 20px 0;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-title i {
+    color: #00A59E;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.info-label {
+    font-size: 12px;
+    color: #6b7280;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.info-value {
+    font-size: 16px;
+    color: #1f2937;
+    font-weight: 600;
+}
+
+.info-value.empty {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* Document Section */
+.document-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.document-item:last-child {
+    border-bottom: none;
+}
+
+.document-info {
+    flex: 1;
+}
+
+.document-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 5px 0;
+}
+
+.document-desc {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 0 0 8px 0;
+}
+
+.document-link {
+    font-size: 12px;
+    color: #00A59E;
+    text-decoration: none;
+}
+
+.document-link:hover {
+    text-decoration: underline;
+}
+
+.document-status {
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-right: 15px;
+}
+
+.document-status.verified {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.document-status.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.document-status.rejected {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.document-upload {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.upload-input {
+    display: none;
+}
+
+.upload-label {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #00A59E, #0EB9D3);
+    color: white;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.upload-label:hover {
+    background: linear-gradient(135deg, #0EB9D3, #00A59E);
+    transform: translateY(-2px);
+}
+
+/* Wallet Section */
+.wallet-section {
+    background: linear-gradient(135deg, #00A59E, #0EB9D3);
+    border-radius: 20px;
+    padding: 25px;
+    color: white;
+    margin-bottom: 20px;
+}
+
+.wallet-label {
+    font-size: 14px;
+    opacity: 0.9;
+    margin-bottom: 10px;
+}
+
+.wallet-amount {
+    font-size: 36px;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .profile-header {
+        padding: 15px;
+    }
+
+    .header-title {
+        font-size: 20px;
+    }
+
+    .profile-card {
+        margin: -30px 15px 20px;
+        padding: 20px;
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        font-size: 40px;
+    }
+
+    .profile-name {
+        font-size: 24px;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .document-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .document-upload {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+</style>
+</head>
+<body>
+<div class="profile-container">
+    <!-- Header -->
+    <div class="profile-header">
+        <div class="header-content">
+            <a href="{% url 'driver_homepage' %}" class="back-button">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 class="header-title">My Profile</h1>
+            <div style="width: 40px;"></div>
         </div>
-        <span class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-500 to-teal-600">Hospione</span>
-      </div>
-      <a href="{% url 'driver_homepage' %}" class="bg-teal-600 text-white px-5 py-2 rounded-lg hover:bg-teal-700">&larr; Back</a>
     </div>
-  </header>
-   
-  <!-- Main -->
-  <main class="max-w-6xl mx-auto px-4 py-10 space-y-10">
 
-    <!-- Profile Summary -->
-    <section class="bg-white shadow-md rounded-2xl p-6 flex flex-col md:flex-row items-center md:items-start md:space-x-8">
-      <img src="{% static 'driver/images/user.png' %}" class="w-28 h-28 rounded-full mb-4 md:mb-0" />
-      <div class="flex-1">
-        <h2 class="text-2xl font-bold">{{ driver.first_name }} {{ driver.last_name }}</h2>
-        <p class="text-sm text-gray-500">Driver ID: {{ driver.driver_id }} • Joined: {{ driver.created_at|date:"M Y" }}</p>
-        <div class="mt-3 space-x-2">
-          <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs">Active</span>
-          <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs">Rating: {{ avg_rating|default:"N/A" }} ★</span>
+    <!-- Profile Card -->
+    <div class="profile-card">
+        <div class="profile-header-section">
+            <div class="profile-avatar">
+                {{ driver.first_name|first }}{{ driver.last_name|first }}
+            </div>
+            <h2 class="profile-name">{{ driver.first_name }} {{ driver.last_name }}</h2>
+            <p class="profile-id">Driver ID: {{ driver.driver_id }}</p>
+            <div class="status-badges">
+                <span class="badge active">
+                    <i class="fas fa-check-circle"></i> Active
+                </span>
+                {% if driver.rating %}
+                <span class="badge rating">
+                    <i class="fas fa-star"></i> {{ driver.rating }} Rating
+                </span>
+                {% endif %}
+            </div>
+            <a href="{% url 'driver:driver_edit_profile' %}" class="edit-button">
+                <i class="fas fa-edit"></i> Edit Profile
+            </a>
         </div>
-      </div>
-      <a href="{% url 'driver:driver_edit_profile' %}">
-          <button class="bg-teal-500 text-white px-6 py-2 mt-6 md:mt-0 rounded-lg hover:bg-teal-600">Edit Profile
-          </button>
-      </a>
-    </section>
 
-    <!-- Personal Info -->
-    <section class="bg-white shadow-md rounded-2xl p-6">
-      <h3 class="text-xl font-semibold text-teal-700 mb-6 border-b pb-2">Personal Information</h3>
-      <div class="grid sm:grid-cols-2 gap-6 text-sm">
-        <div><strong>Phone:</strong> {{ driver.phone }}</div>
-        <div><strong>Email:</strong> {{ driver.email }}</div>
-        <div><strong>Address:</strong> {{ driver.address }}</div>
-        <div><strong>Experience:</strong> {{ driver.experience }} Years</div>
-      </div>
-    </section>
-
-    <!-- Vehicle Info -->
-    <section class="bg-white shadow-md rounded-2xl p-6">
-      <h3 class="text-xl font-semibold text-teal-700 mb-6 border-b pb-2">Vehicle Information</h3>
-      <div class="grid sm:grid-cols-2 gap-6 text-sm">
-        <div>
-          <strong>Vehicle:</strong>
-          {% if vehicle %}
-            {% firstof vehicle.manufacturer "N/A" %} {% firstof vehicle.model_name vehicle.model "N/A" %}
-          {% else %}
-            N/A
-          {% endif %}
+        <!-- Personal Information -->
+        <div class="info-section">
+            <h3 class="section-title">
+                <i class="fas fa-user"></i>
+                Personal Information
+            </h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Phone Number</span>
+                    <span class="info-value">{{ driver.phone|default:"—" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Email Address</span>
+                    <span class="info-value">{{ driver.email|default:"—" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Gender</span>
+                    <span class="info-value">{{ driver.gender|default:"—" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">City</span>
+                    <span class="info-value">{{ driver.city|default:"—" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">State</span>
+                    <span class="info-value">{{ driver.state|default:"—" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Address</span>
+                    <span class="info-value">{{ driver.full_address|default:"—" }}</span>
+                </div>
+            </div>
         </div>
-        <div><strong>Plate No:</strong> {{ driver.plate_number }}</div>
-        <div>
-          <strong>Color:</strong>
-          {% if vehicle %}
-            {% firstof vehicle.color vehicle.vehicle_color "N/A" %}
-          {% else %}
-            N/A
-          {% endif %}
+
+        <!-- Vehicle Information -->
+        <div class="info-section">
+            <h3 class="section-title">
+                <i class="fas fa-car"></i>
+                Vehicle Information
+            </h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Vehicle Type</span>
+                    <span class="info-value">{{ driver.vehicle_type|default:"—" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Plate Number</span>
+                    <span class="info-value">{{ driver.plate_number|default:"—" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Manufacturer</span>
+                    <span class="info-value">{{ driver.manufacturer|default:"—" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Color</span>
+                    <span class="info-value">{{ driver.color|default:"—" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Manufacturing Year</span>
+                    <span class="info-value">{{ driver.manufacturing_year|default:"—" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Seats</span>
+                    <span class="info-value">{{ driver.seat_arrangement|default:"—" }}</span>
+                </div>
+            </div>
         </div>
-        <div><strong>Insurance Validity:</strong> {{ driver.insurance_validity|date:"M Y" }}</div>
-      </div>
-    </section>
 
-    <!-- Document Uploads -->
-    <section class="bg-white shadow-md rounded-2xl p-6">
-      <h3 class="text-xl font-semibold text-teal-700 mb-6 border-b pb-2">Document Uploads</h3>
-      <div class="space-y-6 text-sm">
+        <!-- Payment Information -->
+        <div class="info-section">
+            <h3 class="section-title">
+                <i class="fas fa-credit-card"></i>
+                Payment Information
+            </h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">UPI ID</span>
+                    <span class="info-value">{{ driver.upi_id|default:"—" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Bank Name</span>
+                    <span class="info-value">{{ driver.bank_name|default:"—" }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Account Number</span>
+                    <span class="info-value">{{ driver.account_number|default:"—"|truncatechars:12 }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">IFSC Code</span>
+                    <span class="info-value">{{ driver.ifsc_code|default:"—" }}</span>
+                </div>
+            </div>
+        </div>
 
-        <!-- Vehicle RC -->
-<div class="flex justify-between items-center border-b pb-4">
-  <div>
-    <p class="font-medium">Vehicle RC</p>
-    <p class="text-gray-500">PDF or Image format (Max 5MB)</p>
-    {% if driver.vehicle_rc %}
-      <a href="{{ driver.vehicle_rc.url }}" target="_blank" class="text-xs text-blue-600 hover:underline">
-        Uploaded: {{ driver.vehicle_rc.name|cut:"driver_documents/vehicle_rcs" }}
-      </a>
-    {% else %}
-      <span class="text-xs text-gray-400">No file uploaded</span>
-    {% endif %}
-  </div>
-  <form method="post" enctype="multipart/form-data" class="flex items-center space-x-4">
-    {% csrf_token %}
-    <span class="text-xs px-3 py-1 rounded-full 
-      {% if driver.vehicle_rc_status == 'Verified' %}bg-green-100 text-green-700
-      {% elif driver.vehicle_rc_status == 'Rejected' %}bg-red-100 text-red-700
-      {% else %}bg-orange-100 text-orange-700{% endif %}">
-      {{ driver.vehicle_rc_status }}
-    </span>
-    <input type="file" name="vehicle_rc" class="text-sm text-gray-500 file:px-3 file:py-1 file:bg-teal-500 file:text-white file:rounded-md" onchange="this.form.submit()" />
-  </form>
-</div>
+        <!-- Document Uploads -->
+        <div class="info-section">
+            <h3 class="section-title">
+                <i class="fas fa-file-alt"></i>
+                Documents
+            </h3>
+            
+            <!-- Vehicle RC -->
+            <div class="document-item">
+                <div class="document-info">
+                    <p class="document-name">Vehicle RC</p>
+                    <p class="document-desc">Registration Certificate</p>
+                    {% if driver.vehicle_rc %}
+                        <a href="{{ driver.vehicle_rc.url }}" target="_blank" class="document-link">
+                            <i class="fas fa-eye"></i> View Document
+                        </a>
+                    {% else %}
+                        <span class="document-link" style="color: #9ca3af;">No document uploaded</span>
+                    {% endif %}
+                </div>
+                <div class="document-upload">
+                    <span class="document-status {% if driver.vehicle_rc_status == 'Verified' %}verified{% elif driver.vehicle_rc_status == 'Rejected' %}rejected{% else %}pending{% endif %}">
+                        {{ driver.vehicle_rc_status|default:"Pending" }}
+                    </span>
+                    <form method="post" enctype="multipart/form-data" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="file" name="vehicle_rc" id="vehicle_rc" class="upload-input" onchange="this.form.submit()" accept=".pdf,.jpg,.jpeg,.png">
+                        <label for="vehicle_rc" class="upload-label">
+                            <i class="fas fa-upload"></i> Upload
+                        </label>
+                    </form>
+                </div>
+            </div>
 
-<!-- Driving Licence -->
-<div class="flex justify-between items-center border-b pb-4">
-  <div>
-    <p class="font-medium">Driving Licence</p>
-    <p class="text-gray-500">JPEG, PNG or PDF</p>
-    {% if driver.license_document %}
-      <a href="{{ driver.license_document.url }}" target="_blank" class="text-xs text-blue-600 hover:underline">
-        Uploaded: {{ driver.license_document.name|cut:"driver_documents/licenses" }}
-      </a>
-    {% else %}
-      <span class="text-xs text-gray-400">No file uploaded</span>
-    {% endif %}
-  </div>
-  <form method="post" enctype="multipart/form-data" class="flex items-center space-x-4">
-    {% csrf_token %}
-    <span class="text-xs px-3 py-1 rounded-full 
-      {% if driver.license_document_status == 'Verified' %}bg-green-100 text-green-700
-      {% elif driver.license_document_status == 'Rejected' %}bg-red-100 text-red-700
-      {% else %}bg-orange-100 text-orange-700{% endif %}">
-      {{ driver.license_document_status }}
-    </span>
-    <input type="file" name="license_document" class="text-sm text-gray-500 file:px-3 file:py-1 file:bg-teal-500 file:text-white file:rounded-md" onchange="this.form.submit()" />
-  </form>
-</div>
+            <!-- Driving License -->
+            <div class="document-item">
+                <div class="document-info">
+                    <p class="document-name">Driving License</p>
+                    <p class="document-desc">Valid Driving License</p>
+                    {% if driver.license_document %}
+                        <a href="{{ driver.license_document.url }}" target="_blank" class="document-link">
+                            <i class="fas fa-eye"></i> View Document
+                        </a>
+                    {% else %}
+                        <span class="document-link" style="color: #9ca3af;">No document uploaded</span>
+                    {% endif %}
+                </div>
+                <div class="document-upload">
+                    <span class="document-status {% if driver.license_document_status == 'Verified' %}verified{% elif driver.license_document_status == 'Rejected' %}rejected{% else %}pending{% endif %}">
+                        {{ driver.license_document_status|default:"Pending" }}
+                    </span>
+                    <form method="post" enctype="multipart/form-data" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="file" name="license_document" id="license_document" class="upload-input" onchange="this.form.submit()" accept=".pdf,.jpg,.jpeg,.png">
+                        <label for="license_document" class="upload-label">
+                            <i class="fas fa-upload"></i> Upload
+                        </label>
+                    </form>
+                </div>
+            </div>
 
-<!-- ID Proof -->
-<div class="flex justify-between items-center">
-  <div>
-    <p class="font-medium">ID Proof</p>
-    <p class="text-gray-500">Aadhaar, PAN, Voter ID etc.</p>
-    {% if driver.id_proof %}
-      <a href="{{ driver.id_proof.url }}" target="_blank" class="text-xs text-blue-600 hover:underline">
-        Uploaded: {{ driver.id_proof.name|cut:"driver_documents/id_proofs" }}
-      </a>
-    {% else %}
-      <span class="text-xs text-gray-400">No file uploaded</span>
-    {% endif %}
-  </div>
-  <form method="post" enctype="multipart/form-data" class="flex items-center space-x-4">
-    {% csrf_token %}
-    <span class="text-xs px-3 py-1 rounded-full 
-      {% if driver.id_proof_status == 'Verified' %}bg-green-100 text-green-700
-      {% elif driver.id_proof_status == 'Rejected' %}bg-red-100 text-red-700
-      {% else %}bg-orange-100 text-orange-700{% endif %}">
-      {{ driver.id_proof_status }}
-    </span>
-    <input type="file" name="id_proof" class="text-sm text-gray-500 file:px-3 file:py-1 file:bg-teal-500 file:text-white file:rounded-md" onchange="this.form.submit()" />
-  </form>
-</div>
-
-      </div>
-    </section>
-
-  </main>
-
-  <!-- Footer -->
-  <footer class="bg-gray-900 text-white py-8 mt-16">
-  <div class="max-w-7xl mx-auto px-4 text-center">
-    <div class="flex justify-center items-center mb-4">
-      <div class="w-10 h-10 bg-gradient-to-r from-teal-500 to-teal-600 rounded-lg flex items-center justify-center">
-        <i class="fas fa-car text-white text-lg"></i>
-      </div>
-      <span class="ml-3 text-xl font-bold text-gradient">Hospione</span>
+            <!-- ID Proof -->
+            <div class="document-item">
+                <div class="document-info">
+                    <p class="document-name">ID Proof</p>
+                    <p class="document-desc">Aadhaar, PAN, or Voter ID</p>
+                    {% if driver.id_proof %}
+                        <a href="{{ driver.id_proof.url }}" target="_blank" class="document-link">
+                            <i class="fas fa-eye"></i> View Document
+                        </a>
+                    {% else %}
+                        <span class="document-link" style="color: #9ca3af;">No document uploaded</span>
+                    {% endif %}
+                </div>
+                <div class="document-upload">
+                    <span class="document-status {% if driver.id_proof_status == 'Verified' %}verified{% elif driver.id_proof_status == 'Rejected' %}rejected{% else %}pending{% endif %}">
+                        {{ driver.id_proof_status|default:"Pending" }}
+                    </span>
+                    <form method="post" enctype="multipart/form-data" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="file" name="id_proof" id="id_proof" class="upload-input" onchange="this.form.submit()" accept=".pdf,.jpg,.jpeg,.png">
+                        <label for="id_proof" class="upload-label">
+                            <i class="fas fa-upload"></i> Upload
+                        </label>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    <p class="text-sm text-gray-400">&copy; 2025 Hospione. All rights reserved.</p>
-  </div>
-</footer>
-
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </div>
-{% endblock %}
+</body>
+</html>
