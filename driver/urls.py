@@ -22,4 +22,5 @@ urlpatterns = [
     path('submit-rating/', views.submit_driver_rating, name='submit_driver_rating'),
     path('api/assigned-requests/', views.api_assigned_requests, name='api_assigned_requests'),
     path('api/ride-request/<int:ride_request_id>/', views.api_ride_request_details, name='api_ride_request_details'),
+    path('api/booking/<int:booking_id>/', views.api_booking_details, name='api_booking_details'),
 ]

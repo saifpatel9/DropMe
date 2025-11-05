@@ -1022,6 +1022,9 @@ body {
 
 <!-- Leaflet.js JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Leaflet Routing Machine -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
 
   <!-- Availability Toggle Script -->
   <script>
@@ -1115,11 +1118,21 @@ body {
     
     // Map route and markers
     let passengerMarker = null;
+    let dropoffMarker = null;
     let routePolyline = null;
+    let routeControl = null; // Leaflet Routing Machine control
     let routeInfoCard = null;
     
     // Active booking tracking
     let currentBookingId = null;
+    let isRideActive = false; // Track if ride is active (started)
+    let rideTrackingWatchId = null; // Separate watch ID for ride tracking
+    
+    // Stored ride coordinates (from ride acceptance)
+    let storedPickupCoords = null; // [lat, lng]
+    let storedDropoffCoords = null; // [lat, lng]
+    let storedPickupAddress = null;
+    let storedDropoffAddress = null;
 
     // Initialize Map
     function initMap() {
@@ -1200,7 +1213,10 @@ body {
                 if (driverMarker) {
                     // Smoothly move marker to new position
                     driverMarker.setLatLng([currentLat, currentLng]);
-                    map.setView([currentLat, currentLng], map.getZoom(), { animate: true, duration: 1 });
+                    // Only pan map if ride is not active (to avoid conflicting with route following)
+                    if (!isRideActive) {
+                        map.setView([currentLat, currentLng], map.getZoom(), { animate: true, duration: 1 });
+                    }
                 } else {
                     // Create marker if it doesn't exist
                     const driverIcon = L.divIcon({
@@ -1293,6 +1309,18 @@ body {
 
     // Validate coordinates are reasonable (not in ocean, valid ranges)
     function areReasonableCoordinates(lat, lng) {
+        // Check for null, undefined, or NaN
+        if (lat === null || lat === undefined || lng === null || lng === undefined || 
+            isNaN(lat) || isNaN(lng)) {
+            return false;
+        }
+        
+        // Reject obviously invalid coordinates like (0,0) which is in the ocean
+        if (lat === 0 && lng === 0) {
+            console.warn('Rejecting coordinates (0,0) - invalid location');
+            return false;
+        }
+        
         // Basic global bounds
         if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
             return false;
@@ -1369,6 +1397,32 @@ body {
         // Store validated coordinates back in rideData
         rideData.pickupLat = pickupLat;
         rideData.pickupLng = pickupLng;
+        
+        // Parse and validate dropoff coordinates
+        const dropoffLat = rideData.dropoffLat !== null && rideData.dropoffLat !== undefined ? parseFloat(rideData.dropoffLat) : null;
+        const dropoffLng = rideData.dropoffLng !== null && rideData.dropoffLng !== undefined ? parseFloat(rideData.dropoffLng) : null;
+        
+        // Store coordinates immediately when ride request is shown (as backup)
+        // Only store if coordinates are valid and reasonable
+        if (pickupLat !== null && pickupLng !== null && !isNaN(pickupLat) && !isNaN(pickupLng)) {
+            if (areReasonableCoordinates(pickupLat, pickupLng)) {
+                storedPickupCoords = [pickupLat, pickupLng];
+                storedPickupAddress = rideData.pickup || 'Pickup Location';
+                console.log('✅ Stored pickup coordinates from ride request:', storedPickupCoords);
+            } else {
+                console.warn('⚠️ Pickup coordinates from ride request failed validation:', [pickupLat, pickupLng]);
+            }
+        }
+        
+        if (dropoffLat !== null && dropoffLng !== null && !isNaN(dropoffLat) && !isNaN(dropoffLng)) {
+            if (areReasonableCoordinates(dropoffLat, dropoffLng)) {
+                storedDropoffCoords = [dropoffLat, dropoffLng];
+                storedDropoffAddress = rideData.dropoff || 'Dropoff Location';
+                console.log('✅ Stored dropoff coordinates from ride request:', storedDropoffCoords);
+            } else {
+                console.warn('⚠️ Dropoff coordinates from ride request failed validation:', [dropoffLat, dropoffLng]);
+            }
+        }
         
         currentRideRequest = rideData;
         countdownTime = 120; // Reset countdown to 120 seconds (2 minutes)
@@ -1448,8 +1502,36 @@ body {
         // Validate and parse coordinates
         const pickupLat = rideData.pickupLat !== null && rideData.pickupLat !== undefined ? parseFloat(rideData.pickupLat) : null;
         const pickupLng = rideData.pickupLng !== null && rideData.pickupLng !== undefined ? parseFloat(rideData.pickupLng) : null;
+        const dropoffLat = rideData.dropoffLat !== null && rideData.dropoffLat !== undefined ? parseFloat(rideData.dropoffLat) : null;
+        const dropoffLng = rideData.dropoffLng !== null && rideData.dropoffLng !== undefined ? parseFloat(rideData.dropoffLng) : null;
         const driverLat = currentLat ? parseFloat(currentLat) : null;
         const driverLng = currentLng ? parseFloat(currentLng) : null;
+        
+        // Store pickup and dropoff coordinates for later use (when "Start Ride" is clicked)
+        // Only store if coordinates are valid and reasonable
+        if (pickupLat !== null && pickupLng !== null && !isNaN(pickupLat) && !isNaN(pickupLng)) {
+            if (areReasonableCoordinates(pickupLat, pickupLng)) {
+                storedPickupCoords = [pickupLat, pickupLng];
+                storedPickupAddress = rideData.pickup || 'Pickup Location';
+                console.log('✅ Stored pickup coordinates:', storedPickupCoords, 'Address:', storedPickupAddress);
+            } else {
+                console.warn('⚠️ Pickup coordinates failed validation, not storing:', [pickupLat, pickupLng]);
+            }
+        } else {
+            console.warn('⚠️ Pickup coordinates are null/NaN, not storing:', { pickupLat, pickupLng });
+        }
+        
+        if (dropoffLat !== null && dropoffLng !== null && !isNaN(dropoffLat) && !isNaN(dropoffLng)) {
+            if (areReasonableCoordinates(dropoffLat, dropoffLng)) {
+                storedDropoffCoords = [dropoffLat, dropoffLng];
+                storedDropoffAddress = rideData.dropoff || 'Dropoff Location';
+                console.log('✅ Stored dropoff coordinates:', storedDropoffCoords, 'Address:', storedDropoffAddress);
+            } else {
+                console.warn('⚠️ Dropoff coordinates failed validation, not storing:', [dropoffLat, dropoffLng]);
+            }
+        } else {
+            console.warn('⚠️ Dropoff coordinates are null/NaN, not storing:', { dropoffLat, dropoffLng });
+        }
 
         // Log coordinate validation
         console.log('Accepting ride request:', {
@@ -1694,7 +1776,8 @@ body {
             countdownInterval = null;
         }
 
-        currentRideRequest = null;
+        // Don't clear currentRideRequest here - we need it for storing coordinates
+        // currentRideRequest = null;
         countdownTime = 120;
     }
 
@@ -1835,14 +1918,253 @@ body {
             map.removeLayer(passengerMarker);
             passengerMarker = null;
         }
+        if (dropoffMarker) {
+            map.removeLayer(dropoffMarker);
+            dropoffMarker = null;
+        }
         if (routePolyline) {
             map.removeLayer(routePolyline);
             routePolyline = null;
+        }
+        if (routeControl) {
+            map.removeControl(routeControl);
+            routeControl = null;
         }
         if (routeInfoCard) {
             map.removeControl(routeInfoCard);
             routeInfoCard = null;
         }
+    }
+
+    // Helper function to replace Start Ride button with End Ride button
+    function replaceStartRideButton() {
+        const container = document.getElementById('driver-arrived-button-container');
+        if (container) {
+            container.innerHTML = `
+                <button id="end-ride-btn" class="driver-arrived-btn" style="background: linear-gradient(135deg, #dc2626, #ef4444);">
+                    <i class="fas fa-stop"></i>
+                    <span>End Ride</span>
+                </button>
+            `;
+            
+            // Add event listener to the new End Ride button
+            const endRideBtn = document.getElementById('end-ride-btn');
+            if (endRideBtn) {
+                endRideBtn.addEventListener('click', handleEndRide);
+            }
+        }
+    }
+
+    // Draw route from pickup to dropoff using Leaflet Routing Machine
+    function drawRideRoute(pickupCoords, dropoffCoords, pickupAddress, dropoffAddress) {
+        if (!map) {
+            console.error('Map not initialized');
+            return;
+        }
+
+        // Validate coordinates (should already be validated, but double-check)
+        if (!pickupCoords || !dropoffCoords || 
+            !Array.isArray(pickupCoords) || !Array.isArray(dropoffCoords) ||
+            pickupCoords.length !== 2 || dropoffCoords.length !== 2) {
+            console.error('Invalid coordinates for route drawing:', { pickupCoords, dropoffCoords });
+            return;
+        }
+
+        const pickupLat = parseFloat(pickupCoords[0]);
+        const pickupLng = parseFloat(pickupCoords[1]);
+        const dropoffLat = parseFloat(dropoffCoords[0]);
+        const dropoffLng = parseFloat(dropoffCoords[1]);
+
+        if (isNaN(pickupLat) || isNaN(pickupLng) || isNaN(dropoffLat) || isNaN(dropoffLng)) {
+            console.error('Invalid coordinate values:', { pickupCoords, dropoffCoords });
+            return;
+        }
+
+        // Final validation - ensure coordinates are reasonable
+        if (!areReasonableCoordinates(pickupLat, pickupLng) || 
+            !areReasonableCoordinates(dropoffLat, dropoffLng)) {
+            console.error('Coordinates out of reasonable bounds:', {
+                pickup: [pickupLat, pickupLng],
+                dropoff: [dropoffLat, dropoffLng]
+            });
+            return;
+        }
+
+        console.log('Drawing ride route with validated coordinates:', {
+            pickup: [pickupLat, pickupLng],
+            dropoff: [dropoffLat, dropoffLng]
+        });
+
+        // Clear existing route
+        clearRoute();
+
+        // Create pickup marker (green)
+        const pickupIcon = L.divIcon({
+            className: 'passenger-icon-div',
+            html: '<div style="background: #10b981; width: 40px; height: 40px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 4px solid white; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center;"><i class="fas fa-map-marker-alt" style="transform: rotate(45deg); color: white; font-size: 18px;"></i></div>',
+            iconSize: [40, 40],
+            iconAnchor: [20, 40]
+        });
+        passengerMarker = L.marker([pickupLat, pickupLng], { icon: pickupIcon }).addTo(map);
+        passengerMarker.bindPopup(`<b>Pickup Location</b><br>${pickupAddress || 'Pickup'}`).openPopup();
+
+        // Create dropoff marker (red)
+        const dropoffIcon = L.divIcon({
+            className: 'passenger-icon-div',
+            html: '<div style="background: #dc2626; width: 40px; height: 40px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 4px solid white; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4); display: flex; align-items: center; justify-content: center;"><i class="fas fa-flag-checkered" style="transform: rotate(45deg); color: white; font-size: 18px;"></i></div>',
+            iconSize: [40, 40],
+            iconAnchor: [20, 40]
+        });
+        dropoffMarker = L.marker([dropoffLat, dropoffLng], { icon: dropoffIcon }).addTo(map);
+        dropoffMarker.bindPopup(`<b>Dropoff Location</b><br>${dropoffAddress || 'Dropoff'}`);
+
+        // Create route using Leaflet Routing Machine with direct coordinates
+        const pickupLatLng = L.latLng(pickupLat, pickupLng);
+        const dropoffLatLng = L.latLng(dropoffLat, dropoffLng);
+
+        // Calculate distance and ETA using Haversine formula (fallback if routing fails)
+        const distance = calculateDistance(pickupLat, pickupLng, dropoffLat, dropoffLng);
+        const estimatedETA = Math.ceil(distance / 0.5); // Assuming average speed of 30 km/h (0.5 km/min)
+
+        try {
+            routeControl = L.Routing.control({
+                waypoints: [pickupLatLng, dropoffLatLng],
+                router: L.Routing.osrmv1({
+                    serviceUrl: 'https://router.project-osrm.org/route/v1'
+                }),
+                addWaypoints: false,
+                draggableWaypoints: false,
+                fitSelectedRoutes: true,
+                show: false, // Hide the default control panel
+                lineOptions: {
+                    styles: [
+                        { color: '#00A59E', opacity: 0.9, weight: 6 },
+                        { color: '#0EB9D3', opacity: 0.7, weight: 2 }
+                    ]
+                },
+                createMarker: function() { return null; } // Don't create default markers
+            }).addTo(map);
+
+            // Listen for route found event to update UI
+            routeControl.on('routesfound', function(e) {
+                const routes = e.routes;
+                if (routes && routes.length > 0) {
+                    const route = routes[0];
+                    const routeDistance = (route.summary.totalDistance / 1000).toFixed(1); // Convert to km
+                    const routeDuration = Math.ceil(route.summary.totalTime / 60); // Convert to minutes
+
+                    // Update or show route info card with actual route data
+                    showRideRouteInfo(parseFloat(routeDistance), routeDuration);
+                }
+            });
+
+            // Handle routing errors gracefully - use fallback distance/ETA
+            routeControl.on('routingerror', function(e) {
+                console.warn('Routing API error, using fallback distance/ETA:', e);
+                showRideRouteInfo(distance, estimatedETA);
+            });
+        } catch (error) {
+            console.error('Error creating route control, using fallback:', error);
+            // If routing fails, draw a simple straight line and use calculated distance
+            routePolyline = L.polyline([[pickupLat, pickupLng], [dropoffLat, dropoffLng]], {
+                color: '#00A59E',
+                weight: 5,
+                opacity: 0.7,
+                dashArray: '10, 10'
+            }).addTo(map);
+            showRideRouteInfo(distance, estimatedETA);
+        }
+
+        // Fit map to show all markers (pickup, dropoff, and driver if available)
+        const markers = [passengerMarker, dropoffMarker];
+        if (driverMarker) {
+            markers.push(driverMarker);
+        }
+        const group = new L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.2), {
+            animate: true,
+            duration: 1.0
+        });
+    }
+
+    // Show ride route info card
+    function showRideRouteInfo(distance, duration) {
+        // Remove existing info card if any
+        if (routeInfoCard) {
+            map.removeControl(routeInfoCard);
+        }
+
+        // Create custom control
+        const RouteInfoControl = L.Control.extend({
+            onAdd: function(map) {
+                const div = L.DomUtil.create('div', 'route-info-card');
+                div.innerHTML = `
+                    <div style="background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-width: 200px;">
+                        <div style="font-size: 12px; color: #6b7280; margin-bottom: 5px; text-transform: uppercase; font-weight: 600;">Route Distance</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #00A59E; margin-bottom: 15px;">${distance} km</div>
+                        <div style="font-size: 12px; color: #6b7280; margin-bottom: 5px; text-transform: uppercase; font-weight: 600;">Estimated Time</div>
+                        <div style="font-size: 20px; font-weight: 600; color: #1f2937;">${duration} min</div>
+                    </div>
+                `;
+                return div;
+            }
+        });
+
+        routeInfoCard = new RouteInfoControl({ position: 'topright' });
+        routeInfoCard.addTo(map);
+    }
+
+    // Start enhanced location tracking during active ride
+    function startRideTracking() {
+        if (!navigator.geolocation || isRideActive) {
+            return;
+        }
+
+        isRideActive = true;
+
+        const options = {
+            enableHighAccuracy: true,
+            timeout: 3000,
+            maximumAge: 0
+        };
+
+        // Start a separate watch for ride tracking with smooth following
+        rideTrackingWatchId = navigator.geolocation.watchPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+
+                currentLat = lat;
+                currentLng = lng;
+
+                // Update driver marker position
+                if (driverMarker) {
+                    driverMarker.setLatLng([lat, lng]);
+                }
+
+                // Smoothly pan map to follow driver
+                if (map) {
+                    map.setView([lat, lng], map.getZoom(), {
+                        animate: true,
+                        duration: 0.5,
+                        easeLinearity: 0.25
+                    });
+                }
+            },
+            (error) => {
+                console.error('Ride tracking error:', error);
+            },
+            options
+        );
+    }
+
+    // Stop enhanced ride tracking
+    function stopRideTracking() {
+        if (rideTrackingWatchId !== null) {
+            navigator.geolocation.clearWatch(rideTrackingWatchId);
+            rideTrackingWatchId = null;
+        }
+        isRideActive = false;
     }
 
     // Simulate ride request (for testing - remove in production)
@@ -2146,26 +2468,243 @@ body {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                console.log('Ride started');
-                showToast(data.message || 'Ride started! Passenger has been notified.', 'success');
+                console.log('Ride started - API response:', data);
+                showToast(data.message || 'Ride started! Route displayed on map.', 'success');
                 updateStatusCard('Ride in Progress', 'Trip is ongoing');
                 
-                // Replace "Start Ride" button with "End Ride" button
-                const container = document.getElementById('driver-arrived-button-container');
-                if (container) {
-                    container.innerHTML = `
-                        <button id="end-ride-btn" class="driver-arrived-btn" style="background: linear-gradient(135deg, #dc2626, #ef4444);">
-                            <i class="fas fa-stop"></i>
-                            <span>End Ride</span>
-                        </button>
-                    `;
+                // Function to get coordinates with multiple fallbacks
+                async function getRideCoordinates() {
+                    let pickupCoords = null;
+                    let dropoffCoords = null;
+                    let pickupAddress = 'Pickup Location';
+                    let dropoffAddress = 'Dropoff Location';
                     
-                    // Add event listener to the new End Ride button
-                    const endRideBtn = document.getElementById('end-ride-btn');
-                    if (endRideBtn) {
-                        endRideBtn.addEventListener('click', handleEndRide);
+                    // Log current stored coordinates
+                    console.log('Checking stored coordinates:', {
+                        storedPickupCoords: storedPickupCoords,
+                        storedDropoffCoords: storedDropoffCoords,
+                        storedPickupAddress: storedPickupAddress,
+                        storedDropoffAddress: storedDropoffAddress
+                    });
+                    
+                    // Step 1: Try stored coordinates (from ride acceptance)
+                    if (storedPickupCoords && storedDropoffCoords && 
+                        Array.isArray(storedPickupCoords) && Array.isArray(storedDropoffCoords) &&
+                        storedPickupCoords.length === 2 && storedDropoffCoords.length === 2) {
+                        
+                        const storedPickupLat = parseFloat(storedPickupCoords[0]);
+                        const storedPickupLng = parseFloat(storedPickupCoords[1]);
+                        const storedDropoffLat = parseFloat(storedDropoffCoords[0]);
+                        const storedDropoffLng = parseFloat(storedDropoffCoords[1]);
+                        
+                        if (!isNaN(storedPickupLat) && !isNaN(storedPickupLng) &&
+                            !isNaN(storedDropoffLat) && !isNaN(storedDropoffLng) &&
+                            areReasonableCoordinates(storedPickupLat, storedPickupLng) &&
+                            areReasonableCoordinates(storedDropoffLat, storedDropoffLng)) {
+                            
+                            pickupCoords = [storedPickupLat, storedPickupLng];
+                            dropoffCoords = [storedDropoffLat, storedDropoffLng];
+                            pickupAddress = storedPickupAddress || pickupAddress;
+                            dropoffAddress = storedDropoffAddress || dropoffAddress;
+                            
+                            console.log('✅ Using stored coordinates:', {
+                                pickup: pickupCoords,
+                                dropoff: dropoffCoords
+                            });
+                            return { pickupCoords, dropoffCoords, pickupAddress, dropoffAddress };
+                        } else {
+                            console.warn('Stored coordinates failed validation:', {
+                                pickup: [storedPickupLat, storedPickupLng],
+                                dropoff: [storedDropoffLat, storedDropoffLng]
+                            });
+                        }
                     }
+                    
+                    // Step 2: Try coordinates from API response
+                    if (data.pickup_latitude && data.pickup_longitude && 
+                        data.drop_latitude && data.drop_longitude) {
+                        
+                        const apiPickupLat = parseFloat(data.pickup_latitude);
+                        const apiPickupLng = parseFloat(data.pickup_longitude);
+                        const apiDropoffLat = parseFloat(data.drop_latitude);
+                        const apiDropoffLng = parseFloat(data.drop_longitude);
+                        
+                        console.log('Checking API response coordinates:', {
+                            pickup: [apiPickupLat, apiPickupLng],
+                            dropoff: [apiDropoffLat, apiDropoffLng]
+                        });
+                        
+                        if (!isNaN(apiPickupLat) && !isNaN(apiPickupLng) && 
+                            !isNaN(apiDropoffLat) && !isNaN(apiDropoffLng) &&
+                            areReasonableCoordinates(apiPickupLat, apiPickupLng) &&
+                            areReasonableCoordinates(apiDropoffLat, apiDropoffLng)) {
+                            
+                            pickupCoords = [apiPickupLat, apiPickupLng];
+                            dropoffCoords = [apiDropoffLat, apiDropoffLng];
+                            pickupAddress = data.pickup_location || pickupAddress;
+                            dropoffAddress = data.dropoff_location || dropoffAddress;
+                            
+                            console.log('✅ Using coordinates from API response:', {
+                                pickup: pickupCoords,
+                                dropoff: dropoffCoords
+                            });
+                            return { pickupCoords, dropoffCoords, pickupAddress, dropoffAddress };
+                        } else {
+                            console.warn('API response coordinates failed validation');
+                        }
+                    }
+                    
+                    // Step 3: Fetch from booking API endpoint
+                    console.log('Fetching coordinates from booking API...');
+                    return fetch("{% url 'driver:api_booking_details' 0 %}".replace('0', currentBookingId.toString()), {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                        },
+                        credentials: 'same-origin'
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Booking API returned ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(async bookingData => {
+                        console.log('Booking API response:', bookingData);
+                        
+                        // Extract addresses from API response
+                        const apiPickupAddress = bookingData.pickup_location || null;
+                        const apiDropoffAddress = bookingData.dropoff_location || null;
+                        
+                        // Try to get coordinates directly from API response
+                        let bookingPickupLat = null;
+                        let bookingPickupLng = null;
+                        let bookingDropoffLat = null;
+                        let bookingDropoffLng = null;
+                        
+                        if (bookingData.pickup_latitude && bookingData.pickup_longitude) {
+                            bookingPickupLat = parseFloat(bookingData.pickup_latitude);
+                            bookingPickupLng = parseFloat(bookingData.pickup_longitude);
+                        }
+                        
+                        if (bookingData.drop_latitude && bookingData.drop_longitude) {
+                            bookingDropoffLat = parseFloat(bookingData.drop_latitude);
+                            bookingDropoffLng = parseFloat(bookingData.drop_longitude);
+                        }
+                        
+                        console.log('Booking API - Direct coordinates:', {
+                            pickup: bookingPickupLat && bookingPickupLng ? [bookingPickupLat, bookingPickupLng] : 'Not available',
+                            dropoff: bookingDropoffLat && bookingDropoffLng ? [bookingDropoffLat, bookingDropoffLng] : 'Not available',
+                            pickupAddress: apiPickupAddress,
+                            dropoffAddress: apiDropoffAddress
+                        });
+                        
+                        // If coordinates are missing but addresses are available, geocode them
+                        if ((!bookingPickupLat || !bookingPickupLng) && apiPickupAddress) {
+                            console.log('Geocoding pickup address:', apiPickupAddress);
+                            try {
+                                const geocodedPickup = await geocodeAddress(apiPickupAddress);
+                                bookingPickupLat = geocodedPickup.lat;
+                                bookingPickupLng = geocodedPickup.lng;
+                                console.log('✅ Geocoded pickup coordinates:', [bookingPickupLat, bookingPickupLng]);
+                            } catch (error) {
+                                console.error('Failed to geocode pickup address:', error);
+                            }
+                        }
+                        
+                        if ((!bookingDropoffLat || !bookingDropoffLng) && apiDropoffAddress) {
+                            console.log('Geocoding dropoff address:', apiDropoffAddress);
+                            try {
+                                const geocodedDropoff = await geocodeAddress(apiDropoffAddress);
+                                bookingDropoffLat = geocodedDropoff.lat;
+                                bookingDropoffLng = geocodedDropoff.lng;
+                                console.log('✅ Geocoded dropoff coordinates:', [bookingDropoffLat, bookingDropoffLng]);
+                            } catch (error) {
+                                console.error('Failed to geocode dropoff address:', error);
+                            }
+                        }
+                        
+                        // Validate the coordinates (whether from API or geocoded)
+                        if (bookingPickupLat && bookingPickupLng && bookingDropoffLat && bookingDropoffLng &&
+                            !isNaN(bookingPickupLat) && !isNaN(bookingPickupLng) && 
+                            !isNaN(bookingDropoffLat) && !isNaN(bookingDropoffLng) &&
+                            areReasonableCoordinates(bookingPickupLat, bookingPickupLng) &&
+                            areReasonableCoordinates(bookingDropoffLat, bookingDropoffLng)) {
+                            
+                            pickupCoords = [bookingPickupLat, bookingPickupLng];
+                            dropoffCoords = [bookingDropoffLat, bookingDropoffLng];
+                            pickupAddress = apiPickupAddress || pickupAddress;
+                            dropoffAddress = apiDropoffAddress || dropoffAddress;
+                            
+                            // Update stored coordinates for future use
+                            storedPickupCoords = pickupCoords;
+                            storedDropoffCoords = dropoffCoords;
+                            storedPickupAddress = pickupAddress;
+                            storedDropoffAddress = dropoffAddress;
+                            
+                            console.log('✅ Using coordinates from booking API (direct or geocoded):', {
+                                pickup: pickupCoords,
+                                dropoff: dropoffCoords,
+                                pickupAddress: pickupAddress,
+                                dropoffAddress: dropoffAddress
+                            });
+                            
+                            return { pickupCoords, dropoffCoords, pickupAddress, dropoffAddress };
+                        } else {
+                            console.error('Booking API coordinates validation failed:', {
+                                pickup: bookingPickupLat && bookingPickupLng ? [bookingPickupLat, bookingPickupLng] : 'Missing',
+                                dropoff: bookingDropoffLat && bookingDropoffLng ? [bookingDropoffLat, bookingDropoffLng] : 'Missing'
+                            });
+                            throw new Error('No valid coordinates found in booking API response (after geocoding attempt)');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching from booking API:', error);
+                        throw error;
+                    });
                 }
+                
+                // Get coordinates and draw route
+                getRideCoordinates()
+                    .then(routeData => {
+                        if (routeData && routeData.pickupCoords && routeData.dropoffCoords) {
+                            const pickupLat = routeData.pickupCoords[0];
+                            const pickupLng = routeData.pickupCoords[1];
+                            const dropoffLat = routeData.dropoffCoords[0];
+                            const dropoffLng = routeData.dropoffCoords[1];
+                            
+                            console.log('✅ Final coordinates for route drawing:');
+                            console.log('Pickup:', pickupLat, pickupLng, '- Address:', routeData.pickupAddress);
+                            console.log('Dropoff:', dropoffLat, dropoffLng, '- Address:', routeData.dropoffAddress);
+                            
+                            // Final validation before drawing
+                            if (!areReasonableCoordinates(pickupLat, pickupLng) || 
+                                !areReasonableCoordinates(dropoffLat, dropoffLng)) {
+                                throw new Error('Final coordinates failed validation');
+                            }
+                            
+                            // Draw the route immediately with known coordinates
+                            drawRideRoute(
+                                routeData.pickupCoords,
+                                routeData.dropoffCoords,
+                                routeData.pickupAddress,
+                                routeData.dropoffAddress
+                            );
+                            
+                            // Start enhanced tracking
+                            startRideTracking();
+                        } else {
+                            throw new Error('No valid coordinates available');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Failed to get coordinates:', error);
+                        showToast('Unable to display route. Coordinates missing.', 'error');
+                    })
+                    .finally(() => {
+                        // Replace "Start Ride" button with "End Ride" button (always)
+                        replaceStartRideButton();
+                    });
             } else {
                 throw new Error(data.error || 'Failed to start ride');
             }
@@ -2208,6 +2747,18 @@ body {
             return cookieValue;
         }
 
+        // Stop enhanced ride tracking
+        stopRideTracking();
+        
+        // Clear route from map
+        clearRoute();
+        
+        // Clear stored coordinates (for next ride)
+        storedPickupCoords = null;
+        storedDropoffCoords = null;
+        storedPickupAddress = null;
+        storedDropoffAddress = null;
+
         const csrfToken = getCookie('csrftoken') || '{{ csrf_token }}';
         const endRideUrl = "{% url 'driver:end_ride' 0 %}".replace('0', currentBookingId);
 
@@ -2228,6 +2779,9 @@ body {
                 console.log('Ride ended');
                 showToast(data.message || 'Ride completed! Payment recorded.', 'success');
                 updateStatusCard('Ride Completed', 'Trip finished successfully');
+                
+                // Reset current booking ID
+                currentBookingId = null;
                 
                 // Replace "End Ride" button with completed indicator
                 const container = document.getElementById('driver-arrived-button-container');
@@ -2284,9 +2838,14 @@ body {
         if (watchId !== null) {
             navigator.geolocation.clearWatch(watchId);
         }
+        if (rideTrackingWatchId !== null) {
+            navigator.geolocation.clearWatch(rideTrackingWatchId);
+        }
         if (countdownInterval) {
             clearInterval(countdownInterval);
         }
+        // Stop ride tracking
+        stopRideTracking();
     });
 </script>
 </body>

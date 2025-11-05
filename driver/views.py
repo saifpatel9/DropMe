@@ -455,6 +455,41 @@ def api_ride_request_details(request, ride_request_id):
         logger.error(f"Error fetching ride request details: {e}")
         return JsonResponse({'error': 'Internal server error'}, status=500)
 
+@driver_login_required
+def api_booking_details(request, booking_id):
+    """
+    API endpoint to fetch booking details with coordinates for route display.
+    """
+    driver_id = request.session.get('driver_id')
+    if not driver_id:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+    
+    try:
+        driver = Driver.objects.get(driver_id=driver_id)
+        booking = Booking.objects.get(
+            booking_id=booking_id,
+            driver=driver
+        )
+        
+        response_data = {
+            'booking_id': booking.booking_id,
+            'pickup_location': booking.pickup_location,
+            'dropoff_location': booking.dropoff_location,
+            'pickup_latitude': float(booking.pickup_latitude) if booking.pickup_latitude else None,
+            'pickup_longitude': float(booking.pickup_longitude) if booking.pickup_longitude else None,
+            'drop_latitude': float(booking.drop_latitude) if booking.drop_latitude else None,
+            'drop_longitude': float(booking.drop_longitude) if booking.drop_longitude else None,
+            'status': booking.status,
+            'fare': str(booking.fare) if booking.fare else None,
+        }
+        
+        return JsonResponse(response_data)
+    except Booking.DoesNotExist:
+        return JsonResponse({'error': 'Booking not found'}, status=404)
+    except Exception as e:
+        logger.error(f"Error fetching booking details: {e}")
+        return JsonResponse({'error': 'Internal server error'}, status=500)
+
 @require_POST
 @driver_login_required
 def end_ride_view(request, booking_id):
@@ -528,12 +563,20 @@ def start_ride_view(request, booking_id):
         
         # Return JSON for AJAX requests
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({
+            # Include booking coordinates for route drawing
+            response_data = {
                 'success': True,
                 'message': f'Ride #{booking.booking_id} started.',
                 'booking_id': booking.booking_id,
-                'status': 'Ongoing'
-            })
+                'status': 'Ongoing',
+                'pickup_location': booking.pickup_location,
+                'dropoff_location': booking.dropoff_location,
+                'pickup_latitude': float(booking.pickup_latitude) if booking.pickup_latitude else None,
+                'pickup_longitude': float(booking.pickup_longitude) if booking.pickup_longitude else None,
+                'drop_latitude': float(booking.drop_latitude) if booking.drop_latitude else None,
+                'drop_longitude': float(booking.drop_longitude) if booking.drop_longitude else None,
+            }
+            return JsonResponse(response_data)
         
         messages.success(request, f"Ride #{booking.booking_id} started.")
     else:
