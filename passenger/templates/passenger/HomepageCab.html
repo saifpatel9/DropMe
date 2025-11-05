@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<!-- Leaflet CSS removed - route preview not shown on homepage -->
 <style>
   .hero-bg {
     background: url('{% static "passenger/images/hero-bg.svg" %}') center/cover no-repeat,
@@ -233,14 +233,7 @@
                     </div>
                 </div>
 
-                <!-- Route Map Preview (Hidden initially, shown when both locations are entered) -->
-                <div id="route-map-container" class="mt-4 hidden">
-                    <div class="flex items-center justify-between mb-2">
-                        <h4 class="text-sm font-semibold text-gray-700">Route Preview</h4>
-                        <span id="home-distance-display" class="hidden text-xs bg-teal-50 text-teal-700 px-2 py-1 rounded-full border border-teal-200"></span>
-                    </div>
-                    <div id="home-route-map" style="height: 200px; width: 100%; border-radius: 0.75rem; overflow: hidden; border: 1px solid #e5e7eb;"></div>
-                </div>
+                <!-- Route Map Preview - Removed (route preview only shown on choose_ride.html) -->
 
                 <button type="submit" class="w-full py-4 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105">
                     <i class="fas fa-search mr-2"></i>
@@ -640,11 +633,10 @@ toggleBtn.addEventListener('click', () => {
     }
 });
 </script>
+<!-- Leaflet libraries removed - route preview not shown on homepage -->
+<!-- Only load Leaflet and Routing Machine if needed for distance calculation -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
 <script src="{% static 'passenger/js/leaflet-ride.js' %}"></script>
 {% endblock %}
 <script>

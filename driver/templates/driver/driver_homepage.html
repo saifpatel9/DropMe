@@ -614,38 +614,7 @@ body {
     animation: none;
 }
 
-/* Quick Actions Menu (Hidden initially, can be toggled) */
-.quick-actions {
-    position: fixed;
-    bottom: 140px;
-    right: 20px;
-    z-index: 998;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.action-button {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: white;
-    border: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #00A59E;
-    font-size: 20px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.action-button:hover {
-    background: linear-gradient(135deg, #00A59E, #0EB9D3);
-    color: white;
-    transform: scale(1.1);
-}
+/* Quick Actions removed - duplicate icons removed from map section */
 
 /* Responsive Design */
 @media (max-width: 768px) {
@@ -902,18 +871,7 @@ body {
         </button>
     </div>
 
-    <!-- Quick Actions -->
-    <div class="quick-actions">
-        <a href="{% url 'driver:driver_rides' %}" class="action-button" title="My Rides">
-            <i class="fas fa-list"></i>
-        </a>
-        <a href="{% url 'driver:driver_earnings' %}" class="action-button" title="Earnings">
-            <i class="fas fa-rupee-sign"></i>
-        </a>
-        <a href="{% url 'driver:driver_profile' driver.driver_id %}" class="action-button" title="Profile">
-            <i class="fas fa-user"></i>
-        </a>
-    </div>
+    <!-- Quick Actions removed - icons are already available in sidebar menu -->
 
     <!-- Sidebar Menu -->
     <div class="sidebar-menu" id="sidebar-menu">
@@ -925,10 +883,7 @@ body {
             <i class="fas fa-list"></i>
             <span>My Rides</span>
         </a>
-        <a href="{% url 'driver:driver_ride_request' %}" class="menu-item">
-            <i class="fas fa-bell"></i>
-            <span>Ride Requests</span>
-        </a>
+        <!-- Removed Ride Requests menu item - ride requests are handled on dashboard -->
         <a href="{% url 'driver:driver_earnings' %}" class="menu-item">
             <i class="fas fa-rupee-sign"></i>
             <span>Earnings</span>

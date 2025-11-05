@@ -100,12 +100,15 @@
 
 	// Draw route on map
 	function drawRouteOnMap(pickupCoords, dropoffCoords){
+		// Check if route map container exists (route preview disabled on homepage)
+		var mapContainer = document.getElementById('route-map-container');
+		if(!mapContainer) return; // Route preview not enabled on this page
+		
 		if(!homeMap) initHomeMap();
 		if(!homeMap) return; // Map container doesn't exist
 
 		// Show map container
-		var mapContainer = document.getElementById('route-map-container');
-		if(mapContainer) mapContainer.classList.remove('hidden');
+		mapContainer.classList.remove('hidden');
 
 		// Clear existing markers and route
 		if(pickupMarker) homeMap.removeLayer(pickupMarker);
@@ -182,12 +185,13 @@
 			if(distanceKmField) distanceKmField.value = km;
 			if(durationMinField) durationMinField.value = minutes.toString();
 
-			// Update distance display if it exists
+			// Update distance display if it exists (only on pages with route preview)
 			var distanceDisplay = document.getElementById('home-distance-display');
 			if(distanceDisplay){
 				distanceDisplay.textContent = km + ' km';
 				distanceDisplay.classList.remove('hidden');
 			}
+			// Note: distanceDisplay won't exist on HomepageCab.html (route preview removed)
 
 			// Fit map to route
 			var coordinates = route.coordinates || [];
@@ -212,12 +216,13 @@
 			if(distanceKmField) distanceKmField.value = km;
 			if(durationMinField) durationMinField.value = Math.round(distance / 0.5).toString(); // Assume 30 km/h
 
-			// Update distance display
+			// Update distance display if it exists (only on pages with route preview)
 			var distanceDisplay = document.getElementById('home-distance-display');
 			if(distanceDisplay){
 				distanceDisplay.textContent = km + ' km (approx)';
 				distanceDisplay.classList.remove('hidden');
 			}
+			// Note: distanceDisplay won't exist on HomepageCab.html (route preview removed)
 
 			// Draw simple polyline as fallback
 			routePolyline = L.polyline([pickupLatLng, dropoffLatLng], {
@@ -262,46 +267,57 @@
 			return;
 		}
 
-		// Draw route on homepage map
+		// Draw route on homepage map (only if route preview container exists)
+		// Route preview is disabled on HomepageCab.html, only enabled on choose_ride.html
 		drawRouteOnMap([pickupLatVal, pickupLngVal], [dropLatVal, dropLngVal]);
 
-		// Also calculate distance for form submission (using routing API)
-		var p = L.latLng(pickupLatVal, pickupLngVal);
-		var d = L.latLng(dropLatVal, dropLngVal);
-		
-		// Create a temporary routing control just for distance calculation
-		var tempControl = L.Routing.control({
-			waypoints: [p, d],
-			router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
-			addWaypoints: false,
-			draggableWaypoints: false,
-			routeWhileDragging: false,
-			fitSelectedRoutes: false,
-			show: false
-		});
-
-		// Use a dummy map for calculation (but route is already shown on homeMap)
-		var dummyMap = L.map(document.createElement('div'));
-		tempControl.addTo(dummyMap);
-
-		tempControl.on('routesfound', function(e){
-			var route = e.routes[0];
-			var meters = route.summary.totalDistance || 0;
-			var seconds = route.summary.totalTime || 0;
-			if(distanceKmField) distanceKmField.value = (meters/1000).toFixed(2);
-			if(durationMinField) durationMinField.value = Math.round(seconds/60).toString();
+		// Calculate distance for form submission (using routing API if available, else Haversine)
+		// Check if Leaflet Routing Machine is available
+		if(typeof L !== 'undefined' && L.Routing && L.Routing.control){
+			var p = L.latLng(pickupLatVal, pickupLngVal);
+			var d = L.latLng(dropLatVal, dropLngVal);
 			
-			// Clean up dummy map
-			dummyMap.remove();
-		});
+			// Create a temporary routing control just for distance calculation
+			var tempControl = L.Routing.control({
+				waypoints: [p, d],
+				router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
+				addWaypoints: false,
+				draggableWaypoints: false,
+				routeWhileDragging: false,
+				fitSelectedRoutes: false,
+				show: false
+			});
 
-		tempControl.on('routingerror', function(){
-			// Fallback: use Haversine
+			// Use a dummy map for calculation
+			var dummyMap = L.map(document.createElement('div'));
+			tempControl.addTo(dummyMap);
+
+			tempControl.on('routesfound', function(e){
+				var route = e.routes[0];
+				var meters = route.summary.totalDistance || 0;
+				var seconds = route.summary.totalTime || 0;
+				if(distanceKmField) distanceKmField.value = (meters/1000).toFixed(2);
+				if(durationMinField) durationMinField.value = Math.round(seconds/60).toString();
+				
+				// Clean up dummy map
+				dummyMap.remove();
+			});
+
+			tempControl.on('routingerror', function(){
+				// Fallback: use Haversine
+				var distance = haversineDistance(p, d);
+				if(distanceKmField) distanceKmField.value = distance.toFixed(2);
+				if(durationMinField) durationMinField.value = Math.round(distance / 0.5).toString();
+				dummyMap.remove();
+			});
+		} else {
+			// If Leaflet Routing Machine not available, use Haversine formula directly
+			var p = {lat: pickupLatVal, lng: pickupLngVal};
+			var d = {lat: dropLatVal, lng: dropLngVal};
 			var distance = haversineDistance(p, d);
 			if(distanceKmField) distanceKmField.value = distance.toFixed(2);
 			if(durationMinField) durationMinField.value = Math.round(distance / 0.5).toString();
-			dummyMap.remove();
-		});
+		}
 	}
 
 	var form = document.getElementById('rideForm');

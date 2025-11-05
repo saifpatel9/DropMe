@@ -15,7 +15,7 @@ urlpatterns = [
     path('rides/start/<int:booking_id>/', views.start_ride_view, name='start_ride'),
     path('rides/arrived/<int:booking_id>/', views.arrived_ride_view, name='arrived_ride'),
     path('driver/earnings/', views.driver_earnings_view, name='driver_earnings'),
-    path('driver/ride-request/', views.driver_ride_request_page, name='driver_ride_request'),
+    # Removed driver_ride_request page - ride requests are handled on dashboard
     path('toggle-availability/', views.toggle_availability, name='toggle_availability'),
     path("driver/edit-profile/", views.driver_edit_profile_view, name="driver_edit_profile"),
     path('ratings/', views.driver_rating_page, name='driver_rating_page'),

@@ -1,4 +1,5 @@
 {% load static %}
+{% load driver_extras %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -150,95 +151,110 @@
     <!-- Pending Ratings Section -->
     {% if unrated_bookings %}
     <div class="bg-white shadow-xl rounded-2xl px-6 py-6 mb-8 border border-orange-100">
-        <div class="section-toggle flex items-center justify-between mb-4" onclick="toggleSection('unrated')">
-            <div class="flex items-center">
-                <div class="bg-orange-100 p-3 rounded-lg mr-3">
-                    <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                </div>
-                <div>
-                    <h2 class="text-xl font-bold text-orange-600">Pending Ratings</h2>
-                    <p class="text-sm text-gray-500">{{ total_unrated }} ride{{ total_unrated|pluralize }} awaiting your rating</p>
-                </div>
+        <div class="flex items-center mb-6">
+            <div class="bg-orange-100 p-3 rounded-lg mr-3">
+                <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
             </div>
-            <svg id="unrated-chevron" class="w-5 h-5 text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-            </svg>
+            <div>
+                <h2 class="text-xl font-bold text-orange-600">Pending Ratings</h2>
+                <p class="text-sm text-gray-500">{{ total_unrated }} ride{{ total_unrated|pluralize }} awaiting your rating</p>
+            </div>
         </div>
         
-        <div id="unrated-content" class="section-content expanded">
-            <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {% for booking in unrated_bookings %}
-                <div class="ride-card bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-orange-300">
-                    <!-- Ride Info Header -->
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center">
-                            <div class="bg-gray-100 p-2 rounded-lg mr-3">
-                                <i class="fas fa-user text-gray-600"></i>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-orange-50">
+                    <tr>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">Passenger</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">Booking ID</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">From</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">To</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">Fare</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">Date</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">Ride Type</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">Rating</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">Feedback</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for booking in unrated_bookings %}
+                    <tr class="hover:bg-gray-50 transition-colors duration-150">
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center mr-2">
+                                    <span class="text-gray-600 font-semibold text-xs">
+                                        {{ booking.user.first_name|first|upper }}{{ booking.user.last_name|first|upper }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">{{ booking.user.first_name }} {{ booking.user.last_name }}</div>
+                                    <div class="text-xs text-gray-500">{{ booking.user.email }}</div>
+                                </div>
                             </div>
-                            <div>
-                                <div class="font-semibold text-gray-800">{{ booking.user.first_name }} {{ booking.user.last_name }}</div>
-                                <div class="text-xs text-gray-500">#{{ booking.booking_id }}</div>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <span class="text-sm font-semibold text-teal-600">#{{ booking.booking_id }}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center text-sm text-gray-900">
+                                <i class="fas fa-map-marker-alt text-green-600 mr-1 text-xs"></i>
+                                {{ booking.pickup_location|shorten_address }}
                             </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-lg font-bold text-teal-600">₹{{ booking.fare }}</div>
-                            <div class="text-xs text-gray-500">{{ booking.service_type.name }}</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Compact Ride Details -->
-                    <div class="compact-info text-xs text-gray-600 mb-4 bg-gray-50 p-3 rounded-lg">
-                        <div>
-                            <strong>From:</strong><br>
-                            <span class="text-gray-800">{{ booking.pickup_location|truncatechars:25 }}</span>
-                        </div>
-                        <div>
-                            <strong>To:</strong><br>
-                            <span class="text-gray-800">{{ booking.dropoff_location|truncatechars:25 }}</span>
-                        </div>
-                        <div>
-                            <strong>Date:</strong><br>
-                            <span class="text-gray-800">{{ booking.scheduled_time|date:"M d, Y" }}</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Rating Form -->
-                    <form class="rating-form" data-booking-id="{{ booking.booking_id }}">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Rate this passenger:</label>
-                            <div class="star-rating" data-booking-id="{{ booking.booking_id }}">
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center text-sm text-gray-900">
+                                <i class="fas fa-flag-checkered text-red-600 mr-1 text-xs"></i>
+                                {{ booking.dropoff_location|shorten_address }}
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <span class="text-sm font-bold text-teal-600">₹{{ booking.fare }}</span>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ booking.scheduled_time|date:"M d, Y" }}</div>
+                            <div class="text-xs text-gray-500">{{ booking.scheduled_time|date:"h:i A" }}</div>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <span class="text-sm text-gray-700">{{ booking.service_type.name }}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="star-rating" data-booking-id="{{ booking.booking_id }}" style="display: flex; gap: 2px; margin: 0;">
                                 {% for i in "12345" %}
-                                <span class="star" data-rating="{{ i }}" data-booking-id="{{ booking.booking_id }}">
+                                <span class="star" data-rating="{{ i }}" data-booking-id="{{ booking.booking_id }}" style="font-size: 16px; cursor: pointer; color: #d1d5db; transition: all 0.2s;">
                                     <i class="fas fa-star"></i>
                                 </span>
                                 {% endfor %}
                             </div>
-                            <input type="hidden" name="rating" class="rating-input" data-booking-id="{{ booking.booking_id }}">
-                        </div>
-                        
-                        <div class="mb-4">
+                        </td>
+                        <td class="px-4 py-3">
                             <textarea 
                                 name="comments" 
-                                placeholder="Optional feedback about the passenger..."
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
-                                rows="2"
+                                placeholder="Feedback..."
+                                class="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                rows="1"
+                                data-booking-id="{{ booking.booking_id }}"
                             ></textarea>
-                        </div>
-                        
-                        <button 
-                            type="submit" 
-                            class="submit-btn w-full bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 text-sm"
-                            data-booking-id="{{ booking.booking_id }}"
-                        >
-                            Submit Rating
-                        </button>
-                    </form>
-                </div>
-                {% endfor %}
-            </div>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <form class="rating-form" data-booking-id="{{ booking.booking_id }}">
+                                {% csrf_token %}
+                                <input type="hidden" name="rating" class="rating-input" data-booking-id="{{ booking.booking_id }}">
+                                <button 
+                                    type="submit" 
+                                    class="submit-btn px-3 py-1 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white text-xs font-medium rounded transition-all duration-300"
+                                    data-booking-id="{{ booking.booking_id }}"
+                                >
+                                    Submit
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
     {% endif %}
@@ -246,80 +262,96 @@
     <!-- Previously Rated Section -->
     {% if rated_bookings %}
     <div class="bg-white shadow-xl rounded-2xl px-6 py-6 border border-green-100">
-        <div class="section-toggle flex items-center justify-between mb-4" onclick="toggleSection('rated')">
-            <div class="flex items-center">
-                <div class="bg-green-100 p-3 rounded-lg mr-3">
-                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                </div>
-                <div>
-                    <h2 class="text-xl font-bold text-green-600">Previously Rated</h2>
-                    <p class="text-sm text-gray-500">{{ total_rated }} completed rating{{ total_rated|pluralize }}</p>
-                </div>
+        <div class="flex items-center mb-6">
+            <div class="bg-green-100 p-3 rounded-lg mr-3">
+                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
             </div>
-            <svg id="rated-chevron" class="w-5 h-5 text-gray-400 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-            </svg>
+            <div>
+                <h2 class="text-xl font-bold text-green-600">Previously Rated</h2>
+                <p class="text-sm text-gray-500">{{ total_rated }} completed rating{{ total_rated|pluralize }}</p>
+            </div>
         </div>
         
-        <div id="rated-content" class="section-content collapsed">
-            <div class="space-y-3">
-                {% for booking in rated_bookings %}
-                <div class="ride-card rated border border-green-200 rounded-xl p-4">
-                    <div class="flex items-center justify-between">
-                        <!-- Passenger Info -->
-                        <div class="flex items-center">
-                            <div class="bg-green-100 p-2 rounded-lg mr-3">
-                                <i class="fas fa-user text-green-600"></i>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-green-50">
+                    <tr>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">Passenger</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">Booking ID</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">From</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">To</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">Fare</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">Date</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">Ride Type</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">Rating</th>
+                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">Feedback</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for booking in rated_bookings %}
+                    <tr class="hover:bg-green-50 transition-colors duration-150">
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="bg-green-100 w-8 h-8 rounded-full flex items-center justify-center mr-2">
+                                    <span class="text-green-600 font-semibold text-xs">
+                                        {{ booking.user.first_name|first|upper }}{{ booking.user.last_name|first|upper }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">{{ booking.user.first_name }} {{ booking.user.last_name }}</div>
+                                    <div class="text-xs text-gray-500">{{ booking.user.email }}</div>
+                                </div>
                             </div>
-                            <div>
-                                <div class="font-semibold text-gray-800">{{ booking.user.first_name }} {{ booking.user.last_name }}</div>
-                                <div class="text-xs text-gray-500">#{{ booking.booking_id }} • {{ booking.created_at|date:"M d, Y" }}</div>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <span class="text-sm font-semibold text-teal-600">#{{ booking.booking_id }}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center text-sm text-gray-900">
+                                <i class="fas fa-map-marker-alt text-green-600 mr-1 text-xs"></i>
+                                {{ booking.pickup_location|shorten_address }}
                             </div>
-                        </div>
-                        
-                        <!-- Rating Display -->
-                        <div class="text-center">
-                            <div class="flex items-center justify-center mb-1">
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center text-sm text-gray-900">
+                                <i class="fas fa-flag-checkered text-red-600 mr-1 text-xs"></i>
+                                {{ booking.dropoff_location|shorten_address }}
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <span class="text-sm font-bold text-teal-600">₹{{ booking.fare }}</span>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">{{ booking.scheduled_time|date:"M d, Y" }}</div>
+                            <div class="text-xs text-gray-500">{{ booking.scheduled_time|date:"h:i A" }}</div>
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <span class="text-sm text-gray-700">{{ booking.service_type.name }}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center">
                                 {% for i in "12345" %}
-                                    <i class="fas fa-star text-sm {% if i|add:0 <= booking.rating_obj.rating %}text-yellow-400{% else %}text-gray-300{% endif %} mr-1"></i>
+                                    <i class="fas fa-star text-xs {% if i|add:0 <= booking.rating_obj.rating %}text-yellow-400{% else %}text-gray-300{% endif %} mr-0.5"></i>
                                 {% endfor %}
-                                <span class="ml-2 font-semibold text-gray-700">{{ booking.rating_obj.rating }}/5</span>
+                                <span class="ml-2 text-sm font-semibold text-gray-700">{{ booking.rating_obj.rating }}/5</span>
                             </div>
-                            <div class="text-xs text-gray-500">Rated {{ booking.rating_obj.created_at|timesince }} ago</div>
-                        </div>
-                        
-                        <!-- Ride Details -->
-                        <div class="text-right">
-                            <div class="text-lg font-bold text-teal-600">₹{{ booking.fare }}</div>
-                            <div class="text-xs text-gray-500">{{ booking.service_type.name }}</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Route Info -->
-                    <div class="mt-3 pt-3 border-t border-green-200">
-                        <div class="flex items-center text-sm text-gray-600">
-                            <svg class="w-4 h-4 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            </svg>
-                            <span class="flex-1">{{ booking.pickup_location|truncatechars:30 }}</span>
-                            <svg class="w-4 h-4 text-gray-400 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                            </svg>
-                            <span class="flex-1 text-right">{{ booking.dropoff_location|truncatechars:30 }}</span>
-                        </div>
-                        
-                        {% if booking.rating_obj.comments %}
-                        <div class="mt-2 p-2 bg-green-50 rounded text-xs text-gray-700">
-                            <strong>Your feedback:</strong> {{ booking.rating_obj.comments|truncatechars:100 }}
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+                            <div class="text-xs text-gray-500 mt-1">Rated {{ booking.rating_obj.created_at|timesince }} ago</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            {% if booking.rating_obj.comments %}
+                                <div class="text-sm text-gray-700 bg-green-50 px-2 py-1 rounded">
+                                    {{ booking.rating_obj.comments|truncatechars:50 }}
+                                </div>
+                            {% else %}
+                                <span class="text-xs text-gray-400">No feedback</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
     {% endif %}
@@ -396,14 +428,20 @@ document.querySelectorAll('.star-rating').forEach(rating => {
     });
 });
 
-// Form submission handling
+// Form submission handling - Updated for table layout
 document.querySelectorAll('.rating-form').forEach(form => {
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         
         const bookingId = this.getAttribute('data-booking-id');
-        const rating = this.querySelector('input[name="rating"]').value;
-        const comments = this.querySelector('textarea[name="comments"]').value;
+        const ratingInput = this.querySelector('input[name="rating"].rating-input');
+        const rating = ratingInput ? ratingInput.value : '';
+        
+        // Get feedback from textarea in the same row
+        const row = this.closest('tr');
+        const feedbackTextarea = row ? row.querySelector('textarea[name="comments"]') : null;
+        const comments = feedbackTextarea ? feedbackTextarea.value : '';
+        
         const submitBtn = this.querySelector('.submit-btn');
         
         if (!rating) {
@@ -413,21 +451,21 @@ document.querySelectorAll('.rating-form').forEach(form => {
         
         // Disable submit button and show loading
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...';
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Submitting...';
         
         // Prepare form data
         const formData = new FormData();
         formData.append('booking_id', bookingId);
         formData.append('rating', rating);
         formData.append('comments', comments);
-        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        formData.append('csrfmiddlewaretoken', this.querySelector('[name=csrfmiddlewaretoken]').value);
         
         // Submit via fetch
         fetch('{% url "submit_driver_rating" %}', {
             method: 'POST',
             body: formData,
             headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                'X-CSRFToken': this.querySelector('[name=csrfmiddlewaretoken]').value
             }
         })
         .then(response => response.json())
@@ -435,24 +473,21 @@ document.querySelectorAll('.rating-form').forEach(form => {
             if (data.success) {
                 // Hide the submit button
                 submitBtn.classList.add('hidden');
+                submitBtn.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Submitted';
+                submitBtn.classList.remove('bg-gradient-to-r', 'from-teal-500', 'to-teal-600');
+                submitBtn.classList.add('bg-green-500', 'cursor-not-allowed');
                 
-                // Show success message
-                const successMsg = document.createElement('div');
-                successMsg.className = 'text-center text-green-600 font-medium text-sm mt-2';
-                successMsg.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Rating submitted successfully!';
-                form.appendChild(successMsg);
-                
-                // Disable the form
-                const inputs = form.querySelectorAll('input, textarea, .star');
+                // Disable the form and stars
+                const inputs = row.querySelectorAll('input, textarea, .star');
                 inputs.forEach(input => {
                     input.style.pointerEvents = 'none';
                     input.style.opacity = '0.6';
                 });
                 
-                // Optionally reload the page after a delay to move the card to "rated" section
+                // Reload the page after a delay to move the row to "rated" section
                 setTimeout(() => {
                     location.reload();
-                }, 2000);
+                }, 1500);
                 
             } else {
                 // Show error message
@@ -460,7 +495,7 @@ document.querySelectorAll('.rating-form').forEach(form => {
                 
                 // Re-enable submit button
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = 'Submit Rating';
+                submitBtn.innerHTML = 'Submit';
             }
         })
         .catch(error => {
@@ -469,7 +504,7 @@ document.querySelectorAll('.rating-form').forEach(form => {
             
             // Re-enable submit button
             submitBtn.disabled = false;
-            submitBtn.innerHTML = 'Submit Rating';
+            submitBtn.innerHTML = 'Submit';
         });
     });
 });

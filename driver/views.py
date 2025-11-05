@@ -329,50 +329,8 @@ def arrived_ride_view(request, booking_id):
     
     return redirect('driver_rides')
 
-@driver_login_required
-def driver_ride_request_page(request):
-    """
-    Ride Request page showing pending requests for the current driver's vehicle type.
-    Displays pickup, dropoff, fare, passenger name, and passenger average rating.
-    """
-    from django.db.models import Avg
-
-    driver_id = request.session.get('driver_id')
-    if not driver_id:
-        return redirect('unified_login')
-    try:
-        driver = Driver.objects.get(driver_id=driver_id)
-    except Driver.DoesNotExist:
-        return redirect('unified_login')
-
-    # Pending ride requests matching the driver's vehicle type
-    # Show only ride requests currently assigned to this driver
-    ride_requests = (
-        RideRequest.objects
-        .filter(status='Requested', driver=driver, service_type__name__iexact=driver.vehicle_type)
-        .select_related('user', 'service_type')
-        .order_by('-created_at')
-    )
-
-    # Compute average rating for each passenger (ratings given by drivers)
-    passenger_ids = list({rr.user_id for rr in ride_requests if rr.user_id})
-    ratings_map = {}
-    if passenger_ids:
-        from rating.models import Rating
-        passenger_avgs = (
-            Rating.objects
-            .filter(User_id__in=passenger_ids, given_by='driver')
-            .values('User_id')
-            .annotate(avg_rating=Avg('rating'))
-        )
-        ratings_map = {row['User_id']: row['avg_rating'] for row in passenger_avgs}
-
-    context = {
-        'driver': driver,
-        'ride_requests': ride_requests,
-        'passenger_avg_rating': ratings_map,
-    }
-    return render(request, 'driver/driver_ride_request.html', context)
+# Removed driver_ride_request_page view - ride requests are now handled directly on the driver dashboard
+# The ride request functionality is integrated into driver_homepage_cab_view via AJAX and popups
 
 def api_assigned_requests(request):
     """
