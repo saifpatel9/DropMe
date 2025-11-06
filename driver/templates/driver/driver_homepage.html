@@ -975,6 +975,83 @@ body {
     </div>
   </div>
 
+<!-- Ride Completed Notification Popup -->
+<div id="ride-completed-overlay" class="ride-request-overlay" onclick="if(event.target === this) closeRideCompleted()">
+    <div class="ride-request-popup" onclick="event.stopPropagation()">
+        <div class="popup-header">
+            <div class="countdown-timer" style="background: linear-gradient(135deg, #10b981, #059669);">
+                <i class="fas fa-check-circle" style="font-size: 40px;"></i>
+            </div>
+            <p class="countdown-text">Ride Completed</p>
+    </div>
+
+        <div class="passenger-info-section">
+            <div class="passenger-avatar-popup">
+                <i class="fas fa-user"></i>
+    </div>
+            <div class="passenger-details-popup">
+                <h3 class="passenger-name-popup" id="completed-popup-passenger-name">Passenger Name</h3>
+                <div class="passenger-rating-popup" style="display: none;">
+                    <i class="fas fa-star"></i>
+                    <span id="completed-popup-passenger-rating">4.8</span>
+    </div>
+    </div>
+  </div>
+
+        <div class="trip-details-section">
+            <div class="location-item-popup pickup">
+                <div class="location-icon-popup">
+                    <i class="fas fa-map-marker-alt"></i>
+        </div>
+                <div class="location-info-popup">
+                    <p class="location-label-popup">Pickup</p>
+                    <p class="location-address-popup" id="completed-popup-pickup">Pickup Location</p>
+      </div>
+    </div>
+
+            <div class="location-item-popup dropoff">
+                <div class="location-icon-popup">
+                    <i class="fas fa-flag-checkered"></i>
+          </div>
+                <div class="location-info-popup">
+                    <p class="location-label-popup">Dropoff</p>
+                    <p class="location-address-popup" id="completed-popup-dropoff">Dropoff Location</p>
+          </div>
+        </div>
+      </div>
+
+        <div class="fare-section-popup">
+            <div class="fare-item-popup">
+                <span class="fare-label-popup">Total Fare</span>
+                <span class="fare-amount-popup" id="completed-popup-fare">₹0</span>
+          </div>
+            <div class="fare-item-popup" id="completed-popup-distance-container" style="display: none;">
+                <span class="fare-label-popup">Distance</span>
+                <span class="fare-label-popup" id="completed-popup-distance">-</span>
+    </div>
+            <div class="fare-item-popup" id="completed-popup-duration-container" style="display: none;">
+                <span class="fare-label-popup">Duration</span>
+                <span class="fare-label-popup" id="completed-popup-duration">-</span>
+    </div>
+            <div class="fare-item-popup">
+                <span class="fare-label-popup">Service Type</span>
+                <span class="fare-label-popup" id="completed-popup-service-type">Standard</span>
+    </div>
+            <div class="fare-item-popup">
+                <span class="fare-label-popup">Payment Mode</span>
+                <span class="fare-label-popup" id="completed-popup-payment-mode">Cash</span>
+    </div>
+  </div>
+
+        <div class="popup-actions">
+            <button class="btn-popup btn-popup-accept" onclick="closeRideCompleted()" style="width: 100%;">
+                <i class="fas fa-check"></i>
+                OK
+            </button>
+      </div>
+    </div>
+  </div>
+
 <!-- Leaflet.js JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <!-- Leaflet Routing Machine -->
@@ -1734,6 +1811,71 @@ body {
         // Don't clear currentRideRequest here - we need it for storing coordinates
         // currentRideRequest = null;
         countdownTime = 120;
+    }
+
+    // Show ride completed notification popup
+    function showRideCompletedPopup(data) {
+        const overlay = document.getElementById('ride-completed-overlay');
+        if (!overlay) {
+            console.error('Ride completed overlay not found');
+            return;
+        }
+
+        // Populate popup with ride data
+        document.getElementById('completed-popup-passenger-name').textContent = data.passengerName || 'Passenger';
+        document.getElementById('completed-popup-pickup').textContent = data.pickup || 'N/A';
+        document.getElementById('completed-popup-dropoff').textContent = data.dropoff || 'N/A';
+        document.getElementById('completed-popup-fare').textContent = `₹${parseFloat(data.fare || 0).toFixed(2)}`;
+        document.getElementById('completed-popup-service-type').textContent = data.serviceType || 'Standard';
+        document.getElementById('completed-popup-payment-mode').textContent = data.paymentMode || 'Cash';
+
+        // Show distance if available
+        const distanceContainer = document.getElementById('completed-popup-distance-container');
+        const distanceElement = document.getElementById('completed-popup-distance');
+        if (data.distance && parseFloat(data.distance) > 0) {
+            distanceElement.textContent = `${parseFloat(data.distance).toFixed(2)} km`;
+            distanceContainer.style.display = 'flex';
+        } else {
+            distanceContainer.style.display = 'none';
+        }
+
+        // Show duration if available
+        const durationContainer = document.getElementById('completed-popup-duration-container');
+        const durationElement = document.getElementById('completed-popup-duration');
+        if (data.duration && parseInt(data.duration) > 0) {
+            const minutes = parseInt(data.duration);
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            if (hours > 0) {
+                durationElement.textContent = `${hours}h ${mins}m`;
+            } else {
+                durationElement.textContent = `${mins} min`;
+            }
+            durationContainer.style.display = 'flex';
+        } else {
+            durationContainer.style.display = 'none';
+        }
+
+        // Show the popup
+        overlay.classList.add('show');
+    }
+
+    // Close ride completed notification popup
+    function closeRideCompleted() {
+        const overlay = document.getElementById('ride-completed-overlay');
+        if (overlay) {
+            overlay.classList.remove('show');
+        }
+        
+        // Reset dashboard to waiting mode after closing popup
+        setTimeout(() => {
+            updateStatusCard('Waiting for Rides', 'You\'re online and ready to accept ride requests');
+            // Clear the completed button container
+            const container = document.getElementById('driver-arrived-button-container');
+            if (container) {
+                container.innerHTML = '';
+            }
+        }, 300);
     }
 
     // Draw route from driver to passenger pickup location
@@ -2749,10 +2891,8 @@ body {
                     `;
                 }
                 
-                // Optionally redirect to earnings page after a delay
-                setTimeout(() => {
-                    window.location.href = "{% url 'driver:driver_earnings' %}";
-                }, 2000);
+                // Show ride completed notification popup
+                showRideCompletedPopup(data);
             } else {
                 throw new Error(data.error || 'Failed to end ride');
             }

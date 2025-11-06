@@ -479,13 +479,34 @@ def end_ride_view(request, booking_id):
             status='completed' if payment_mode.lower() == 'cash' else 'completed'
         )
 
-        # Return JSON for AJAX requests
+        # Return JSON for AJAX requests with complete ride details for popup
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            # Get passenger name
+            passenger_name = ""
+            if booking.user:
+                passenger_name = f"{booking.user.first_name} {booking.user.last_name}".strip()
+                if not passenger_name:
+                    passenger_name = booking.user.email.split('@')[0] if booking.user.email else "Passenger"
+            
+            # Extract first part of location (before first comma)
+            pickup_location_short = booking.pickup_location.split(',')[0].strip() if booking.pickup_location else "N/A"
+            dropoff_location_short = booking.dropoff_location.split(',')[0].strip() if booking.dropoff_location else "N/A"
+            
             return JsonResponse({
                 'success': True,
                 'message': f'Ride #{booking.booking_id} marked as completed and payment recorded.',
                 'booking_id': booking.booking_id,
-                'status': 'Completed'
+                'status': 'Completed',
+                'passengerName': passenger_name,
+                'pickup': pickup_location_short,
+                'dropoff': dropoff_location_short,
+                'pickupFull': booking.pickup_location or '',
+                'dropoffFull': booking.dropoff_location or '',
+                'fare': str(booking.fare) if booking.fare else '0.00',
+                'distance': str(booking.distance_km) if booking.distance_km else None,
+                'duration': booking.duration_min if booking.duration_min else None,
+                'serviceType': booking.service_type.name if booking.service_type else 'Standard',
+                'paymentMode': payment_mode
             })
         
         messages.success(request, f"Ride #{booking.booking_id} marked as completed and payment recorded.")
