@@ -1156,9 +1156,13 @@ body {
     let routeInfoCard = null;
     
     // Active booking tracking
+    const serverActiveBookingId = {{ active_booking.booking_id|default:"null" }};
+    const serverActiveBookingStatus = {% if active_booking %}"{{ active_booking.status }}"{% else %}null{% endif %};
     let currentBookingId = null;
     let isRideActive = false; // Track if ride is active (started)
     let rideTrackingWatchId = null; // Separate watch ID for ride tracking
+    let ridePinVerified = false;
+    let ridePinLockedUntil = null;
     
     // Stored ride coordinates (from ride acceptance)
     let storedPickupCoords = null; // [lat, lng]
@@ -2370,6 +2374,46 @@ body {
         }
     }
 
+    // Render PIN verification + Start Ride controls
+    function renderPinVerificationCard() {
+        const container = document.getElementById('driver-arrived-button-container');
+        if (!container) return;
+
+        container.style.display = 'block';
+        container.innerHTML = `
+            <div class="pin-card" style="display:flex; flex-direction:column; gap:10px; width:100%;">
+                <label style="font-weight:700; color:#1f2937; font-size:14px;">Enter passenger PIN to start ride</label>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <input id="ride-pin-input" type="text" maxlength="4" pattern="\\d{4}" inputmode="numeric" placeholder="4-digit PIN" style="flex:1; padding:10px 12px; border:1px solid #e5e7eb; border-radius:10px; font-size:16px; letter-spacing:4px; text-align:center; font-weight:700;">
+                    <button id="verify-pin-btn" class="driver-arrived-btn" style="background: linear-gradient(135deg, #0ea5e9, #0284c7); padding:10px 14px; min-width:120px;">
+                        <i class="fas fa-check"></i>
+                        <span>Verify PIN</span>
+                    </button>
+                </div>
+                <p id="pin-helper-text" style="color:#6b7280; font-size:12px;">Ask the passenger for the ride PIN shown on their phone.</p>
+                <p id="pin-error-text" style="color:#dc2626; font-size:12px; display:none;"></p>
+                <button id="start-ride-btn" class="driver-arrived-btn" style="background: linear-gradient(135deg, #9333ea, #a855f7);" disabled>
+                    <i class="fas fa-lock"></i>
+                    <span>Start Ride</span>
+                </button>
+            </div>
+        `;
+
+        // Add event listeners
+        const startRideBtn = document.getElementById('start-ride-btn');
+        if (startRideBtn) {
+            startRideBtn.addEventListener('click', handleStartRide);
+        }
+
+        const verifyPinBtn = document.getElementById('verify-pin-btn');
+        if (verifyPinBtn) {
+            verifyPinBtn.addEventListener('click', verifyRidePin);
+        }
+
+        ridePinVerified = false;
+        ridePinLockedUntil = null;
+    }
+
     // Update status card
     function updateStatusCard(statusText, subMessage) {
         const statusMessage = document.getElementById('status-message');
@@ -2490,22 +2534,7 @@ body {
                 showToast(data.message || 'Passenger notified: Driver has arrived!', 'success');
                 updateStatusCard('Driver Arrived', 'Waiting for passenger');
                 
-                // Replace "Driver Arrived" button with "Start Ride" button
-                const container = document.getElementById('driver-arrived-button-container');
-                if (container) {
-                    container.innerHTML = `
-                        <button id="start-ride-btn" class="driver-arrived-btn" style="background: linear-gradient(135deg, #9333ea, #a855f7);">
-                            <i class="fas fa-play"></i>
-                            <span>Start Ride</span>
-                        </button>
-                    `;
-                    
-                    // Add event listener to the new Start Ride button
-                    const startRideBtn = document.getElementById('start-ride-btn');
-                    if (startRideBtn) {
-                        startRideBtn.addEventListener('click', handleStartRide);
-                    }
-                }
+                renderPinVerificationCard();
             } else {
                 throw new Error(data.error || 'Failed to send arrival notification');
             }
@@ -2520,10 +2549,107 @@ body {
         });
     }
 
+    async function verifyRidePin() {
+        if (!currentBookingId) {
+            showToast('No active booking found. Please refresh the page.', 'error');
+            return;
+        }
+
+        const pinInput = document.getElementById('ride-pin-input');
+        const errorText = document.getElementById('pin-error-text');
+        const startRideBtn = document.getElementById('start-ride-btn');
+        const verifyBtn = document.getElementById('verify-pin-btn');
+        if (!pinInput) return;
+
+        const pinValue = pinInput.value.trim();
+        if (!/^[0-9]{4}$/.test(pinValue)) {
+            errorText.style.display = 'block';
+            errorText.textContent = 'Enter a valid 4-digit PIN.';
+            return;
+        }
+
+        errorText.style.display = 'none';
+        if (verifyBtn) {
+            verifyBtn.disabled = true;
+            verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Verifying...</span>';
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        const csrfToken = getCookie('csrftoken') || '{{ csrf_token }}';
+        const verifyUrl = "{% url 'driver:verify_ride_pin' 0 %}".replace('0', currentBookingId);
+
+        fetch(verifyUrl, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `pin=${encodeURIComponent(pinValue)}&csrfmiddlewaretoken=${encodeURIComponent(csrfToken)}`,
+            credentials: 'same-origin',
+            mode: 'same-origin'
+        })
+        .then(resp => resp.json().then(data => ({ status: resp.status, body: data })))
+        .then(({ status, body }) => {
+            if (body.success) {
+                ridePinVerified = true;
+                if (startRideBtn) {
+                    startRideBtn.disabled = false;
+                    startRideBtn.innerHTML = '<i class="fas fa-play"></i><span>Start Ride</span>';
+                }
+                if (pinInput) {
+                    pinInput.disabled = true;
+                }
+                errorText.style.display = 'none';
+                showToast(body.message || 'PIN verified', 'success');
+            } else {
+                ridePinVerified = false;
+                if (body.locked) {
+                    ridePinLockedUntil = body.locked_until;
+                    if (startRideBtn) {
+                        startRideBtn.disabled = true;
+                    }
+                }
+                errorText.style.display = 'block';
+                errorText.textContent = body.error || 'Invalid PIN.';
+            }
+        })
+        .catch(err => {
+            console.error('PIN verify error', err);
+            errorText.style.display = 'block';
+            errorText.textContent = 'Unable to verify PIN. Please try again.';
+        })
+        .finally(() => {
+            if (verifyBtn) {
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = '<i class="fas fa-check"></i><span>Verify PIN</span>';
+            }
+        });
+    }
+
     // Handle Start Ride button click
     async function handleStartRide() {
         if (!currentBookingId) {
             showToast('No active booking found. Please refresh the page.', 'error');
+            return;
+        }
+
+        if (!ridePinVerified) {
+            showToast('Verify the passenger PIN before starting the ride.', 'error');
             return;
         }
 
@@ -2921,6 +3047,25 @@ body {
         const driverArrivedBtn = document.getElementById('driver-arrived-btn');
         if (driverArrivedBtn) {
             driverArrivedBtn.addEventListener('click', handleDriverArrived);
+        }
+
+        // Rehydrate UI if there's an active booking from server (page reload scenario)
+        if (serverActiveBookingId) {
+            currentBookingId = serverActiveBookingId;
+            if (serverActiveBookingStatus === 'Confirmed') {
+                showDriverArrivedButton();
+                updateStatusCard('Ride Accepted', 'Heading to pickup location');
+            } else if (serverActiveBookingStatus === 'Arrived') {
+                renderPinVerificationCard();
+                updateStatusCard('Driver Arrived', 'Waiting for passenger');
+            } else if (serverActiveBookingStatus === 'Ongoing') {
+                const container = document.getElementById('driver-arrived-button-container');
+                if (container) {
+                    container.style.display = 'block';
+                }
+                replaceStartRideButton();
+                updateStatusCard('Ride in Progress', 'Trip is ongoing');
+            }
         }
 
         // For testing: Add a button to simulate ride request (remove in production)

@@ -137,6 +137,22 @@
             </div>
           </div>
 
+          {% if ride_pin %}
+          <!-- Ride Start PIN -->
+          <div class="info-card rounded-xl p-3 border border-emerald-100">
+            <div class="flex items-start">
+              <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center mr-3">
+                <i class="fas fa-key text-emerald-600"></i>
+              </div>
+              <div class="flex-1">
+                <p class="text-xs text-gray-500 font-medium uppercase tracking-wide">Ride Start PIN</p>
+                <p class="text-2xl font-bold text-emerald-700 tracking-[0.3rem]">{{ ride_pin }}</p>
+                <p class="text-xs text-gray-600 mt-1">Share this PIN with your driver. The ride can only start after the driver enters this PIN.</p>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
           <!-- Route Information -->
           <div class="info-card rounded-xl p-3">
             <div class="space-y-2">
@@ -205,7 +221,13 @@
                 </div>
                 <div>
                   <p class="text-gray-800 font-semibold text-sm">{{ driver.first_name }} {{ driver.last_name }}</p>
-                  <p class="text-gray-500 text-xs">{{ driver.plate_number }}</p>
+                  <p class="text-gray-500 text-xs">
+                    {% if driver_vehicle.model %}{{ driver_vehicle.model }}{% endif %}
+                    {% if driver_vehicle.color %} • {{ driver_vehicle.color }}{% endif %}
+                  </p>
+                  <p class="text-gray-500 text-xs">
+                    {% if driver_vehicle.plate %}Reg: {{ driver_vehicle.plate }}{% else %}Registration pending{% endif %}
+                  </p>
                   <div class="flex items-center mt-0.5">
                     <div class="flex text-yellow-400 mr-1">
                       {% for i in "12345" %}

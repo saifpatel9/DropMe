@@ -2,7 +2,7 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.utils.timezone import localtime
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Driver
-from booking.models import Booking, RideRequest
+from booking.models import Booking, RideRequest, RidePin
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.utils import timezone
@@ -16,6 +16,9 @@ from rating.models import Rating
 import json
 from .forms import DriverEditProfileForm
 from django.core.cache import cache
+import random
+from django.contrib.auth.hashers import make_password, check_password
+from datetime import timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +44,11 @@ def driver_homepage_cab_view(request):
     completed_rides = Booking.objects.filter(driver=driver, status='Completed').count()
     cancelled_rides = Booking.objects.filter(driver=driver, status='Cancelled').count()
     scheduled_rides = Booking.objects.filter(driver=driver, status='Confirmed').count()
+
+    active_booking = Booking.objects.filter(
+        driver=driver,
+        status__in=['Confirmed', 'Arrived', 'Ongoing']
+    ).order_by('-scheduled_time', '-booking_id').first()
 
     confirmed_rides = Booking.objects.filter(
         driver=driver,
@@ -119,6 +127,7 @@ def driver_homepage_cab_view(request):
         'earnings_today': earnings_today,
         'earnings_week': earnings_week,
         'earnings_month': earnings_month,
+        'active_booking': active_booking,
     })
 
 def accept_ride(request, ride_request_id):
@@ -156,6 +165,20 @@ def accept_ride(request, ride_request_id):
             payment_mode=ride_request.payment_mode,
             service_type=ride_request.service_type,
             status='Confirmed'
+        )
+
+        # Generate a unique 4-digit PIN for this booking
+        pin_value = f"{random.randint(0, 9999):04d}"
+        RidePin.objects.update_or_create(
+            booking=booking,
+            defaults={
+                'pin_hash': make_password(pin_value),
+                'pin_plain': pin_value,
+                'attempts': 0,
+                'locked_until': None,
+                'is_active': True,
+                'is_verified': False,
+            }
         )
 
         ride_request.booking = booking
@@ -479,6 +502,13 @@ def end_ride_view(request, booking_id):
             status='completed' if payment_mode.lower() == 'cash' else 'completed'
         )
 
+        # Ensure PIN is invalidated once ride is completed
+        ride_pin = getattr(booking, 'ride_pin', None)
+        if ride_pin:
+            ride_pin.is_active = False
+            ride_pin.pin_plain = ''
+            ride_pin.save(update_fields=['is_active', 'pin_plain'])
+
         # Return JSON for AJAX requests with complete ride details for popup
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             # Get passenger name
@@ -520,6 +550,78 @@ def end_ride_view(request, booking_id):
 
 @require_POST
 @driver_login_required
+def verify_ride_pin(request, booking_id):
+    """
+    Verify the passenger-shared 4-digit PIN before allowing ride start.
+    Enforces retry limits and temporary lockout.
+    """
+    driver_id = request.session.get('driver_id')
+    if not driver_id:
+        return JsonResponse({'success': False, 'error': 'Not authenticated'}, status=401)
+
+    try:
+        driver = Driver.objects.get(driver_id=driver_id)
+    except Driver.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Driver not found'}, status=404)
+
+    try:
+        booking = Booking.objects.get(booking_id=booking_id, driver=driver)
+    except Booking.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Booking not found or not assigned to you'}, status=404)
+
+    ride_pin = getattr(booking, 'ride_pin', None)
+    if not ride_pin or not ride_pin.is_active:
+        return JsonResponse({'success': False, 'error': 'PIN not available or already used'}, status=400)
+
+    # Check lockout
+    now = timezone.now()
+    if ride_pin.locked_until and ride_pin.locked_until > now:
+        remaining = int((ride_pin.locked_until - now).total_seconds() // 60) + 1
+        return JsonResponse({
+            'success': False,
+            'error': f'PIN verification locked. Try again in {remaining} min.',
+            'locked': True,
+            'locked_until': ride_pin.locked_until.isoformat()
+        }, status=423)
+
+    pin_input = request.POST.get('pin', '').strip()
+    if not pin_input.isdigit() or len(pin_input) != 4:
+        return JsonResponse({'success': False, 'error': 'Enter a valid 4-digit PIN.'}, status=400)
+
+    # Log attempt
+    logger.info(f"[PIN VERIFY] driver={driver.driver_id} booking={booking_id} attempt_pin={pin_input}")
+
+    if check_password(pin_input, ride_pin.pin_hash):
+        ride_pin.is_verified = True
+        ride_pin.attempts = 0
+        ride_pin.locked_until = None
+        ride_pin.save(update_fields=['is_verified', 'attempts', 'locked_until'])
+        return JsonResponse({'success': True, 'message': 'PIN verified. You can start the ride now.'})
+
+    # Failed attempt handling
+    ride_pin.attempts += 1
+    attempts_left = max(0, 3 - ride_pin.attempts)
+    if ride_pin.attempts >= 3:
+        ride_pin.locked_until = now + timedelta(minutes=5)
+        ride_pin.attempts = 0
+        ride_pin.save(update_fields=['locked_until', 'attempts'])
+        return JsonResponse({
+            'success': False,
+            'error': 'Too many attempts. PIN verification locked for 5 minutes.',
+            'locked': True,
+            'locked_until': ride_pin.locked_until.isoformat()
+        }, status=423)
+
+    ride_pin.save(update_fields=['attempts'])
+    return JsonResponse({
+        'success': False,
+        'error': 'Invalid PIN. Please ask the passenger for the correct code.',
+        'attempts_left': attempts_left
+    }, status=400)
+
+
+@require_POST
+@driver_login_required
 def start_ride_view(request, booking_id):
     driver_id = request.session.get('driver_id')
     if not driver_id:
@@ -536,9 +638,26 @@ def start_ride_view(request, booking_id):
 
     booking = get_object_or_404(Booking, booking_id=booking_id, driver=driver)
 
+    # Enforce PIN verification before starting
+    ride_pin = getattr(booking, 'ride_pin', None)
+    if ride_pin:
+        if not ride_pin.is_verified:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': 'PIN verification required before starting ride.'}, status=403)
+            messages.error(request, 'PIN verification required before starting ride.')
+            return redirect('driver_rides')
+    else:
+        logger.warning(f"[PIN VERIFY] Missing ride pin for booking {booking.booking_id}")
+
     if booking.status in ['Confirmed', 'Arrived']:
         booking.status = 'Ongoing'
         booking.save()
+
+        # Invalidate PIN once ride starts
+        if ride_pin:
+            ride_pin.is_active = False
+            ride_pin.pin_plain = ''
+            ride_pin.save(update_fields=['is_active', 'pin_plain'])
         
         # Return JSON for AJAX requests
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':

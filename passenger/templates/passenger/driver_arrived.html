@@ -60,6 +60,14 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
       </div>
 
+      {% if ride_pin %}
+      <div class="mt-6 info-card rounded-xl p-4 text-left card-hover">
+        <p class="text-xs text-gray-500 font-medium uppercase tracking-wide mb-1">Ride Start PIN</p>
+        <p class="text-2xl font-heading font-bold text-emerald-700 tracking-[0.3rem]">{{ ride_pin }}</p>
+        <p class="text-xs text-gray-600 mt-1">Share this PIN with your driver. The ride can only start after the driver enters this PIN.</p>
+      </div>
+      {% endif %}
+
       <div class="mt-8">
         <a href="{% url 'ride_started' booking.booking_id %}" class="w-full btn-primary text-white px-6 py-3 rounded-xl inline-flex items-center justify-center font-medium card-hover">
           <i class="fas fa-info-circle mr-3"></i>

@@ -4,6 +4,7 @@ from driver.models import Driver
 from passenger.models import User
 from services.models import ServiceType
 from django.utils import timezone
+from django.utils import timezone
 
 class Booking(models.Model):
     STATUS_CHOICES = [
@@ -36,6 +37,24 @@ class Booking(models.Model):
     def __str__(self):
         return f"Booking #{self.booking_id} - {self.status}"
     
+
+class RidePin(models.Model):
+    """
+    One-time 4-digit PIN per ride, required before the driver can start.
+    Stores hashed PIN for verification plus a plaintext copy for passenger display only.
+    """
+    booking = models.OneToOneField(Booking, on_delete=models.CASCADE, related_name='ride_pin')
+    pin_hash = models.CharField(max_length=128)
+    pin_plain = models.CharField(max_length=4)
+    attempts = models.IntegerField(default=0)
+    locked_until = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    is_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"RidePin for Booking #{self.booking.booking_id} (verified={self.is_verified})"
 
 
 class RideRequest(models.Model):

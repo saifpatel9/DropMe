@@ -13,7 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rating.models import Rating
 from driver.models import Driver
 from booking.models import Booking
-from booking.models import RideRequest
+from booking.models import RideRequest, RidePin
 from django.contrib.auth import logout
 from faq.models import MainTopic, SubTopic, FAQ
 from django.utils import timezone
@@ -954,6 +954,14 @@ def cancel_booking(request):
         booking.status = 'Cancelled'
         booking.driver = None  # Unassign driver from the cancelled booking
         booking.save()
+
+        # Invalidate ride PIN if present
+        ride_pin = getattr(booking, 'ride_pin', None)
+        if ride_pin:
+            ride_pin.is_active = False
+            ride_pin.pin_plain = ''
+            ride_pin.save(update_fields=['is_active', 'pin_plain'])
+
         messages.success(request, f"Booking #{booking_id} has been cancelled.")
         print(f"DEBUG: Booking #{booking_id} cancelled successfully.")
     except Booking.DoesNotExist:
@@ -968,6 +976,21 @@ def cancel_booking(request):
 def booking_confirmed_view(request, booking_id):
     booking = get_object_or_404(Booking, pk=booking_id, user=request.user)
 
+    ride_pin_obj = RidePin.objects.filter(booking=booking).first()
+    if not ride_pin_obj:
+        from django.contrib.auth.hashers import make_password
+        import random
+        pin_value = f"{random.randint(0, 9999):04d}"
+        ride_pin_obj = RidePin.objects.create(
+            booking=booking,
+            pin_hash=make_password(pin_value),
+            pin_plain=pin_value,
+            attempts=0,
+            locked_until=None,
+            is_active=True,
+            is_verified=False,
+        )
+
 
     context = {
         'booking': booking,
@@ -978,6 +1001,7 @@ def booking_confirmed_view(request, booking_id):
         'selected_service': booking.service_type.name,
         'driver': booking.driver,
         'eta_message': "Your driver will arrive in 5-10 minutes",
+        'ride_pin': ride_pin_obj.pin_plain if ride_pin_obj and ride_pin_obj.is_active else None,
     }
 
     return render(request, 'passenger/ride_confirmed.html', context)
@@ -1002,6 +1026,31 @@ def booking_confirmed_view(request, booking_id):
     # as the waiting page will redirect here with a booking_id.
     booking = get_object_or_404(Booking, pk=booking_id, user=request.user)
 
+    # Fetch or fallback-create ride PIN (should be created when driver accepted)
+    ride_pin_obj = RidePin.objects.filter(booking=booking).first()
+    if not ride_pin_obj:
+        # Safety net: generate if missing
+        from django.contrib.auth.hashers import make_password
+        import random
+        pin_value = f"{random.randint(0, 9999):04d}"
+        ride_pin_obj = RidePin.objects.create(
+            booking=booking,
+            pin_hash=make_password(pin_value),
+            pin_plain=pin_value,
+            attempts=0,
+            locked_until=None,
+            is_active=True,
+            is_verified=False,
+        )
+
+    driver_vehicle = {}
+    if booking.driver:
+        driver_vehicle = {
+            'model': booking.driver.manufacturer or booking.driver.vehicle_type or '',
+            'color': booking.driver.color or '',
+            'plate': booking.driver.plate_number or '',
+        }
+
     context = {
         'booking': booking,
         'booking_id': booking.booking_id,
@@ -1011,6 +1060,8 @@ def booking_confirmed_view(request, booking_id):
         'selected_service': booking.service_type.name,
         'driver': booking.driver,
         'eta_message': "Your driver will arrive in 5-10 minutes",
+        'ride_pin': ride_pin_obj.pin_plain if ride_pin_obj and ride_pin_obj.is_active else None,
+        'driver_vehicle': driver_vehicle,
     }
     return render(request, 'passenger/ride_confirmed.html', context)
 
@@ -1173,9 +1224,11 @@ def booking_details_api(request, booking_id):
 
 def driver_arrived_view(request, booking_id):
     booking = get_object_or_404(Booking, booking_id=booking_id, user=request.user)
+    ride_pin_obj = RidePin.objects.filter(booking=booking, is_active=True).first()
     context = {
         'booking': booking,
         'driver': booking.driver,
+        'ride_pin': ride_pin_obj.pin_plain if ride_pin_obj else None,
     }
     return render(request, 'passenger/driver_arrived.html', context)
 
