@@ -17,6 +17,8 @@ from booking.models import RideRequest, RidePin
 from django.contrib.auth import logout
 from faq.models import MainTopic, SubTopic, FAQ
 from django.utils import timezone
+from django.conf import settings
+from django.urls import reverse
 from services.models import ServiceType
 from promo.models import PromoCode
 from django.views.decorators.http import require_POST
@@ -1169,11 +1171,25 @@ def ride_started_view(request, booking_id):
     if booking.status == 'Completed':
         return redirect('ride_completed', booking_id=booking.booking_id)
 
-    # Show the current time as the ride's start time (since your Booking model
-    # doesn't seem to store an explicit start_time field yet).
+    driver_vehicle = {}
+    if booking.driver:
+        driver_vehicle = {
+            'model': booking.driver.manufacturer or booking.driver.vehicle_type or '',
+            'color': booking.driver.color or '',
+            'plate': booking.driver.plate_number or '',
+            'name': f"{booking.driver.first_name or ''} {booking.driver.last_name or ''}".strip() or (booking.driver.email or "Driver"),
+        }
+
+    support_phone = getattr(settings, "SUPPORT_PHONE", "") if 'settings' in globals() else ""
+    tracking_url = request.build_absolute_uri(reverse("ride_started", args=[booking.booking_id]))
+
+    # Show the current time as the ride's start time (since Booking has no explicit start_time field yet).
     context = {
         "booking": booking,
         "start_time": timezone.localtime(timezone.now()).strftime("%d %b %Y, %I:%M %p"),
+        "driver_vehicle": driver_vehicle,
+        "tracking_url": tracking_url,
+        "support_phone": support_phone,
     }
     return render(request, "passenger/ride_started.html", context)
 
