@@ -1052,6 +1052,9 @@ def booking_confirmed_view(request, booking_id):
             'color': booking.driver.color or '',
             'plate': booking.driver.plate_number or '',
         }
+        driver_phone = booking.driver.phone if hasattr(booking.driver, "phone") else ""
+    else:
+        driver_phone = ""
 
     context = {
         'booking': booking,
@@ -1061,6 +1064,7 @@ def booking_confirmed_view(request, booking_id):
         'fare': booking.fare,
         'selected_service': booking.service_type.name,
         'driver': booking.driver,
+        'driver_phone': driver_phone,
         'eta_message': "Your driver will arrive in 5-10 minutes",
         'ride_pin': ride_pin_obj.pin_plain if ride_pin_obj and ride_pin_obj.is_active else None,
         'driver_vehicle': driver_vehicle,
