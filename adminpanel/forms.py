@@ -74,6 +74,53 @@ class DriverForm(forms.ModelForm):
             else:
                 field.widget.attrs.update({'class': input_class})
 
+        # Enforce required fields (backend safety)
+        required_fields = [
+            'first_name', 'last_name', 'phone', 'email',
+            'full_address', 'vehicle_type', 'plate_number',
+            'manufacturer', 'license_document'
+        ]
+        for name in required_fields:
+            if name in self.fields:
+                self.fields[name].required = True
+        # Prefer numeric phone and length hint
+        if 'phone' in self.fields:
+            self.fields['phone'].widget.attrs.update({
+                'pattern': r'^[0-9]{10}$',
+                'maxlength': '10',
+                'inputmode': 'numeric',
+            })
+
+    def clean(self):
+        cleaned = super().clean()
+        errors = {}
+
+        # Required checks (defensive even if widget required)
+        def require(field, label=None):
+            if not cleaned.get(field):
+                errors[field] = f"{label or field.replace('_', ' ').title()} is required."
+
+        require('first_name', 'First name')
+        require('last_name', 'Last name')
+        require('phone', 'Mobile number')
+        require('email', 'Email')
+        require('full_address', 'Address')
+        require('vehicle_type', 'Vehicle type')
+        require('plate_number', 'Vehicle number')
+        require('manufacturer', 'Vehicle model')
+        require('license_document', 'License document')
+
+        # Phone format: 10 digits
+        phone = cleaned.get('phone') or ''
+        if phone and (not phone.isdigit() or len(phone) != 10):
+            errors['phone'] = "Enter a valid 10-digit mobile number."
+
+        # If any errors, raise
+        if errors:
+            for field, msg in errors.items():
+                self.add_error(field, msg)
+        return cleaned
+
 class RentalServiceForm(forms.ModelForm):
     class Meta:
         model = RentalService

@@ -270,7 +270,7 @@ input[type="file"].form-input:hover {
 </div>
 
 <div class="max-w-7xl mx-auto">
-<form method="POST" enctype="multipart/form-data">
+<form id="add-driver-form" method="POST" enctype="multipart/form-data" novalidate>
   {% csrf_token %}
   {% if form.errors %}
     <div class="error-container mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg full-width-section">
@@ -304,25 +304,29 @@ input[type="file"].form-input:hover {
           <label for="{{ form.first_name.id_for_label }}" class="form-label">
             {{ form.first_name.label }}
           </label>
-          {{ form.first_name|add_class:"form-input" }}
+          {{ form.first_name|add_class:"form-input"|attr:"required:true"|attr:"maxlength:50"|attr:"data-required:true" }}
+          <small class="text-red-500 text-xs mt-1 hidden error-msg">This field is required.</small>
         </div>
         <div class="form-field">
           <label for="{{ form.last_name.id_for_label }}" class="form-label">
             {{ form.last_name.label }}
           </label>
-          {{ form.last_name|add_class:"form-input" }}
+          {{ form.last_name|add_class:"form-input"|attr:"required:true"|attr:"maxlength:50"|attr:"data-required:true" }}
+          <small class="text-red-500 text-xs mt-1 hidden error-msg">This field is required.</small>
         </div>
         <div class="form-field">
           <label for="{{ form.email.id_for_label }}" class="form-label">
             {{ form.email.label }}
           </label>
-          {{ form.email|add_class:"form-input" }}
+          {{ form.email|add_class:"form-input"|attr:"required:true"|attr:"type:email"|attr:"data-required:true" }}
+          <small class="text-red-500 text-xs mt-1 hidden error-msg">Enter a valid email address.</small>
         </div>
         <div class="form-field">
           <label for="{{ form.phone.id_for_label }}" class="form-label">
             {{ form.phone.label }}
           </label>
-          {{ form.phone|add_class:"form-input" }}
+          {{ form.phone|add_class:"form-input"|attr:"required:true"|attr:"pattern:^[0-9]{10}$"|attr:"maxlength:10"|attr:"inputmode:numeric"|attr:"data-required:true" }}
+          <small class="text-red-500 text-xs mt-1 hidden error-msg">Enter a valid 10-digit mobile number.</small>
         </div>
         <div class="form-field">
           <label for="{{ form.gender.id_for_label }}" class="form-label">
@@ -339,7 +343,7 @@ input[type="file"].form-input:hover {
       <div class="form-grid">
         <div class="form-field">
           <label for="vehicle_type" class="form-label">Vehicle Type</label>
-          <select name="vehicle_type" id="vehicle_type" class="form-input">
+          <select name="vehicle_type" id="vehicle_type" class="form-input" required data-required="true">
             <option value="">Select Vehicle Type</option>
             <option value="Hatchback">Hatchback</option>
             <option value="Sedan">Sedan</option>
@@ -347,18 +351,21 @@ input[type="file"].form-input:hover {
             <option value="Auto">Auto</option>
             <option value="Bike">Bike</option>
           </select>
+          <small class="text-red-500 text-xs mt-1 hidden error-msg">This field is required.</small>
         </div>
         <div class="form-field">
           <label for="{{ form.plate_number.id_for_label }}" class="form-label">
             {{ form.plate_number.label }}
           </label>
-          {{ form.plate_number|add_class:"form-input" }}
+          {{ form.plate_number|add_class:"form-input"|attr:"required:true"|attr:"maxlength:20"|attr:"data-required:true" }}
+          <small class="text-red-500 text-xs mt-1 hidden error-msg">This field is required.</small>
         </div>
         <div class="form-field">
           <label for="{{ form.manufacturer.id_for_label }}" class="form-label">
             {{ form.manufacturer.label }}
           </label>
-          {{ form.manufacturer|add_class:"form-input" }}
+          {{ form.manufacturer|add_class:"form-input"|attr:"required:true"|attr:"maxlength:100"|attr:"data-required:true" }}
+          <small class="text-red-500 text-xs mt-1 hidden error-msg">This field is required.</small>
         </div>
         <div class="form-field">
           <label for="{{ form.color.id_for_label }}" class="form-label">
@@ -411,7 +418,8 @@ input[type="file"].form-input:hover {
           <label for="{{ form.full_address.id_for_label }}" class="form-label">
             {{ form.full_address.label }}
           </label>
-          {{ form.full_address|add_class:"form-input" }}
+          {{ form.full_address|add_class:"form-input"|attr:"required:true"|attr:"data-required:true" }}
+          <small class="text-red-500 text-xs mt-1 hidden error-msg">This field is required.</small>
         </div>
       </div>
     </div>
@@ -516,7 +524,8 @@ input[type="file"].form-input:hover {
           <label for="{{ form.license_document.id_for_label }}" class="form-label">
             {{ form.license_document.label }}
           </label>
-          {{ form.license_document|add_class:"form-input" }}
+          {{ form.license_document|add_class:"form-input"|attr:"required:true"|attr:"data-required:true" }}
+          <small class="text-red-500 text-xs mt-1 hidden error-msg">License document is required.</small>
         </div>
         <div class="form-field">
           <label for="{{ form.id_proof.id_for_label }}" class="form-label">
@@ -535,7 +544,7 @@ input[type="file"].form-input:hover {
   </div>
 
   <div class="flex justify-end mt-8">
-    <button type="submit" class="submit-button px-6 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition duration-200">
+    <button type="submit" id="submit-driver-btn" class="submit-button px-6 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition duration-200 disabled:opacity-60 disabled:cursor-not-allowed" disabled>
       Submit Driver Information
     </button>
   </div>
@@ -658,6 +667,75 @@ input[type="file"].form-input:hover {
 
     passwordInput.addEventListener('input', checkPasswordMatch);
     confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+  });
+
+  // Client-side validation: inline errors + disable submit until valid
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('add-driver-form');
+    const submitBtn = document.getElementById('submit-driver-btn');
+    const requiredFields = Array.from(form.querySelectorAll('[data-required="true"]'));
+
+    function showError(input, message) {
+      input.classList.add('border-red-500');
+      const msg = input.parentElement.querySelector('.error-msg');
+      if (msg) {
+        msg.textContent = message;
+        msg.classList.remove('hidden');
+      }
+    }
+
+    function clearError(input) {
+      input.classList.remove('border-red-500');
+      const msg = input.parentElement.querySelector('.error-msg');
+      if (msg) {
+        msg.classList.add('hidden');
+      }
+    }
+
+    function validateField(input) {
+      clearError(input);
+      if (input.type === 'email' && input.required) {
+        if (!input.value) {
+          showError(input, 'This field is required.');
+          return false;
+        }
+        if (!input.validity.valid) {
+          showError(input, 'Enter a valid email address.');
+          return false;
+        }
+      } else if (input.name === 'phone') {
+        const val = input.value.trim();
+        if (!val) {
+          showError(input, 'This field is required.');
+          return false;
+        }
+        if (!/^[0-9]{10}$/.test(val)) {
+          showError(input, 'Enter a valid 10-digit mobile number.');
+          return false;
+        }
+      } else if (input.required && !input.value) {
+        showError(input, 'This field is required.');
+        return false;
+      }
+      return true;
+    }
+
+    function validateForm() {
+      let allValid = true;
+      requiredFields.forEach((field) => {
+        const ok = validateField(field);
+        if (!ok) allValid = false;
+      });
+      submitBtn.disabled = !allValid;
+    }
+
+    requiredFields.forEach((field) => {
+      field.addEventListener('input', validateForm);
+      field.addEventListener('blur', () => validateField(field));
+      field.addEventListener('change', validateForm);
+    });
+
+    validateForm();
   });
 </script>
     
