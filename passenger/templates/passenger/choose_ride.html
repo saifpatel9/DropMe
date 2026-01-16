@@ -50,6 +50,12 @@
       </div>
 
       <input type="hidden" name="ride_type" value="{{ ride_type }}">
+      <input type="hidden" id="pickup_lat" value="{{ pickup_lat|default:'' }}">
+      <input type="hidden" id="pickup_lng" value="{{ pickup_lng|default:'' }}">
+      <input type="hidden" id="drop_lat" value="{{ drop_lat|default:'' }}">
+      <input type="hidden" id="drop_lng" value="{{ drop_lng|default:'' }}">
+      <input type="hidden" id="distance_km" value="">
+      <input type="hidden" id="duration_min" value="">
       <div class="mb-4">
         <input type="text" name="pickup" placeholder="Pickup Location" value="{{ pickup }}" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500">
       </div>
@@ -182,7 +188,30 @@
         const rentalDuration = rentalSelect ? rentalSelect.value : '';
         
         if (pickup && dropoff && date && time) {
-          let url = `/passenger/choose-ride/?pickup=${pickup}&dropoff=${dropoff}&ride_date=${date}&ride_time=${time}&ride_type=${selectedType}`;
+          // Get coordinates from hidden fields if available
+          const pickupLat = document.getElementById('pickup_lat')?.value || '';
+          const pickupLng = document.getElementById('pickup_lng')?.value || '';
+          const dropLat = document.getElementById('drop_lat')?.value || '';
+          const dropLng = document.getElementById('drop_lng')?.value || '';
+          const distanceKm = document.getElementById('distance_km')?.value || '';
+          const durationMin = document.getElementById('duration_min')?.value || '';
+          
+          let url = `/passenger/choose-ride/?pickup=${encodeURIComponent(pickup)}&dropoff=${encodeURIComponent(dropoff)}&ride_date=${date}&ride_time=${time}&ride_type=${selectedType}`;
+          
+          // Add coordinates if available
+          if (pickupLat && pickupLng) {
+            url += `&pickup_lat=${pickupLat}&pickup_lng=${pickupLng}`;
+          }
+          if (dropLat && dropLng) {
+            url += `&drop_lat=${dropLat}&drop_lng=${dropLng}`;
+          }
+          if (distanceKm) {
+            url += `&distance_km=${distanceKm}`;
+          }
+          if (durationMin) {
+            url += `&duration_min=${durationMin}`;
+          }
+          
           if (selectedType === 'rental' && rentalDuration) {
             url += `&rental_duration=${rentalDuration}`;
           }

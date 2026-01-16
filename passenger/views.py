@@ -124,6 +124,35 @@ def choose_ride_view(request):
     ride_time = request.GET.get('time')
     ride_type = request.GET.get('ride_type', 'daily') 
     estimated_fares = []
+    
+    # If coordinates are missing but addresses are provided, try to geocode
+    # Note: This is a fallback - frontend should handle geocoding before submission
+    if pickup and dropoff and (not pickup_lat or not pickup_lng or not drop_lat or not drop_lng):
+        import requests
+        try:
+            # Geocode pickup if missing
+            if not pickup_lat or not pickup_lng:
+                geocode_url = f'https://nominatim.openstreetmap.org/search?format=json&q={requests.utils.quote(pickup)}&limit=1'
+                geocode_response = requests.get(geocode_url, headers={'User-Agent': 'DropMeApp/1.0'}, timeout=5)
+                if geocode_response.status_code == 200:
+                    geocode_data = geocode_response.json()
+                    if geocode_data and len(geocode_data) > 0:
+                        pickup_lat = geocode_data[0].get('lat')
+                        pickup_lng = geocode_data[0].get('lon')
+            
+            # Geocode dropoff if missing
+            if not drop_lat or not drop_lng:
+                geocode_url = f'https://nominatim.openstreetmap.org/search?format=json&q={requests.utils.quote(dropoff)}&limit=1'
+                geocode_response = requests.get(geocode_url, headers={'User-Agent': 'DropMeApp/1.0'}, timeout=5)
+                if geocode_response.status_code == 200:
+                    geocode_data = geocode_response.json()
+                    if geocode_data and len(geocode_data) > 0:
+                        drop_lat = geocode_data[0].get('lat')
+                        drop_lng = geocode_data[0].get('lon')
+        except Exception as e:
+            # If geocoding fails, continue with existing logic (fallback to STATIC_DISTANCES)
+            print(f"[DEBUG] Backend geocoding failed: {e}")
+            pass
 
     SERVICE_DETAILS = {
         'Hatchback': {
@@ -161,6 +190,29 @@ def choose_ride_view(request):
                 distance = Decimal(dynamic_distance_km)
             except Exception:
                 distance = None
+        
+        # If no distance from routing, calculate from coordinates if available
+        if distance is None and pickup_lat and pickup_lng and drop_lat and drop_lng:
+            try:
+                from math import radians, sin, cos, sqrt, atan2
+                # Haversine formula to calculate distance
+                lat1 = radians(float(pickup_lat))
+                lon1 = radians(float(pickup_lng))
+                lat2 = radians(float(drop_lat))
+                lon2 = radians(float(drop_lng))
+                
+                dlat = lat2 - lat1
+                dlon = lon2 - lon1
+                a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+                c = 2 * atan2(sqrt(a), sqrt(1-a))
+                R = 6371  # Earth radius in kilometers
+                distance = Decimal(str(round(R * c, 2)))
+                print(f"[DEBUG] Calculated distance from coordinates: {distance} km")
+            except Exception as e:
+                print(f"[DEBUG] Error calculating distance from coordinates: {e}")
+                distance = None
+        
+        # Fallback to static distances if still no distance
         if distance is None:
             distance = STATIC_DISTANCES.get((pickup, dropoff)) or STATIC_DISTANCES.get((dropoff, pickup))
         if distance:

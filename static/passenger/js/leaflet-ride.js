@@ -20,8 +20,16 @@
 	}
 
 	function geocode(query){
-		var url = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query);
-		return fetch(url, { headers: { 'Accept': 'application/json' } }).then(function(r){ return r.json(); });
+		var url = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&limit=5';
+		return fetch(url, { 
+			headers: { 
+				'Accept': 'application/json',
+				'User-Agent': 'DropMeCabApp/1.0'
+			} 
+		}).then(function(r){ 
+			if(!r.ok) throw new Error('Geocoding request failed');
+			return r.json(); 
+		});
 	}
 
 	function reverseGeocode(lat, lng){
@@ -42,27 +50,67 @@
 		container.classList.remove('hidden');
 	}
 
+	// Store top geocoding result for auto-selection
+	var pickupTopResult = null;
+	var dropoffTopResult = null;
+
 	var onPickupInput = debounce(function(){
 		var q = pickupInput.value.trim();
-		if(q.length < 2){ pickupSuggestions.classList.add('hidden'); return; }
+		if(q.length < 2){ pickupSuggestions.classList.add('hidden'); pickupTopResult = null; return; }
 		geocode(q).then(function(results){
+			if(results && results.length > 0){
+				// Store top result for auto-selection
+				pickupTopResult = results[0];
+				// Auto-set coordinates from top result if not already set
+				if(!pickupLat.value || !pickupLng.value){
+					pickupLat.value = pickupTopResult.lat;
+					pickupLng.value = pickupTopResult.lon;
+					// Update input with full address for better UX
+					if(pickupInput.value !== pickupTopResult.display_name){
+						pickupInput.value = pickupTopResult.display_name;
+					}
+					tryRoute();
+				}
+			}
 			renderSuggestions(pickupSuggestions, results, function(item){
 				pickupInput.value = item.display_name;
 				pickupLat.value = item.lat; pickupLng.value = item.lon;
+				pickupTopResult = item; // Update stored result
 				tryRoute();
 			});
+		}).catch(function(err){
+			console.error('Geocoding error for pickup:', err);
+			pickupTopResult = null;
 		});
 	}, 300);
 
 	var onDropoffInput = debounce(function(){
 		var q = dropoffInput.value.trim();
-		if(q.length < 2){ dropoffSuggestions.classList.add('hidden'); return; }
+		if(q.length < 2){ dropoffSuggestions.classList.add('hidden'); dropoffTopResult = null; return; }
 		geocode(q).then(function(results){
+			if(results && results.length > 0){
+				// Store top result for auto-selection
+				dropoffTopResult = results[0];
+				// Auto-set coordinates from top result if not already set
+				if(!dropLat.value || !dropLng.value){
+					dropLat.value = dropoffTopResult.lat;
+					dropLng.value = dropoffTopResult.lon;
+					// Update input with full address for better UX
+					if(dropoffInput.value !== dropoffTopResult.display_name){
+						dropoffInput.value = dropoffTopResult.display_name;
+					}
+					tryRoute();
+				}
+			}
 			renderSuggestions(dropoffSuggestions, results, function(item){
 				dropoffInput.value = item.display_name;
 				dropLat.value = item.lat; dropLng.value = item.lon;
+				dropoffTopResult = item; // Update stored result
 				tryRoute();
 			});
+		}).catch(function(err){
+			console.error('Geocoding error for dropoff:', err);
+			dropoffTopResult = null;
 		});
 	}, 300);
 
@@ -322,18 +370,93 @@
 
 	var form = document.getElementById('rideForm');
 	if(form){
-		form.addEventListener('submit', function(){
-			// if user didn't pick from suggestions, try geocode once
-			var tasks = [];
-			if(!pickupLat.value || !pickupLng.value){
-				tasks.push(geocode(pickupInput.value).then(function(r){ if(r[0]){ pickupLat.value=r[0].lat; pickupLng.value=r[0].lon; } }));
+		form.addEventListener('submit', function(e){
+			e.preventDefault(); // Prevent default submission
+			
+			var pickupText = pickupInput.value.trim();
+			var dropoffText = dropoffInput.value.trim();
+			
+			// Validate inputs
+			if(!pickupText || !dropoffText){
+				alert('Please enter both pickup and dropoff locations.');
+				return;
 			}
-			if(!dropLat.value || !dropLng.value){
-				tasks.push(geocode(dropoffInput.value).then(function(r){ if(r[0]){ dropLat.value=r[0].lat; dropLng.value=r[0].lon; } }));
+			
+			// Function to geocode and set coordinates
+			function ensureCoordinates(){
+				var tasks = [];
+				var needsGeocoding = false;
+				
+				// Check if we need to geocode pickup
+				if(!pickupLat.value || !pickupLng.value){
+					needsGeocoding = true;
+					tasks.push(
+						geocode(pickupText).then(function(results){
+							if(results && results.length > 0){
+								var topResult = results[0];
+								pickupLat.value = topResult.lat;
+								pickupLng.value = topResult.lon;
+								// Update input with full address
+								if(pickupInput.value !== topResult.display_name){
+									pickupInput.value = topResult.display_name;
+								}
+								return true;
+							}
+							throw new Error('No geocoding results for pickup');
+						})
+					);
+				}
+				
+				// Check if we need to geocode dropoff
+				if(!dropLat.value || !dropLng.value){
+					needsGeocoding = true;
+					tasks.push(
+						geocode(dropoffText).then(function(results){
+							if(results && results.length > 0){
+								var topResult = results[0];
+								dropLat.value = topResult.lat;
+								dropLng.value = topResult.lon;
+								// Update input with full address
+								if(dropoffInput.value !== topResult.display_name){
+									dropoffInput.value = topResult.display_name;
+								}
+								return true;
+							}
+							throw new Error('No geocoding results for dropoff');
+						})
+					);
+				}
+				
+				// If we need geocoding, wait for it
+				if(needsGeocoding && tasks.length > 0){
+					return Promise.all(tasks).then(function(){
+						// Calculate route after geocoding
+						tryRoute();
+						return true;
+					}).catch(function(err){
+						console.error('Geocoding failed:', err);
+						alert('Unable to resolve one or both locations. Please select a location from the suggestions or check your input.');
+						return false;
+					});
+				}
+				
+				// Coordinates already set, just calculate route
+				tryRoute();
+				return Promise.resolve(true);
 			}
-			if(tasks.length){
-				Promise.all(tasks).then(function(){ tryRoute(); });
-			}
+			
+			// Ensure coordinates are set before submitting
+			ensureCoordinates().then(function(success){
+				if(success){
+					// Verify coordinates are set before submitting
+					if(pickupLat.value && pickupLng.value && dropLat.value && dropLng.value){
+						// Submit the form
+						form.submit();
+					} else {
+						alert('Please select valid locations from the suggestions or wait for location resolution.');
+					}
+				}
+			});
 		});
 	}
 
