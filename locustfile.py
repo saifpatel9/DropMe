@@ -4,29 +4,20 @@ class TestUser(HttpUser):
     wait_time = between(1, 3)
 
     def on_start(self):
-        """
-        This runs once per user when they start.
-        We first hit the homepage to obtain the CSRF cookie.
-        """
+        # Get CSRF + session
         response = self.client.get("/")
         self.csrf_token = response.cookies.get("csrftoken")
 
-    @task(2)
-    def homepage(self):
-        self.client.get("/")
-
-    @task(1)
+    @task
     def choose_ride(self):
-        headers = {
-            "X-CSRFToken": self.csrf_token
-        }
-
-        self.client.post(
+        self.client.get(
             "/choose-ride/",
-            data={
+            params={
                 "pickup": "Andheri",
-                "drop": "Bandra"
+                "dropoff": "Bandra",
+                "distance_km": "7.5",
+                "duration_min": "20",
+                "ride_type": "daily"
             },
-            headers=headers,
-            name="POST /choose-ride"
+            name="GET /choose-ride"
         )
