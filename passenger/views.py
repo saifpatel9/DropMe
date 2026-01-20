@@ -129,7 +129,7 @@ def choose_ride_view(request):
     
     # If coordinates are missing but addresses are provided, try to geocode
     # Note: This is a fallback - frontend should handle geocoding before submission
-    if pickup and dropoff and (not pickup_lat or not pickup_lng or not drop_lat or not drop_lng):
+    if pickup and dropoff and not dynamic_distance_km and (not pickup_lat or not pickup_lng or not drop_lat or not drop_lng):
         import requests
         try:
             # Geocode pickup if missing
