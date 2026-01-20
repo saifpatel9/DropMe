@@ -26,6 +26,7 @@ import json
 from .forms import EmergencyContactForm
 from django.core.cache import cache
 from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
 
 @login_required
 def passenger_dashboard(request):
@@ -111,6 +112,7 @@ STATIC_DISTANCES = {
     ('Nashik', 'Mumbai'): 200,
 }
 
+@csrf_exempt
 def choose_ride_view(request):
     pickup = request.GET.get('pickup')
     dropoff = request.GET.get('dropoff')

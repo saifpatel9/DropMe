@@ -4,20 +4,28 @@ class TestUser(HttpUser):
     wait_time = between(1, 3)
 
     def on_start(self):
-        # Get CSRF + session
-        response = self.client.get("/")
-        self.csrf_token = response.cookies.get("csrftoken")
+        """
+        Simulate landing on homepage like a browser.
+        Session creation only.
+        """
+        self.client.get("/")
 
     @task
-    def choose_ride(self):
+    def choose_ride_like_browser(self):
+        """
+        Exact browser behaviour:
+        - GET request
+        - Query parameters
+        - Correct passenger URL
+        """
         self.client.get(
-            "/choose-ride/",
+            "/passenger/choose-ride/",
             params={
                 "pickup": "Andheri",
                 "dropoff": "Bandra",
-                "distance_km": "7.5",
-                "duration_min": "20",
-                "ride_type": "daily"
+                "ride_type": "daily",
+                "distance_km": 7.5,
+                "duration_min": 18
             },
-            name="GET /choose-ride"
+            name="GET /passenger/choose-ride/"
         )
