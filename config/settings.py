@@ -4,23 +4,46 @@ from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
 
-# Build paths inside the project
+# --------------------------------------------------
+# Base directory
+# --------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Always load .env if present (for local dev)
+# --------------------------------------------------
+# Load environment variables
+# --------------------------------------------------
 load_dotenv(BASE_DIR / ".env")
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-fallback-key")
+# --------------------------------------------------
+# Security
+# --------------------------------------------------
+SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-change-me")
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
-# Load .env only when running locally (DEBUG = True)
-if DEBUG:
-    load_dotenv()
+ALLOWED_HOSTS = [
+    os.getenv("DOMAIN_NAME", "localhost"),
+    "www." + os.getenv("DOMAIN_NAME", "localhost"),
+    os.getenv("SERVER_IP", "127.0.0.1"),
+    "localhost",
+    "127.0.0.1",
+]
 
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{os.getenv('DOMAIN_NAME')}",
+    f"https://www.{os.getenv('DOMAIN_NAME')}",
+]
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = "DENY"
+
+# --------------------------------------------------
 # Application definition
+# --------------------------------------------------
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -28,7 +51,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # Your apps
+
+    # Local apps
     "passenger",
     "driver",
     "booking",
@@ -43,13 +67,14 @@ INSTALLED_APPS = [
     "rating",
     "faq",
     "feedback",
+
     # Third-party
     "widget_tweaks",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",  # Must be after SecurityMiddleware
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -60,6 +85,9 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "config.urls"
 
+# --------------------------------------------------
+# Templates
+# --------------------------------------------------
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -78,16 +106,30 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-# Database
+# --------------------------------------------------
+# Database (MySQL + DATABASE_URL fallback)
+# --------------------------------------------------
 DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL environment variable not set")
 
-DATABASES = {
-    "default": dj_database_url.parse(DATABASE_URL)
-}
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(DATABASE_URL)
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": os.getenv("DB_NAME", "cabdb"),
+            "USER": os.getenv("DB_USER", "cabuser"),
+            "PASSWORD": os.getenv("DB_PASSWORD", "root1234"),
+            "HOST": os.getenv("DB_HOST", "localhost"),
+            "PORT": os.getenv("DB_PORT", "3306"),
+        }
+    }
 
+# --------------------------------------------------
 # Password validation
+# --------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -95,52 +137,53 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+# --------------------------------------------------
 # Internationalization
+# --------------------------------------------------
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_TZ = True
 
-# Static files
+# --------------------------------------------------
+# Static & Media files
+# --------------------------------------------------
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"] if DEBUG else []
 
-if not DEBUG:
-    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-else:
-    STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
-
-# Media files
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-# Default primary key field type
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+STATICFILES_STORAGE = (
+    "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    if not DEBUG
+    else "django.contrib.staticfiles.storage.StaticFilesStorage"
+)
 
+WHITENOISE_MAX_AGE = 31536000  # 1 year cache
+
+# --------------------------------------------------
 # Authentication
+# --------------------------------------------------
+AUTH_USER_MODEL = "passenger.User"
+
 LOGIN_URL = "/panel/login/"
 LOGIN_REDIRECT_URL = "/panel/dashboard/"
 LOGOUT_REDIRECT_URL = "homepage"
-AUTH_USER_MODEL = "passenger.User"
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
-# Security
-CSRF_TRUSTED_ORIGINS = [
-    "https://web-production-0a117.up.railway.app",
-    "https://<your-custom-domain-if-any>",
-]
+# --------------------------------------------------
+# Default primary key field
+# --------------------------------------------------
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-ALLOWED_HOSTS = [
-    "web-production-0a117.up.railway.app",
-    "localhost",
-    "127.0.0.1",
-]
-
-# Logging
+# --------------------------------------------------
+# Logging (Production-safe)
+# --------------------------------------------------
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -152,6 +195,6 @@ LOGGING = {
     },
     "root": {
         "handlers": ["console"],
-        "level": "DEBUG",
+        "level": "INFO" if not DEBUG else "DEBUG",
     },
 }
