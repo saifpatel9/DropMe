@@ -26,6 +26,10 @@ from django.db.models import Sum, Count, F, ExpressionWrapper, DecimalField
 from payments.models import Payment
 from django.utils import timezone
 import datetime
+from adminpanel.models import AdminUser
+from django.contrib.auth.hashers import check_password
+from django.views.decorators.csrf import csrf_protect
+
 
 @admin_login_required
 def adminpanel_dashboard(request):
@@ -55,23 +59,33 @@ def adminpanel_dashboard(request):
 from django.contrib.auth.hashers import check_password
 from .models import AdminUser
 
-def login_view(request):
-    if request.method == 'POST':
-        email = request.POST.get('email')
-        password = request.POST.get('password')
+@csrf_protect
+def admin_login(request):
+    if request.method == "POST":
+        email = request.POST.get("email")
+        password = request.POST.get("password")
 
         try:
-            user = AdminUser.objects.get(email=email)
-            if check_password(password, user.password):
-                login(request, user, backend='django.contrib.auth.backends.ModelBackend')
-                messages.success(request, f"Welcome back, {user.email}!")
-                return redirect('adminpanel_dashboard')
-            else:
-                messages.error(request, "Invalid password.")
+            admin = AdminUser.objects.get(email=email)
         except AdminUser.DoesNotExist:
-            messages.error(request, "Invalid email.")
-    
-    return render(request, 'adminpanel/admin_login.html')
+            messages.error(request, "Invalid email or password")
+            return redirect("admin_login")
+
+        if not admin.is_active:
+            messages.error(request, "Account inactive")
+            return redirect("admin_login")
+
+        if not check_password(password, admin.password):
+            messages.error(request, "Invalid email or password")
+            return redirect("admin_login")
+
+        # ✅ Manual session login
+        request.session["admin_id"] = admin.id
+        request.session["admin_role"] = admin.role
+
+        return redirect("admin_dashboard")
+
+    return render(request, "adminpanel/login.html")
 
 
 @admin_login_required
@@ -754,3 +768,7 @@ def edit_fareslab(request, slab_id):
         form = FareSlabForm(instance=slab)
 
     return render(request, 'adminpanel/edit_fareslab.html', {'form': form, 'slab': slab})
+
+def admin_logout(request):
+    request.session.flush()
+    return redirect("admin_login")
