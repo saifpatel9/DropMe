@@ -26,6 +26,7 @@ import json
 from .forms import EmergencyContactForm
 from django.core.cache import cache
 from django.db.models import Q
+from django.views.decorators.csrf import csrf_exempt
 
 @login_required
 def passenger_dashboard(request):
