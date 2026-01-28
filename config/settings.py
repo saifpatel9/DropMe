@@ -22,13 +22,12 @@ SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-change-me")
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 
 ALLOWED_HOSTS = [
+    os.getenv("DOMAIN_NAME", "localhost"),
+    "www." + os.getenv("DOMAIN_NAME", "localhost"),
+    os.getenv("SERVER_IP", "127.0.0.1"),
     "localhost",
     "127.0.0.1",
-    "160.187.80.217",
-    "saifpatel.com",
-    "www.saifpatel.com",
 ]
-
 
 CSRF_TRUSTED_ORIGINS = [
     f"https://{os.getenv('DOMAIN_NAME')}",
