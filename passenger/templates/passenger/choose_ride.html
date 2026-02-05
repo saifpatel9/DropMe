@@ -108,11 +108,11 @@
             <div id="ride-map"></div>
           </div>
         </div>
-        <div class="space-y-4 mb-6">
+        <div class="space-y-4 mb-6" data-outstation-disallowed="Bike,Auto">
           {% if estimated_fares %}
             {% for fare in estimated_fares %}
               <label class="block">
-                <input type="radio" name="selected_service" value="{{ fare.service_id }}" class="peer hidden" required>
+                <input type="radio" name="selected_service" value="{{ fare.service_id }}" class="peer hidden" required data-service-name="{{ fare.service_name }}">
                 <div class="flex items-center p-4 border rounded-xl hover:shadow transition cursor-pointer peer-checked:border-2 peer-checked:border-teal-500 mb-2">
                   <div class="mr-4 flex-shrink-0">
                     {% if fare.icon %}
@@ -153,6 +153,10 @@
     const buttons = tabsContainer.querySelectorAll('button');
     const rideTypeNotice = document.getElementById('ride_type_notice');
     const outstationThresholdKm = tabsContainer && tabsContainer.dataset.outstationKm ? parseFloat(tabsContainer.dataset.outstationKm) : 40;
+    const serviceList = document.querySelector('.space-y-4[data-outstation-disallowed]');
+    const outstationDisallowed = serviceList && serviceList.dataset.outstationDisallowed
+      ? serviceList.dataset.outstationDisallowed.split(',').map(item => item.trim().toLowerCase()).filter(Boolean)
+      : ['bike', 'auto'];
 
     const pickupCity = document.getElementById('pickup_city');
     const pickupDistrict = document.getElementById('pickup_district');
@@ -320,11 +324,30 @@
           }
           window.location.href = url;
         }
+        applyServiceFilter();
       });
     });
 
     const serviceRadios = document.querySelectorAll('input[name="selected_service"]');
     const bookButton = document.getElementById('book-ride-btn');
+
+    function applyServiceFilter() {
+      const rideTypeInput = document.querySelector('input[name="ride_type"]');
+      const rideType = rideTypeInput ? rideTypeInput.value.toLowerCase() : '';
+      serviceRadios.forEach(radio => {
+        const label = radio.closest('label');
+        const serviceName = (radio.dataset.serviceName || '').toLowerCase();
+        const shouldHide = rideType === 'outstation' && outstationDisallowed.includes(serviceName);
+        if (label) {
+          label.style.display = shouldHide ? 'none' : '';
+        }
+        radio.disabled = shouldHide;
+        if (shouldHide && radio.checked) {
+          radio.checked = false;
+          if (bookButton) bookButton.disabled = true;
+        }
+      });
+    }
 
     serviceRadios.forEach(radio => {
       radio.addEventListener('change', () => {
@@ -334,6 +357,8 @@
         }
       });
     });
+
+    applyServiceFilter();
 
     bookButton.addEventListener('click', () => {
       const rideTypeInput = document.querySelector('input[name="ride_type"]');

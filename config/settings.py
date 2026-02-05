@@ -181,3 +181,6 @@ LOGGING = {
 
 # Daily ride maximum distance before forcing Outstation (km)
 OUTSTATION_DISTANCE_KM = 40
+
+# Vehicle types not allowed for Outstation rides
+OUTSTATION_DISALLOWED_VEHICLES = ["Bike", "Auto"]

@@ -132,6 +132,7 @@ def choose_ride_view(request):
     ride_time = request.GET.get('time')
     ride_type = request.GET.get('ride_type', 'daily') 
     estimated_fares = []
+    outstation_disallowed = getattr(settings, 'OUTSTATION_DISALLOWED_VEHICLES', ['Bike', 'Auto'])
     
     # If coordinates are missing but addresses are provided, try to geocode
     # Note: This is a fallback - frontend should handle geocoding before submission
@@ -226,7 +227,7 @@ def choose_ride_view(request):
         if distance:
             time_minutes = Decimal(dynamic_duration_min) if dynamic_duration_min else distance * 2 
             if ride_type == 'outstation':
-                services = ServiceType.objects.exclude(name__in=['Auto', 'Bike'])
+                services = ServiceType.objects.exclude(name__in=outstation_disallowed)
                 for service in services:
                     base_fare = service.base_fare or Decimal('0')
                     per_km_rate = service.price_per_km or Decimal('0')
@@ -803,6 +804,14 @@ def confirm_booking(request):
                 'error': f"Selected service type '{selected_vehicle_type}' is invalid.",
                 'ride_type': ride_type
             })
+
+        if ride_type and ride_type.lower() == 'outstation':
+            disallowed = [v.lower() for v in getattr(settings, 'OUTSTATION_DISALLOWED_VEHICLES', ['Bike', 'Auto'])]
+            if service_type_obj.name.strip().lower() in disallowed:
+                return render(request, 'passenger/ride_confirmed.html', {
+                    'error': f"{service_type_obj.name} is not available for Outstation rides.",
+                    'ride_type': ride_type
+                })
 
         # Convert fare to Decimal
         try:
