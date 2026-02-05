@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
 
 <style>
 :root {
@@ -346,7 +347,7 @@ body {
 
         <div class="rides-table-card">
             {% if ride_earnings %}
-            <table class="rides-table">
+            <table class="rides-table responsive-table">
                 <thead>
                     <tr>
                         <th>Ride ID</th>
@@ -360,12 +361,12 @@ body {
                 <tbody>
                     {% for ride in ride_earnings %}
                     <tr>
-                        <td><span class="ride-id">#{{ ride.booking_id }}</span></td>
-                        <td><span class="ride-location">{{ ride.pickup_location|shorten_address }}</span></td>
-                        <td><span class="ride-location">{{ ride.dropoff_location|shorten_address }}</span></td>
-                        <td>{{ ride.scheduled_time|date:"M d, Y" }}<br>{{ ride.scheduled_time|time:"h:i A" }}</td>
-                        <td><span class="ride-fare">₹{{ ride.fare|floatformat:2 }}</span></td>
-                        <td><span class="ride-earning">₹{{ ride.driver_earning|floatformat:2 }}</span></td>
+                        <td data-label="Ride ID"><span class="ride-id">#{{ ride.booking_id }}</span></td>
+                        <td data-label="Pickup"><span class="ride-location">{{ ride.pickup_location|shorten_address }}</span></td>
+                        <td data-label="Dropoff"><span class="ride-location">{{ ride.dropoff_location|shorten_address }}</span></td>
+                        <td data-label="Date & Time">{{ ride.scheduled_time|date:"M d, Y" }}<br>{{ ride.scheduled_time|time:"h:i A" }}</td>
+                        <td data-label="Fare"><span class="ride-fare">₹{{ ride.fare|floatformat:2 }}</span></td>
+                        <td data-label="Your Earning"><span class="ride-earning">₹{{ ride.driver_earning|floatformat:2 }}</span></td>
                     </tr>
                     {% endfor %}
                 </tbody>

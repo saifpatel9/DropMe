@@ -1,0 +1,98 @@
+/* Shared responsive helpers for passenger + driver pages */
+:root {
+  --tap-size: 44px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img, svg, video, canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+button, input, select, textarea, a.btn, .btn, .button {
+  min-height: var(--tap-size);
+}
+
+input, select, textarea {
+  font-size: 16px; /* prevent iOS zoom */
+}
+
+.container {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Responsive tables -> cards */
+@media (max-width: 768px) {
+  .responsive-table {
+    display: block;
+    width: 100%;
+  }
+  .responsive-table thead {
+    display: none;
+  }
+  .responsive-table tbody,
+  .responsive-table tr,
+  .responsive-table td {
+    display: block;
+    width: 100%;
+  }
+  .responsive-table tr {
+    margin-bottom: 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    background: #fff;
+  }
+  .responsive-table td {
+    padding: 0.5rem 0;
+    border: 0;
+  }
+  .responsive-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6b7280;
+    margin-bottom: 0.25rem;
+  }
+}
+
+/* Stack helper for flex rows */
+@media (max-width: 768px) {
+  .stack-on-mobile {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .stack-on-mobile > * + * {
+    margin-top: 0.75rem;
+  }
+}
+
+/* Map container safety */
+.map-shell, .leaflet-container, #ride-map, #home-route-map {
+  max-width: 100%;
+}

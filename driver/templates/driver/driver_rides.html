@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen">
     <div class="container mx-auto px-4 py-6 max-w-7xl">
@@ -46,7 +47,7 @@
             <!-- Completed Rides Table -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200 responsive-table">
                         <thead class="bg-gradient-to-r from-green-500 to-green-600">
                             <tr>
                                 <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
@@ -72,7 +73,7 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             {% for ride in completed_rides %}
                                 <tr class="hover:bg-gray-50 transition-colors duration-150">
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-6 py-4 whitespace-nowrap" data-label="Booking ID">
                                         <div class="flex items-center">
                                             <div class="bg-green-100 w-8 h-8 rounded-full flex items-center justify-center mr-2">
                                                 <i class="fas fa-check-circle text-green-600 text-xs"></i>
@@ -80,7 +81,7 @@
                                             <span class="text-sm font-semibold text-gray-900">#{{ ride.booking_id }}</span>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-6 py-4 whitespace-nowrap" data-label="Passenger">
                                         <div class="flex items-center">
                                             <div class="bg-blue-100 w-8 h-8 rounded-full flex items-center justify-center mr-2">
                                                 <span class="text-blue-600 font-semibold text-xs">
@@ -93,22 +94,22 @@
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4" data-label="Pickup">
                                         <div class="flex items-center">
                                             <i class="fas fa-map-marker-alt text-green-600 mr-2 text-xs"></i>
                                             <span class="text-sm text-gray-900">{{ ride.pickup_location|shorten_address }}</span>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4" data-label="Drop-off">
                                         <div class="flex items-center">
                                             <i class="fas fa-flag-checkered text-red-600 mr-2 text-xs"></i>
                                             <span class="text-sm text-gray-900">{{ ride.dropoff_location|shorten_address }}</span>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-6 py-4 whitespace-nowrap" data-label="Fare">
                                         <span class="text-sm font-bold text-green-600">₹{{ ride.fare }}</span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-6 py-4 whitespace-nowrap" data-label="Completed Time">
                                         {% if ride.scheduled_time %}
                                             <div class="text-sm text-gray-900">{{ ride.scheduled_time|date:"M d, Y" }}</div>
                                             <div class="text-xs text-gray-500">{{ ride.scheduled_time|date:"h:i A" }}</div>

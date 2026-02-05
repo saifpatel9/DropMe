@@ -20,6 +20,14 @@ from django.utils import timezone
 from django.conf import settings
 from django.urls import reverse
 from services.models import ServiceType
+from .ride_rules import (
+    build_meta,
+    derive_ride_type,
+    get_outstation_disallowed,
+    get_outstation_threshold_km,
+    is_vehicle_allowed,
+    parse_decimal,
+)
 from promo.models import PromoCode
 from django.views.decorators.http import require_POST
 import json
@@ -82,7 +90,8 @@ def passenger_dashboard(request):
 def homepage_cab_view(request):
     rental_packages = RentalPackage.objects.all()
     return render(request, 'passenger/HomepageCab.html', {
-        'rental_packages': rental_packages
+        'rental_packages': rental_packages,
+        'outstation_distance_km': get_outstation_threshold_km(),
     })
 
 def signup_view(request):
@@ -132,36 +141,11 @@ def choose_ride_view(request):
     ride_time = request.GET.get('time')
     ride_type = request.GET.get('ride_type', 'daily') 
     estimated_fares = []
-    outstation_disallowed = getattr(settings, 'OUTSTATION_DISALLOWED_VEHICLES', ['Bike', 'Auto'])
+    outstation_disallowed = get_outstation_disallowed()
+    outstation_threshold_km = get_outstation_threshold_km()
+    ride_type_notice = None
     
-    # If coordinates are missing but addresses are provided, try to geocode
-    # Note: This is a fallback - frontend should handle geocoding before submission
-    if pickup and dropoff and not dynamic_distance_km and (not pickup_lat or not pickup_lng or not drop_lat or not drop_lng):
-        import requests
-        try:
-            # Geocode pickup if missing
-            if not pickup_lat or not pickup_lng:
-                geocode_url = f'https://nominatim.openstreetmap.org/search?format=json&q={requests.utils.quote(pickup)}&limit=1'
-                geocode_response = requests.get(geocode_url, headers={'User-Agent': 'DropMeApp/1.0'}, timeout=5)
-                if geocode_response.status_code == 200:
-                    geocode_data = geocode_response.json()
-                    if geocode_data and len(geocode_data) > 0:
-                        pickup_lat = geocode_data[0].get('lat')
-                        pickup_lng = geocode_data[0].get('lon')
-            
-            # Geocode dropoff if missing
-            if not drop_lat or not drop_lng:
-                geocode_url = f'https://nominatim.openstreetmap.org/search?format=json&q={requests.utils.quote(dropoff)}&limit=1'
-                geocode_response = requests.get(geocode_url, headers={'User-Agent': 'DropMeApp/1.0'}, timeout=5)
-                if geocode_response.status_code == 200:
-                    geocode_data = geocode_response.json()
-                    if geocode_data and len(geocode_data) > 0:
-                        drop_lat = geocode_data[0].get('lat')
-                        drop_lng = geocode_data[0].get('lon')
-        except Exception as e:
-            # If geocoding fails, continue with existing logic (fallback to STATIC_DISTANCES)
-            print(f"[DEBUG] Backend geocoding failed: {e}")
-            pass
+    # Coordinates are optional here; distance must come from routing (frontend).
 
     SERVICE_DETAILS = {
         'Hatchback': {
@@ -192,40 +176,70 @@ def choose_ride_view(request):
     }
 
     if pickup and dropoff:
-        # Prefer dynamic distance from Leaflet routing if available
-        distance = None
-        if dynamic_distance_km:
-            try:
-                distance = Decimal(dynamic_distance_km)
-            except Exception:
-                distance = None
+        # Route distance/duration must come from frontend routing (single source of truth).
+        distance = parse_decimal(dynamic_distance_km)
+        duration_minutes = parse_decimal(dynamic_duration_min)
         
-        # If no distance from routing, calculate from coordinates if available
-        if distance is None and pickup_lat and pickup_lng and drop_lat and drop_lng:
+        # No backend fallback distance; routing distance is the single source of truth.
+        time_minutes = None
+        if distance is None or duration_minutes is None:
+            ride_type_notice = "Unable to calculate route distance. Please select suggested locations and try again."
+            print(f"[DEBUG] Missing route distance/duration. distance_km={dynamic_distance_km} duration_min={dynamic_duration_min} pickup={pickup} dropoff={dropoff}")
+
+        pickup_meta = build_meta(pickup_city, pickup_district, pickup_state)
+        drop_meta = build_meta(drop_city, drop_district, drop_state)
+        derived = derive_ride_type(
+            ride_type,
+            pickup_meta,
+            drop_meta,
+            distance,
+            threshold_km=outstation_threshold_km,
+        )
+        derived_ride_type = derived["ride_type"]
+        if derived_ride_type != ride_type:
+            if derived["reason"] == "distance" and distance is not None:
+                ride_type_notice = f"Route distance is {distance} km, so ride type was switched to Outstation."
+            else:
+                ride_type_notice = "Pickup and dropoff appear to be in different areas. Ride type was switched to Outstation."
+        ride_type = derived_ride_type
+
+        if ride_type == 'rental' and request.GET.get('rental_duration_id'):
             try:
-                from math import radians, sin, cos, sqrt, atan2
-                # Haversine formula to calculate distance
-                lat1 = radians(float(pickup_lat))
-                lon1 = radians(float(pickup_lng))
-                lat2 = radians(float(drop_lat))
-                lon2 = radians(float(drop_lng))
-                
-                dlat = lat2 - lat1
-                dlon = lon2 - lon1
-                a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-                c = 2 * atan2(sqrt(a), sqrt(1-a))
-                R = 6371  # Earth radius in kilometers
-                distance = Decimal(str(round(R * c, 2)))
-                print(f"[DEBUG] Calculated distance from coordinates: {distance} km")
-            except Exception as e:
-                print(f"[DEBUG] Error calculating distance from coordinates: {e}")
-                distance = None
-        
-        # Fallback to static distances if still no distance
-        if distance is None:
-            distance = STATIC_DISTANCES.get((pickup, dropoff)) or STATIC_DISTANCES.get((dropoff, pickup))
-        if distance:
-            time_minutes = Decimal(dynamic_duration_min) if dynamic_duration_min else distance * 2 
+                rental_duration = request.GET.get('rental_duration_id')
+                print(f"[DEBUG] Rental Duration ID received: {rental_duration}")
+                rental_package = RentalPackage.objects.get(id=rental_duration)
+                print(f"[DEBUG] Rental Package fetched: {rental_package}")
+                from services.models import RentalService
+                rental_services = RentalService.objects.filter(package=rental_package).select_related('service_type')
+                estimated_fares = []
+
+                duration_minutes = rental_package.time_hours * Decimal(60)
+                distance = rental_package.distance_km
+                print(f"[DEBUG] Calculated duration_minutes: {duration_minutes}, Distance: {distance}")
+
+                for rs in rental_services:
+                    service = rs.service_type
+                    subtotal = (
+                        rs.base_fare +
+                        rs.booking_fee +
+                        (distance * rs.per_km_rate) +
+                        (duration_minutes * rs.per_minute_rate)
+                    )
+                    total_fare = Decimal(math.ceil(subtotal + (subtotal * Decimal('0.05'))))
+                    icon_class = SERVICE_DETAILS.get(service.name, {}).get('icon', 'fas fa-car')
+
+                    estimated_fares.append({
+                        'service_name': service.name,
+                        'number_of_seats': service.number_of_seats,
+                        'estimated_price': total_fare,
+                        'icon': icon_class,
+                        'description': SERVICE_DETAILS.get(service.name, {}).get('description', '')
+                    })
+            except RentalPackage.DoesNotExist:
+                rental_services = []
+                estimated_fares = []
+        elif distance and duration_minutes is not None:
+            time_minutes = duration_minutes
             if ride_type == 'outstation':
                 services = ServiceType.objects.exclude(name__in=outstation_disallowed)
                 for service in services:
@@ -249,16 +263,10 @@ def choose_ride_view(request):
                     estimated_price_with_tax = estimated_price + (estimated_price * Decimal('0.05'))
                     estimated_price = Decimal(math.ceil(estimated_price_with_tax))
 
-                    # Get service details from our consolidated mapping
                     service_info = SERVICE_DETAILS.get(service.name, {})
-                    
-                    # Use model description if available, otherwise fallback to default
                     model_description = getattr(service, 'description', None)
                     description = model_description if model_description else service_info.get('description', '')
-                    
                     icon = service_info.get('icon', 'fas fa-car')
-                    
-                    # Use seats from database, fallback to service-specific default, then general default
                     seats = service.number_of_seats or service_info.get('default_seats', 4)
 
                     estimated_fares.append({
@@ -268,47 +276,6 @@ def choose_ride_view(request):
                         'icon': icon,
                         'description': description,
                     })
-            elif ride_type == 'rental' and request.GET.get('rental_duration_id'):
-                try:
-                    rental_duration = request.GET.get('rental_duration_id')
-                    print(f"[DEBUG] Rental Duration ID received: {rental_duration}")
-                    rental_package = RentalPackage.objects.get(id=rental_duration)
-                    print(f"[DEBUG] Rental Package fetched: {rental_package}")
-                    from services.models import RentalService
-                    rental_services = RentalService.objects.filter(package=rental_package).select_related('service_type')
-                    estimated_fares = []
-
-                    duration_minutes = rental_package.time_hours * Decimal(60)
-                    distance = rental_package.distance_km
-                    print(f"[DEBUG] Calculated duration_minutes: {duration_minutes}, Distance: {distance}")
-
-                    for rs in rental_services:
-                        service = rs.service_type
-                        subtotal = (
-                            rs.base_fare +
-                            rs.booking_fee +
-                            (distance * rs.per_km_rate) +
-                            (duration_minutes * rs.per_minute_rate)
-                        )
-                        total_fare = Decimal(math.ceil(subtotal + (subtotal * Decimal('0.05'))))
-                        print(f"[RENTAL DEBUG] Service: {service.name}")
-                        print(f"  Base Fare: {rs.base_fare}")
-                        print(f"  Booking Fee: {rs.booking_fee}")
-                        print(f"  Distance ({distance}) × Per KM Rate: {rs.per_km_rate}")
-                        print(f"  Duration ({duration_minutes}) × Per Min Rate: {rs.per_minute_rate}")
-                        print(f"  Total Fare: {total_fare}")
-                        icon_class = SERVICE_DETAILS.get(service.name, {}).get('icon', 'fas fa-car')
-
-                        estimated_fares.append({
-                            'service_name': service.name,
-                            'number_of_seats': service.number_of_seats,
-                            'estimated_price': total_fare,
-                            'icon': icon_class,
-                            'description': SERVICE_DETAILS.get(service.name, {}).get('description', '')
-                        })
-                except RentalPackage.DoesNotExist:
-                    rental_services = []
-                    estimated_fares = []
             else:
                 services = ServiceType.objects.all()
                 for service in services:
@@ -323,7 +290,6 @@ def choose_ride_view(request):
                         per_km_rate = applicable_slab.rate_per_km or Decimal('0')
                         per_minute_rate = applicable_slab.rate_per_minute or Decimal('0')
                     else:
-                        # Fallback to service values if no slab found
                         base_fare = service.base_fare or Decimal('0')
                         per_km_rate = service.price_per_km or Decimal('0')
                         per_minute_rate = service.price_per_minute or Decimal('0')
@@ -333,18 +299,6 @@ def choose_ride_view(request):
                     discount = Decimal('0')
                     surge_charge = Decimal('0')
 
-                    print("\n[DEBUG] Fare Calculation Breakdown:")
-                    if applicable_slab:
-                        print(f"  ▶️ Matched Slab: {applicable_slab.km_from} - {applicable_slab.km_to} KM (ID: {applicable_slab.id})")
-                    else:
-                        print("  ⚠️ No slab matched — using default service fare rates")
-
-                    print(f"  🟢 Base Fare: ₹{base_fare}")
-                    print(f"  🟡 Booking Fee: ₹{booking_fee}")
-                    print(f"  📏 Distance: {distance} KM")
-                    print(f"  🚗 Rate/KM × Distance: ₹{per_km_rate} × {distance} = ₹{distance * per_km_rate}")
-                    print(f"  ⏱️ Duration: {time_minutes} mins")
-                    print(f"  ⏳ Rate/Min × Duration: ₹{per_minute_rate} × {time_minutes} = ₹{time_minutes * per_minute_rate}")
                     subtotal = (
                         base_fare +
                         (distance * per_km_rate) +
@@ -354,23 +308,13 @@ def choose_ride_view(request):
                         toll_fee -
                         discount
                     )
-                    tax = subtotal * Decimal('0.05')
-                    print(f"  💸 Tax (5%): ₹{tax}")
-                    print(f"  💰 Subtotal (before tax): ₹{subtotal}")
-                    print(f"  ✅ Final Fare (rounded): ₹{math.ceil(subtotal + tax)}")
-                    # === END DEBUG FARE BREAKDOWN ===
-
                     estimated_price = subtotal
                     estimated_price_with_tax = estimated_price + (estimated_price * Decimal('0.05'))
                     estimated_price = Decimal(math.ceil(estimated_price_with_tax))
 
-                    # --- MINIMUM FARE ---
                     min_fare = service.min_fare or Decimal('0')
                     if estimated_price < min_fare:
-                        print(f"  ⚠️ Fare is below minimum fare (₹{estimated_price} < ₹{min_fare}). Applying min_fare.")
                         estimated_price = min_fare
-                    else:
-                        print(f"  🟩 Fare is above minimum fare (₹{estimated_price} ≥ ₹{min_fare}). No adjustment needed.")
 
                     service_info = SERVICE_DETAILS.get(service.name, {})
                     model_description = getattr(service, 'description', None)
@@ -413,8 +357,8 @@ def choose_ride_view(request):
         'pickup_lng': pickup_lng,
         'drop_lat': drop_lat,
         'drop_lng': drop_lng,
-        'distance_km': dynamic_distance_km or (distance if distance else ''),
-        'duration_min': dynamic_duration_min or (time_minutes if pickup and dropoff else ''),
+        'distance_km': dynamic_distance_km or '',
+        'duration_min': dynamic_duration_min or '',
         'pickup_city': pickup_city,
         'pickup_district': pickup_district,
         'pickup_state': pickup_state,
@@ -424,11 +368,14 @@ def choose_ride_view(request):
         'ride_date': ride_date,
         'ride_time': ride_time,
         'ride_type': ride_type,
+        'ride_type_notice': ride_type_notice,
         'estimated_fares': estimated_fares,
         'services': estimated_fares,  
         'rental_packages': RentalPackage.objects.all() if ride_type == 'rental' else [],
         'selected_package_id': int(selected_package_id) if ride_type == 'rental' and selected_package_id else None,
         'rental_options': rental_options,
+        'outstation_distance_km': outstation_threshold_km,
+        'outstation_disallowed_csv': ",".join(outstation_disallowed),
     }
     return render(request, 'passenger/choose_ride.html', context)
 
@@ -696,6 +643,21 @@ def book_ride_view(request):
     drop_state = request.GET.get('drop_state')
     distance_km = request.GET.get('distance_km')
     duration_min = request.GET.get('duration_min')
+    distance_value = parse_decimal(distance_km)
+    duration_value = parse_decimal(duration_min)
+    if distance_value is None or distance_value <= 0 or duration_value is None or duration_value <= 0:
+        messages.error(request, "Unable to verify route distance. Please select suggested locations and try again.")
+        return redirect('choose_ride')
+    pickup_meta = build_meta(pickup_city, pickup_district, pickup_state)
+    drop_meta = build_meta(drop_city, drop_district, drop_state)
+    derived = derive_ride_type(
+        ride_type,
+        pickup_meta,
+        drop_meta,
+        distance_value,
+        threshold_km=get_outstation_threshold_km(),
+    )
+    ride_type = derived["ride_type"]
 
     # Store ride details in session
     request.session['pickup_location'] = pickup
@@ -755,6 +717,7 @@ def confirm_booking(request):
         drop_district = request.POST.get('drop_district')
         drop_state = request.POST.get('drop_state')
         distance_km = request.POST.get('distance_km')
+        duration_min = request.POST.get('duration_min')
 
         # ✅ Capture payment mode
         payment_mode = request.POST.get('payment_mode')
@@ -770,31 +733,32 @@ def confirm_booking(request):
                 'ride_type': ride_type
             })
 
+        distance_value = parse_decimal(distance_km)
+        duration_value = parse_decimal(duration_min)
+        if distance_value is None or distance_value <= 0 or duration_value is None or duration_value <= 0:
+            return render(request, 'passenger/ride_confirmed.html', {
+                'error': 'Route distance could not be verified. Please go back and reselect pickup/dropoff from suggestions.',
+                'ride_type': ride_type
+            })
+        pickup_meta = build_meta(pickup_city, pickup_district, pickup_state)
+        drop_meta = build_meta(drop_city, drop_district, drop_state)
+        derived = derive_ride_type(
+            ride_type,
+            pickup_meta,
+            drop_meta,
+            distance_value,
+            threshold_km=get_outstation_threshold_km(),
+        )
+        derived_ride_type = derived["ride_type"]
+
         # Backend safeguard: prevent Daily rides for outstation trips
-        if ride_type and ride_type.lower() == 'daily':
-            threshold_km = getattr(settings, 'OUTSTATION_DISTANCE_KM', 40)
-            try:
-                distance_value = Decimal(distance_km) if distance_km else None
-            except Exception:
-                distance_value = None
+        if ride_type and ride_type.lower() == 'daily' and derived_ride_type == 'outstation':
+            return render(request, 'passenger/ride_confirmed.html', {
+                'error': 'Daily Ride is only available within the same city/service area. Please choose Outstation.',
+                'ride_type': derived_ride_type
+            })
 
-            pickup_locality = (pickup_city or pickup_district or '').strip().lower()
-            drop_locality = (drop_city or drop_district or '').strip().lower()
-            pickup_state_norm = (pickup_state or '').strip().lower()
-            drop_state_norm = (drop_state or '').strip().lower()
-
-            if distance_value is not None and distance_value >= Decimal(str(threshold_km)):
-                return render(request, 'passenger/ride_confirmed.html', {
-                    'error': f'Daily Ride is limited to local trips. Distance {distance_value} km exceeds {threshold_km} km.',
-                    'ride_type': ride_type
-                })
-
-            if pickup_locality and drop_locality and pickup_state_norm and drop_state_norm:
-                if pickup_locality != drop_locality or pickup_state_norm != drop_state_norm:
-                    return render(request, 'passenger/ride_confirmed.html', {
-                        'error': 'Daily Ride is only available within the same city/service area. Please choose Outstation.',
-                        'ride_type': ride_type
-                    })
+        ride_type = derived_ride_type
 
         try:
             service_type_obj = ServiceType.objects.get(name__iexact=selected_vehicle_type)
@@ -805,13 +769,11 @@ def confirm_booking(request):
                 'ride_type': ride_type
             })
 
-        if ride_type and ride_type.lower() == 'outstation':
-            disallowed = [v.lower() for v in getattr(settings, 'OUTSTATION_DISALLOWED_VEHICLES', ['Bike', 'Auto'])]
-            if service_type_obj.name.strip().lower() in disallowed:
-                return render(request, 'passenger/ride_confirmed.html', {
-                    'error': f"{service_type_obj.name} is not available for Outstation rides.",
-                    'ride_type': ride_type
-                })
+        if not is_vehicle_allowed(ride_type, service_type_obj.name):
+            return render(request, 'passenger/ride_confirmed.html', {
+                'error': f"{service_type_obj.name} is not available for Outstation rides.",
+                'ride_type': ride_type
+            })
 
         # Convert fare to Decimal
         try:

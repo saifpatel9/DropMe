@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+<link rel="stylesheet" href="{% static 'css/responsive.css' %}">
 <style>
   /* Ensure the Leaflet map never overflows and respects rounded corners */
   #ride-map {
@@ -42,7 +43,7 @@
 
     <div class="bg-white shadow-md rounded-2xl p-6">
       <div class="flex justify-center mb-4">
-        <div id="ride-type-tabs" class="flex bg-gray-100 rounded-xl p-1 w-full" data-outstation-km="40">
+        <div id="ride-type-tabs" class="flex bg-gray-100 rounded-xl p-1 w-full" data-outstation-km="{{ outstation_distance_km }}">
           <button data-type="daily" class="flex-1 py-2 {% if ride_type == 'daily' %}bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-l-xl font-medium text-sm{% else %}text-gray-600 hover:bg-gray-200 transition font-medium text-sm{% endif %}">Daily Ride</button>
           <button data-type="outstation" class="flex-1 py-2 {% if ride_type == 'outstation' %}bg-gradient-to-r from-teal-500 to-teal-600 text-white font-medium text-sm{% else %}text-gray-600 hover:bg-gray-200 transition font-medium text-sm{% endif %}">Outstation</button>
           <button data-type="rental" class="flex-1 py-2 {% if ride_type == 'rental' %}bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-r-xl font-medium text-sm{% else %}text-gray-600 hover:bg-gray-200 transition font-medium text-sm rounded-r-xl{% endif %}">Rental</button>
@@ -68,7 +69,7 @@
       <div class="mb-4">
         <input type="text" name="dropoff" placeholder="Dropoff Location" value="{{ dropoff }}" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500">
       </div>
-      <div id="ride_type_notice" class="hidden text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4"></div>
+      <div id="ride_type_notice" class="{% if ride_type_notice %}text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4{% else %}hidden text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4{% endif %}">{{ ride_type_notice }}</div>
 
       <div class="grid grid-cols-2 gap-4 mb-4">
         <div>
@@ -108,7 +109,7 @@
             <div id="ride-map"></div>
           </div>
         </div>
-        <div class="space-y-4 mb-6" data-outstation-disallowed="Bike,Auto">
+        <div class="space-y-4 mb-6" data-outstation-disallowed="{{ outstation_disallowed_csv }}">
           {% if estimated_fares %}
             {% for fare in estimated_fares %}
               <label class="block">
@@ -147,8 +148,10 @@
   </div>
 </section>
 
+<script src="{% static 'passenger/js/ride-rules.js' %}"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
+    const rideRules = window.RideRules || null;
     const tabsContainer = document.getElementById('ride-type-tabs');
     const buttons = tabsContainer.querySelectorAll('button');
     const rideTypeNotice = document.getElementById('ride_type_notice');
@@ -166,7 +169,7 @@
     const dropState = document.getElementById('drop_state');
 
     function normalizeText(value) {
-      return (value || '').toString().trim().toLowerCase();
+      return rideRules && rideRules.normalizeText ? rideRules.normalizeText(value) : (value || '').toString().trim().toLowerCase();
     }
 
     function setNotice(message, tone) {
@@ -189,25 +192,15 @@
     }
 
     function extractAddressParts(result) {
-      const address = (result && result.address) ? result.address : {};
-      const city = address.city || address.town || address.village || address.hamlet || address.municipality || address.suburb || '';
-      const district = address.state_district || address.county || address.district || '';
-      const state = address.state || address.province || address.region || '';
-      return { city, district, state };
-    }
-
-    function getPrimaryLocality(meta) {
-      return meta.city || meta.district || '';
+      if (rideRules && rideRules.extractAddressParts) {
+        return rideRules.extractAddressParts(result);
+      }
+      return { city: '', district: '', state: '' };
     }
 
     function isDailyAllowed(pickupMeta, dropoffMeta) {
-      if (!pickupMeta || !dropoffMeta) return { allowed: null };
-      const pickupCityValue = normalizeText(getPrimaryLocality(pickupMeta));
-      const dropCityValue = normalizeText(getPrimaryLocality(dropoffMeta));
-      const pickupStateValue = normalizeText(pickupMeta.state);
-      const dropStateValue = normalizeText(dropoffMeta.state);
-      if (!pickupCityValue || !dropCityValue || !pickupStateValue || !dropStateValue) return { allowed: null };
-      return { allowed: pickupCityValue === dropCityValue && pickupStateValue === dropStateValue };
+      if (!rideRules || !rideRules.isDailyAllowed) return { allowed: null };
+      return rideRules.isDailyAllowed(pickupMeta, dropoffMeta, {});
     }
 
     function applyDistanceRule(distanceKm) {
@@ -269,6 +262,8 @@
         }
 
         const selectedType = button.getAttribute('data-type');
+        const rideTypeInput = document.querySelector('input[name="ride_type"]');
+        if (rideTypeInput) rideTypeInput.value = selectedType;
         const pickup = document.querySelector('input[name="pickup"]').value;
         const dropoff = document.querySelector('input[name="dropoff"]').value;
         const date = document.querySelector('input[name="ride_date"]').value;
@@ -366,6 +361,12 @@
       const selectedService = document.querySelector('input[name="selected_service"]:checked');
       if (!selectedService) {
         alert('Please select a service option before booking.');
+        return;
+      }
+      const distanceKmValue = document.getElementById('distance_km')?.value || '';
+      const durationMinValue = document.getElementById('duration_min')?.value || '';
+      if (!distanceKmValue || !durationMinValue) {
+        setNotice('Unable to calculate route distance. Please choose suggested locations and try again.', 'error');
         return;
       }
 
@@ -641,35 +642,11 @@
 
         control.on('routingerror', function (e) {
           console.warn('Routing error:', e);
-          // Fallback: calculate distance using Haversine and draw simple polyline
-          const haversineDistance = (latLng1, latLng2) => {
-            const R = 6371; // Earth radius in km
-            const lat1 = latLng1.lat * Math.PI / 180;
-            const lat2 = latLng2.lat * Math.PI / 180;
-            const dLat = (latLng2.lat - latLng1.lat) * Math.PI / 180;
-            const dLng = (latLng2.lng - latLng1.lng) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                      Math.cos(lat1) * Math.cos(lat2) *
-                      Math.sin(dLng/2) * Math.sin(dLng/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
-          };
-
-          const distance = haversineDistance(pickupLatLngObj, dropoffLatLngObj);
-          const km = distance.toFixed(2);
-          distanceBadge.textContent = `Distance: ${km} km (approx)`;
+          if (distanceField) distanceField.value = '';
+          if (durationField) durationField.value = '';
+          distanceBadge.textContent = 'Distance unavailable';
           distanceBadge.classList.remove('hidden');
-          if (distanceField) distanceField.value = km;
 
-          // Draw simple polyline as fallback
-          L.polyline([pickupLatLngObj, dropoffLatLngObj], {
-            color: '#00A59E',
-            weight: 5,
-            opacity: 0.7,
-            dashArray: '10, 10'
-          }).addTo(map);
-
-          // Fit to markers
           const group = new L.FeatureGroup([pickupMarker, dropoffMarker]);
           map.fitBounds(group.getBounds().pad(0.25));
           setTimeout(() => map.invalidateSize(), 100);
@@ -693,8 +670,7 @@
         });
 
         control.on('routingerror', function () {
-          const kmValue = haversineDistance(pickupLatLngObj, dropoffLatLngObj);
-          syncRideTypeWithDistance(kmValue);
+          return;
         });
       })
       .catch(() => {

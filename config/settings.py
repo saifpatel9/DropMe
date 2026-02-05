@@ -125,6 +125,11 @@ STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# In production, WhiteNoise expects collectstatic outputs in STATIC_ROOT.
+# In local/dev, allow finders so newly added files resolve without collectstatic.
+IS_PROD = os.getenv("DJANGO_ENV", "").lower() == "production"
+WHITENOISE_USE_FINDERS = False if IS_PROD else True
+
 if not DEBUG:
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 else:

@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
+<link rel="stylesheet" href="{% static 'css/responsive.css' %}">
 <!-- Leaflet CSS removed - route preview not shown on homepage -->
 <style>
   .hero-bg {
@@ -172,7 +173,7 @@
                 </div>
             </div>
 
-            <form class="space-y-4" action="{% url 'choose_ride' %}" method="get" id="rideForm" data-daily-cities="" data-daily-states="" data-outstation-km="40">
+            <form class="space-y-4" action="{% url 'choose_ride' %}" method="get" id="rideForm" data-daily-cities="" data-daily-states="" data-outstation-km="{{ outstation_distance_km }}">
                 <input type="hidden" name="ride_type" value="daily" id="rideTypeInput">
                 <input type="hidden" name="pickup_lat" id="pickup_lat">
                 <input type="hidden" name="pickup_lng" id="pickup_lng">
@@ -644,6 +645,7 @@ toggleBtn.addEventListener('click', () => {
 <!-- Only load Leaflet and Routing Machine if needed for distance calculation -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+<script src="{% static 'passenger/js/ride-rules.js' %}"></script>
 <script src="{% static 'passenger/js/leaflet-ride.js' %}"></script>
 {% endblock %}
 <script>
