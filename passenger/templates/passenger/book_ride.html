@@ -44,6 +44,14 @@
       <input type="hidden" name="ride_date" value="{{ ride_date }}">
       <input type="hidden" name="ride_time" value="{{ ride_time }}">
       <input type="hidden" name="ride_type" value="{{ ride_type }}">
+      <input type="hidden" name="pickup_city" value="{{ pickup_city }}">
+      <input type="hidden" name="pickup_district" value="{{ pickup_district }}">
+      <input type="hidden" name="pickup_state" value="{{ pickup_state }}">
+      <input type="hidden" name="drop_city" value="{{ drop_city }}">
+      <input type="hidden" name="drop_district" value="{{ drop_district }}">
+      <input type="hidden" name="drop_state" value="{{ drop_state }}">
+      <input type="hidden" name="distance_km" value="{{ distance_km }}">
+      <input type="hidden" name="duration_min" value="{{ duration_min }}">
       {% if ride_type == 'rental' %}
       <input type="hidden" name="rental_duration" value="{{ rental_duration }}">
       {% endif %}

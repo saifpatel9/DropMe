@@ -160,7 +160,7 @@
             <!-- Booking Tabs -->
             <div class="flex justify-center mb-6">
                 <div class="flex bg-gray-100 rounded-xl p-1">
-                    <button class="px-6 py-2 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-md font-medium text-sm booking-tab" data-tab="ride-now">
+                    <button class="px-6 py-2 bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-md font-medium text-sm booking-tab" data-tab="daily">
                         <i class="fas fa-car mr-2"></i>Daily Ride
                     </button>
                     <button class="px-6 py-2 text-gray-600 rounded-md font-medium text-sm hover:bg-gray-200 transition booking-tab" data-tab="outstation">
@@ -172,12 +172,18 @@
                 </div>
             </div>
 
-            <form class="space-y-4" action="{% url 'choose_ride' %}" method="get" id="rideForm">
+            <form class="space-y-4" action="{% url 'choose_ride' %}" method="get" id="rideForm" data-daily-cities="" data-daily-states="" data-outstation-km="40">
                 <input type="hidden" name="ride_type" value="daily" id="rideTypeInput">
                 <input type="hidden" name="pickup_lat" id="pickup_lat">
                 <input type="hidden" name="pickup_lng" id="pickup_lng">
                 <input type="hidden" name="drop_lat" id="drop_lat">
                 <input type="hidden" name="drop_lng" id="drop_lng">
+                <input type="hidden" name="pickup_city" id="pickup_city">
+                <input type="hidden" name="pickup_district" id="pickup_district">
+                <input type="hidden" name="pickup_state" id="pickup_state">
+                <input type="hidden" name="drop_city" id="drop_city">
+                <input type="hidden" name="drop_district" id="drop_district">
+                <input type="hidden" name="drop_state" id="drop_state">
                 <input type="hidden" name="distance_km" id="distance_km">
                 <input type="hidden" name="duration_min" id="duration_min">
                 <!-- Pickup -->
@@ -200,6 +206,7 @@
                   <input type="text" name="dropoff" id="dropoff_input" placeholder="Drop-off location" value="{{ dropoff }}" class="w-full pl-10 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none transition" autocomplete="off" required>
                   <div id="dropoff_suggestions" class="autocomplete-list hidden"></div>
                 </div>
+                <div id="ride_type_notice" class="hidden text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2"></div>
 
                 <!-- Book Now or Schedule Toggle -->
                 <div>

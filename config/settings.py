@@ -79,13 +79,32 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 # Database
-DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL environment variable not set")
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-DATABASES = {
-    "default": dj_database_url.parse(DATABASE_URL)
-}
+if DATABASE_URL:
+    # Used in production or when explicitly set
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=False,
+        )
+    }
+else:
+    # Local MySQL fallback
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": "cabdb",        # your local DB name
+            "USER": "cabuser",          # change if different
+            "PASSWORD": "root1234",  # your MySQL password
+            "HOST": "127.0.0.1",
+            "PORT": "3306",
+            "OPTIONS": {
+                "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+            },
+        }
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -129,16 +148,20 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Security
-CSRF_TRUSTED_ORIGINS = [
-    "https://web-production-0a117.up.railway.app",
-    "https://<your-custom-domain-if-any>",
-]
-
 ALLOWED_HOSTS = [
-    "web-production-0a117.up.railway.app",
+    "160.187.80.217",
+    "saifpatel.com",
+    "www.saifpatel.com",
     "localhost",
     "127.0.0.1",
 ]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://160.187.80.217",
+    "https://saifpatel.com",
+    "https://www.saifpatel.com",
+]
+
 
 # Logging
 LOGGING = {
@@ -155,3 +178,6 @@ LOGGING = {
         "level": "DEBUG",
     },
 }
+
+# Daily ride maximum distance before forcing Outstation (km)
+OUTSTATION_DISTANCE_KM = 40

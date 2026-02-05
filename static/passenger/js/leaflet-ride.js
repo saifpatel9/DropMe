@@ -9,8 +9,18 @@
 	var pickupLng = document.getElementById('pickup_lng');
 	var dropLat = document.getElementById('drop_lat');
 	var dropLng = document.getElementById('drop_lng');
+	var pickupCity = document.getElementById('pickup_city');
+	var pickupDistrict = document.getElementById('pickup_district');
+	var pickupState = document.getElementById('pickup_state');
+	var dropCity = document.getElementById('drop_city');
+	var dropDistrict = document.getElementById('drop_district');
+	var dropState = document.getElementById('drop_state');
 	var distanceKmField = document.getElementById('distance_km');
 	var durationMinField = document.getElementById('duration_min');
+	var rideTypeInput = document.getElementById('rideTypeInput');
+	var rideTypeNotice = document.getElementById('ride_type_notice');
+	var rideForm = document.getElementById('rideForm');
+	var outstationThresholdKm = rideForm && rideForm.dataset.outstationKm ? parseFloat(rideForm.dataset.outstationKm) : 40;
 
 	var pickupSuggestions = document.getElementById('pickup_suggestions');
 	var dropoffSuggestions = document.getElementById('dropoff_suggestions');
@@ -20,7 +30,7 @@
 	}
 
 	function geocode(query){
-		var url = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&limit=5';
+		var url = 'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=' + encodeURIComponent(query) + '&limit=5';
 		return fetch(url, { 
 			headers: { 
 				'Accept': 'application/json',
@@ -33,8 +43,169 @@
 	}
 
 	function reverseGeocode(lat, lng){
-		var url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lng);
+		var url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&lat=' + encodeURIComponent(lat) + '&lon=' + encodeURIComponent(lng);
 		return fetch(url, { headers: { 'Accept': 'application/json' } }).then(function(r){ return r.json(); });
+	}
+
+	function normalizeText(value){
+		return (value || '').toString().trim().toLowerCase();
+	}
+
+	function parseAllowedList(value){
+		if(!value) return [];
+		return value.split(',').map(function(item){ return normalizeText(item); }).filter(Boolean);
+	}
+
+	function extractAddressParts(result){
+		var address = (result && result.address) ? result.address : {};
+		var city = address.city || address.town || address.village || address.hamlet || address.municipality || address.suburb || '';
+		var district = address.state_district || address.county || address.district || '';
+		var state = address.state || address.province || address.region || '';
+		return {
+			city: city,
+			district: district,
+			state: state,
+			countryCode: address.country_code || '',
+			raw: address
+		};
+	}
+
+	function setLocationFields(prefix, meta){
+		if(!meta) return;
+		if(prefix === 'pickup'){
+			if(pickupCity) pickupCity.value = meta.city || '';
+			if(pickupDistrict) pickupDistrict.value = meta.district || '';
+			if(pickupState) pickupState.value = meta.state || '';
+		}else if(prefix === 'dropoff'){
+			if(dropCity) dropCity.value = meta.city || '';
+			if(dropDistrict) dropDistrict.value = meta.district || '';
+			if(dropState) dropState.value = meta.state || '';
+		}
+	}
+
+	function getStoredMeta(prefix){
+		if(prefix === 'pickup'){
+			return {
+				city: pickupCity ? pickupCity.value : '',
+				district: pickupDistrict ? pickupDistrict.value : '',
+				state: pickupState ? pickupState.value : ''
+			};
+		}
+		return {
+			city: dropCity ? dropCity.value : '',
+			district: dropDistrict ? dropDistrict.value : '',
+			state: dropState ? dropState.value : ''
+		};
+	}
+
+	function setNotice(message, tone){
+		if(!rideTypeNotice) return;
+		if(!message){
+			rideTypeNotice.textContent = '';
+			rideTypeNotice.classList.add('hidden');
+			return;
+		}
+		rideTypeNotice.textContent = message;
+		rideTypeNotice.classList.remove('hidden');
+		rideTypeNotice.classList.remove('text-amber-800','bg-amber-50','border-amber-200','text-red-800','bg-red-50','border-red-200','text-green-800','bg-green-50','border-green-200');
+		if(tone === 'error'){
+			rideTypeNotice.classList.add('text-red-800','bg-red-50','border-red-200');
+		}else if(tone === 'success'){
+			rideTypeNotice.classList.add('text-green-800','bg-green-50','border-green-200');
+		}else{
+			rideTypeNotice.classList.add('text-amber-800','bg-amber-50','border-amber-200');
+		}
+	}
+
+	function normalizeRideType(value){
+		var v = normalizeText(value);
+		if(v === 'ride-now' || v === 'ride_now') return 'daily';
+		return v;
+	}
+
+	function switchRideType(targetType){
+		var target = normalizeRideType(targetType);
+		if(!target) return;
+		var tabs = document.querySelectorAll('.booking-tab');
+		var matched = null;
+		tabs.forEach(function(tab){
+			var tabType = normalizeRideType(tab.dataset.tab);
+			if(tabType === target) matched = tab;
+		});
+		if(matched){
+			matched.click();
+		}else if(rideTypeInput){
+			rideTypeInput.value = target;
+		}
+	}
+
+	function getPrimaryLocality(meta){
+		return meta.city || meta.district || '';
+	}
+
+	function isDailyAllowed(pickupMeta, dropoffMeta){
+		if(!pickupMeta || !dropoffMeta) return {allowed: null, reason: 'missing'};
+
+		var pickupCity = normalizeText(getPrimaryLocality(pickupMeta));
+		var dropCity = normalizeText(getPrimaryLocality(dropoffMeta));
+		var pickupState = normalizeText(pickupMeta.state);
+		var dropState = normalizeText(dropoffMeta.state);
+
+		if(!pickupCity || !dropCity || !pickupState || !dropState){
+			return {allowed: null, reason: 'incomplete'};
+		}
+
+		var sameCity = pickupCity && dropCity && pickupCity === dropCity && pickupState === dropState;
+
+		var allowedCities = parseAllowedList(rideForm ? rideForm.dataset.dailyCities : '');
+		var allowedStates = parseAllowedList(rideForm ? rideForm.dataset.dailyStates : '');
+
+		var bothInAllowedCities = allowedCities.length > 0 && allowedCities.indexOf(pickupCity) !== -1 && allowedCities.indexOf(dropCity) !== -1;
+		var sameAllowedState = allowedStates.length > 0 && pickupState === dropState && allowedStates.indexOf(pickupState) !== -1;
+
+		return {allowed: sameCity || bothInAllowedCities || sameAllowedState, reason: sameCity ? 'same-city' : 'boundary'};
+	}
+
+	function validateRideType(){
+		var selected = normalizeRideType(rideTypeInput ? rideTypeInput.value : '');
+		if(selected !== 'daily') return;
+
+		var pickupMeta = getStoredMeta('pickup');
+		var dropoffMeta = getStoredMeta('dropoff');
+		var result = isDailyAllowed(pickupMeta, dropoffMeta);
+
+		if(result.allowed === null){
+			setNotice('We could not confirm the pickup and dropoff city/state. Please select a suggestion or use current location to validate Daily Ride.', 'info');
+			return;
+		}
+
+		if(!result.allowed){
+			var pickupLabel = (pickupMeta.city || pickupMeta.district || '').trim();
+			var dropLabel = (dropoffMeta.city || dropoffMeta.district || '').trim();
+			setNotice('Daily Ride is only available within the same city or service area. Pickup: ' + (pickupLabel || 'Unknown') + ', Dropoff: ' + (dropLabel || 'Unknown') + '. Switched to Outstation.', 'error');
+			switchRideType('outstation');
+			return;
+		}
+
+		setNotice('', 'success');
+	}
+
+	function applyDistanceRule(distanceKm){
+		if(!distanceKm || isNaN(distanceKm)) return;
+		var selected = normalizeRideType(rideTypeInput ? rideTypeInput.value : '');
+		if(selected !== 'daily') return;
+		if(distanceKm >= outstationThresholdKm){
+			setNotice('Daily Ride is only available within the local service area. This trip is ' + distanceKm.toFixed(1) + ' km, so it was switched to Outstation.', 'error');
+			switchRideType('outstation');
+		}
+	}
+
+	function safeValidateRideType(){
+		try{
+			validateRideType();
+		}catch(err){
+			console.error('Ride type validation failed:', err);
+		}
 	}
 
 	function renderSuggestions(container, results, onPick){
@@ -65,18 +236,22 @@
 				if(!pickupLat.value || !pickupLng.value){
 					pickupLat.value = pickupTopResult.lat;
 					pickupLng.value = pickupTopResult.lon;
+					setLocationFields('pickup', extractAddressParts(pickupTopResult));
 					// Update input with full address for better UX
 					if(pickupInput.value !== pickupTopResult.display_name){
 						pickupInput.value = pickupTopResult.display_name;
 					}
 					tryRoute();
+					safeValidateRideType();
 				}
 			}
 			renderSuggestions(pickupSuggestions, results, function(item){
 				pickupInput.value = item.display_name;
 				pickupLat.value = item.lat; pickupLng.value = item.lon;
 				pickupTopResult = item; // Update stored result
+				setLocationFields('pickup', extractAddressParts(item));
 				tryRoute();
+				safeValidateRideType();
 			});
 		}).catch(function(err){
 			console.error('Geocoding error for pickup:', err);
@@ -95,18 +270,22 @@
 				if(!dropLat.value || !dropLng.value){
 					dropLat.value = dropoffTopResult.lat;
 					dropLng.value = dropoffTopResult.lon;
+					setLocationFields('dropoff', extractAddressParts(dropoffTopResult));
 					// Update input with full address for better UX
 					if(dropoffInput.value !== dropoffTopResult.display_name){
 						dropoffInput.value = dropoffTopResult.display_name;
 					}
 					tryRoute();
+					safeValidateRideType();
 				}
 			}
 			renderSuggestions(dropoffSuggestions, results, function(item){
 				dropoffInput.value = item.display_name;
 				dropLat.value = item.lat; dropLng.value = item.lon;
 				dropoffTopResult = item; // Update stored result
+				setLocationFields('dropoff', extractAddressParts(item));
 				tryRoute();
+				safeValidateRideType();
 			});
 		}).catch(function(err){
 			console.error('Geocoding error for dropoff:', err);
@@ -232,6 +411,7 @@
 			// Update hidden fields
 			if(distanceKmField) distanceKmField.value = km;
 			if(durationMinField) durationMinField.value = minutes.toString();
+			applyDistanceRule(parseFloat(km));
 
 			// Update distance display if it exists (only on pages with route preview)
 			var distanceDisplay = document.getElementById('home-distance-display');
@@ -263,6 +443,7 @@
 			var km = distance.toFixed(2);
 			if(distanceKmField) distanceKmField.value = km;
 			if(durationMinField) durationMinField.value = Math.round(distance / 0.5).toString(); // Assume 30 km/h
+			applyDistanceRule(parseFloat(km));
 
 			// Update distance display if it exists (only on pages with route preview)
 			var distanceDisplay = document.getElementById('home-distance-display');
@@ -344,8 +525,10 @@
 				var route = e.routes[0];
 				var meters = route.summary.totalDistance || 0;
 				var seconds = route.summary.totalTime || 0;
-				if(distanceKmField) distanceKmField.value = (meters/1000).toFixed(2);
+				var kmValue = (meters/1000).toFixed(2);
+				if(distanceKmField) distanceKmField.value = kmValue;
 				if(durationMinField) durationMinField.value = Math.round(seconds/60).toString();
+				applyDistanceRule(parseFloat(kmValue));
 				
 				// Clean up dummy map
 				dummyMap.remove();
@@ -354,8 +537,10 @@
 			tempControl.on('routingerror', function(){
 				// Fallback: use Haversine
 				var distance = haversineDistance(p, d);
-				if(distanceKmField) distanceKmField.value = distance.toFixed(2);
+				var kmValue = distance.toFixed(2);
+				if(distanceKmField) distanceKmField.value = kmValue;
 				if(durationMinField) durationMinField.value = Math.round(distance / 0.5).toString();
+				applyDistanceRule(parseFloat(kmValue));
 				dummyMap.remove();
 			});
 		} else {
@@ -363,14 +548,15 @@
 			var p = {lat: pickupLatVal, lng: pickupLngVal};
 			var d = {lat: dropLatVal, lng: dropLngVal};
 			var distance = haversineDistance(p, d);
-			if(distanceKmField) distanceKmField.value = distance.toFixed(2);
+			var kmValue = distance.toFixed(2);
+			if(distanceKmField) distanceKmField.value = kmValue;
 			if(durationMinField) durationMinField.value = Math.round(distance / 0.5).toString();
+			applyDistanceRule(parseFloat(kmValue));
 		}
 	}
 
-	var form = document.getElementById('rideForm');
-	if(form){
-		form.addEventListener('submit', function(e){
+	if(rideForm){
+		rideForm.addEventListener('submit', function(e){
 			e.preventDefault(); // Prevent default submission
 			
 			var pickupText = pickupInput.value.trim();
@@ -396,6 +582,7 @@
 								var topResult = results[0];
 								pickupLat.value = topResult.lat;
 								pickupLng.value = topResult.lon;
+								setLocationFields('pickup', extractAddressParts(topResult));
 								// Update input with full address
 								if(pickupInput.value !== topResult.display_name){
 									pickupInput.value = topResult.display_name;
@@ -416,6 +603,7 @@
 								var topResult = results[0];
 								dropLat.value = topResult.lat;
 								dropLng.value = topResult.lon;
+								setLocationFields('dropoff', extractAddressParts(topResult));
 								// Update input with full address
 								if(dropoffInput.value !== topResult.display_name){
 									dropoffInput.value = topResult.display_name;
@@ -432,6 +620,7 @@
 					return Promise.all(tasks).then(function(){
 						// Calculate route after geocoding
 						tryRoute();
+						safeValidateRideType();
 						return true;
 					}).catch(function(err){
 						console.error('Geocoding failed:', err);
@@ -442,16 +631,22 @@
 				
 				// Coordinates already set, just calculate route
 				tryRoute();
+				safeValidateRideType();
 				return Promise.resolve(true);
 			}
 			
 			// Ensure coordinates are set before submitting
 			ensureCoordinates().then(function(success){
 				if(success){
+					var decision = isDailyAllowed(getStoredMeta('pickup'), getStoredMeta('dropoff'));
+					if(normalizeRideType(rideTypeInput ? rideTypeInput.value : '') === 'daily' && decision.allowed === false){
+						alert('Daily Ride is not available for different cities/states. Please choose Outstation or Intercity.');
+						return;
+					}
 					// Verify coordinates are set before submitting
 					if(pickupLat.value && pickupLng.value && dropLat.value && dropLng.value){
 						// Submit the form
-						form.submit();
+						rideForm.submit();
 					} else {
 						alert('Please select valid locations from the suggestions or wait for location resolution.');
 					}
@@ -478,10 +673,12 @@
 				reverseGeocode(lat, lng).then(function(data){
 					var address = (data && (data.display_name || (data.address && data.address.road))) || 'Current location';
 					pickupInput.value = address;
+					setLocationFields('pickup', extractAddressParts(data));
 				}).catch(function(){
 					pickupInput.value = 'Current location';
 				}).finally(function(){
 					tryRoute();
+					safeValidateRideType();
 				});
 
 				// If a homepage Leaflet map exists globally, center and add/update a marker
@@ -507,5 +704,3 @@
 		});
 	}
 })();
-
-

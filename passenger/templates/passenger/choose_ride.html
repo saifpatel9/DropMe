@@ -42,7 +42,7 @@
 
     <div class="bg-white shadow-md rounded-2xl p-6">
       <div class="flex justify-center mb-4">
-        <div id="ride-type-tabs" class="flex bg-gray-100 rounded-xl p-1 w-full">
+        <div id="ride-type-tabs" class="flex bg-gray-100 rounded-xl p-1 w-full" data-outstation-km="40">
           <button data-type="daily" class="flex-1 py-2 {% if ride_type == 'daily' %}bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-l-xl font-medium text-sm{% else %}text-gray-600 hover:bg-gray-200 transition font-medium text-sm{% endif %}">Daily Ride</button>
           <button data-type="outstation" class="flex-1 py-2 {% if ride_type == 'outstation' %}bg-gradient-to-r from-teal-500 to-teal-600 text-white font-medium text-sm{% else %}text-gray-600 hover:bg-gray-200 transition font-medium text-sm{% endif %}">Outstation</button>
           <button data-type="rental" class="flex-1 py-2 {% if ride_type == 'rental' %}bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-r-xl font-medium text-sm{% else %}text-gray-600 hover:bg-gray-200 transition font-medium text-sm rounded-r-xl{% endif %}">Rental</button>
@@ -54,14 +54,21 @@
       <input type="hidden" id="pickup_lng" value="{{ pickup_lng|default:'' }}">
       <input type="hidden" id="drop_lat" value="{{ drop_lat|default:'' }}">
       <input type="hidden" id="drop_lng" value="{{ drop_lng|default:'' }}">
-      <input type="hidden" id="distance_km" value="">
-      <input type="hidden" id="duration_min" value="">
+      <input type="hidden" id="pickup_city" value="{{ pickup_city|default:'' }}">
+      <input type="hidden" id="pickup_district" value="{{ pickup_district|default:'' }}">
+      <input type="hidden" id="pickup_state" value="{{ pickup_state|default:'' }}">
+      <input type="hidden" id="drop_city" value="{{ drop_city|default:'' }}">
+      <input type="hidden" id="drop_district" value="{{ drop_district|default:'' }}">
+      <input type="hidden" id="drop_state" value="{{ drop_state|default:'' }}">
+      <input type="hidden" id="distance_km" value="{{ distance_km|default:'' }}">
+      <input type="hidden" id="duration_min" value="{{ duration_min|default:'' }}">
       <div class="mb-4">
         <input type="text" name="pickup" placeholder="Pickup Location" value="{{ pickup }}" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500">
       </div>
       <div class="mb-4">
         <input type="text" name="dropoff" placeholder="Dropoff Location" value="{{ dropoff }}" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500">
       </div>
+      <div id="ride_type_notice" class="hidden text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4"></div>
 
       <div class="grid grid-cols-2 gap-4 mb-4">
         <div>
@@ -144,6 +151,84 @@
   document.addEventListener('DOMContentLoaded', function () {
     const tabsContainer = document.getElementById('ride-type-tabs');
     const buttons = tabsContainer.querySelectorAll('button');
+    const rideTypeNotice = document.getElementById('ride_type_notice');
+    const outstationThresholdKm = tabsContainer && tabsContainer.dataset.outstationKm ? parseFloat(tabsContainer.dataset.outstationKm) : 40;
+
+    const pickupCity = document.getElementById('pickup_city');
+    const pickupDistrict = document.getElementById('pickup_district');
+    const pickupState = document.getElementById('pickup_state');
+    const dropCity = document.getElementById('drop_city');
+    const dropDistrict = document.getElementById('drop_district');
+    const dropState = document.getElementById('drop_state');
+
+    function normalizeText(value) {
+      return (value || '').toString().trim().toLowerCase();
+    }
+
+    function setNotice(message, tone) {
+      if (!rideTypeNotice) return;
+      if (!message) {
+        rideTypeNotice.textContent = '';
+        rideTypeNotice.classList.add('hidden');
+        return;
+      }
+      rideTypeNotice.textContent = message;
+      rideTypeNotice.classList.remove('hidden');
+      rideTypeNotice.classList.remove('text-amber-800','bg-amber-50','border-amber-200','text-red-800','bg-red-50','border-red-200','text-green-800','bg-green-50','border-green-200');
+      if (tone === 'error') {
+        rideTypeNotice.classList.add('text-red-800','bg-red-50','border-red-200');
+      } else if (tone === 'success') {
+        rideTypeNotice.classList.add('text-green-800','bg-green-50','border-green-200');
+      } else {
+        rideTypeNotice.classList.add('text-amber-800','bg-amber-50','border-amber-200');
+      }
+    }
+
+    function extractAddressParts(result) {
+      const address = (result && result.address) ? result.address : {};
+      const city = address.city || address.town || address.village || address.hamlet || address.municipality || address.suburb || '';
+      const district = address.state_district || address.county || address.district || '';
+      const state = address.state || address.province || address.region || '';
+      return { city, district, state };
+    }
+
+    function getPrimaryLocality(meta) {
+      return meta.city || meta.district || '';
+    }
+
+    function isDailyAllowed(pickupMeta, dropoffMeta) {
+      if (!pickupMeta || !dropoffMeta) return { allowed: null };
+      const pickupCityValue = normalizeText(getPrimaryLocality(pickupMeta));
+      const dropCityValue = normalizeText(getPrimaryLocality(dropoffMeta));
+      const pickupStateValue = normalizeText(pickupMeta.state);
+      const dropStateValue = normalizeText(dropoffMeta.state);
+      if (!pickupCityValue || !dropCityValue || !pickupStateValue || !dropStateValue) return { allowed: null };
+      return { allowed: pickupCityValue === dropCityValue && pickupStateValue === dropStateValue };
+    }
+
+    function applyDistanceRule(distanceKm) {
+      if (!distanceKm || isNaN(distanceKm)) return false;
+      const rideTypeInput = document.querySelector('input[name="ride_type"]');
+      const selectedRideType = normalizeText(rideTypeInput ? rideTypeInput.value : '');
+      if (selectedRideType !== 'daily') return false;
+      if (distanceKm >= outstationThresholdKm) {
+        setNotice(`Daily Ride is limited to local trips. Distance is ${distanceKm.toFixed(1)} km, switched to Outstation.`, 'error');
+        const outstationBtn = document.querySelector('#ride-type-tabs [data-type="outstation"]');
+        if (outstationBtn) outstationBtn.click();
+        return true;
+      }
+      return false;
+    }
+
+    function geocodeWithAddress(place) {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(place)}&limit=1`;
+      return fetch(url, { headers: { 'Accept': 'application/json' } })
+        .then(r => r.json())
+        .then(res => {
+          if (Array.isArray(res) && res.length) return res[0];
+          throw new Error('No results');
+        });
+    }
 
     const rideType = document.querySelector('input[name="ride_type"]').value;
     buttons.forEach(btn => {
@@ -211,6 +296,24 @@
           if (durationMin) {
             url += `&duration_min=${durationMin}`;
           }
+          if (pickupCity && pickupCity.value) {
+            url += `&pickup_city=${encodeURIComponent(pickupCity.value)}`;
+          }
+          if (pickupDistrict && pickupDistrict.value) {
+            url += `&pickup_district=${encodeURIComponent(pickupDistrict.value)}`;
+          }
+          if (pickupState && pickupState.value) {
+            url += `&pickup_state=${encodeURIComponent(pickupState.value)}`;
+          }
+          if (dropCity && dropCity.value) {
+            url += `&drop_city=${encodeURIComponent(dropCity.value)}`;
+          }
+          if (dropDistrict && dropDistrict.value) {
+            url += `&drop_district=${encodeURIComponent(dropDistrict.value)}`;
+          }
+          if (dropState && dropState.value) {
+            url += `&drop_state=${encodeURIComponent(dropState.value)}`;
+          }
           
           if (selectedType === 'rental' && rentalDuration) {
             url += `&rental_duration=${rentalDuration}`;
@@ -233,6 +336,8 @@
     });
 
     bookButton.addEventListener('click', () => {
+      const rideTypeInput = document.querySelector('input[name="ride_type"]');
+      const selectedRideType = normalizeText(rideTypeInput ? rideTypeInput.value : '');
       const selectedService = document.querySelector('input[name="selected_service"]:checked');
       if (!selectedService) {
         alert('Please select a service option before booking.');
@@ -253,11 +358,102 @@
       const rentalSelect = document.querySelector('select[name="rental_duration"]');
       const rental_duration = rentalSelect ? rentalSelect.value : '';
 
-      let url = `/passenger/book-ride/?pickup=${encodeURIComponent(pickup)}&dropoff=${encodeURIComponent(dropoff)}&ride_date=${ride_date}&ride_time=${ride_time}&ride_type=${ride_type}&service_id=${selectedService.value}&service_name=${encodeURIComponent(selectedServiceName)}&fare=${encodeURIComponent(selectedFare)}`;
-      if (ride_type === 'rental' && rental_duration) {
-        url += `&rental_duration=${rental_duration}`;
+      function proceedToBooking() {
+        let url = `/passenger/book-ride/?pickup=${encodeURIComponent(pickup)}&dropoff=${encodeURIComponent(dropoff)}&ride_date=${ride_date}&ride_time=${ride_time}&ride_type=${ride_type}&service_id=${selectedService.value}&service_name=${encodeURIComponent(selectedServiceName)}&fare=${encodeURIComponent(selectedFare)}`;
+        const distanceKmValue = document.getElementById('distance_km')?.value || '';
+        const durationMinValue = document.getElementById('duration_min')?.value || '';
+        if (pickupCity && pickupCity.value) {
+          url += `&pickup_city=${encodeURIComponent(pickupCity.value)}`;
+        }
+        if (pickupDistrict && pickupDistrict.value) {
+          url += `&pickup_district=${encodeURIComponent(pickupDistrict.value)}`;
+        }
+        if (pickupState && pickupState.value) {
+          url += `&pickup_state=${encodeURIComponent(pickupState.value)}`;
+        }
+        if (dropCity && dropCity.value) {
+          url += `&drop_city=${encodeURIComponent(dropCity.value)}`;
+        }
+        if (dropDistrict && dropDistrict.value) {
+          url += `&drop_district=${encodeURIComponent(dropDistrict.value)}`;
+        }
+        if (dropState && dropState.value) {
+          url += `&drop_state=${encodeURIComponent(dropState.value)}`;
+        }
+        if (distanceKmValue) {
+          url += `&distance_km=${encodeURIComponent(distanceKmValue)}`;
+        }
+        if (durationMinValue) {
+          url += `&duration_min=${encodeURIComponent(durationMinValue)}`;
+        }
+        if (ride_type === 'rental' && rental_duration) {
+          url += `&rental_duration=${rental_duration}`;
+        }
+        window.location.href = url;
       }
-      window.location.href = url;
+
+      function validateBeforeBooking() {
+        if (selectedRideType !== 'daily') {
+          setNotice('', 'success');
+          proceedToBooking();
+          return;
+        }
+
+        const pickupMeta = { city: pickupCity ? pickupCity.value : '', district: pickupDistrict ? pickupDistrict.value : '', state: pickupState ? pickupState.value : '' };
+        const dropoffMeta = { city: dropCity ? dropCity.value : '', district: dropDistrict ? dropDistrict.value : '', state: dropState ? dropState.value : '' };
+        const decision = isDailyAllowed(pickupMeta, dropoffMeta);
+        const distanceKmValue = parseFloat(document.getElementById('distance_km')?.value || '');
+        if (applyDistanceRule(distanceKmValue)) {
+          return;
+        }
+
+        if (decision.allowed === null) {
+          Promise.all([geocodeWithAddress(pickup), geocodeWithAddress(dropoff)])
+            .then(([pickupResult, dropoffResult]) => {
+              const pickupParts = extractAddressParts(pickupResult);
+              const dropParts = extractAddressParts(dropoffResult);
+              if (pickupCity) pickupCity.value = pickupParts.city || '';
+              if (pickupDistrict) pickupDistrict.value = pickupParts.district || '';
+              if (pickupState) pickupState.value = pickupParts.state || '';
+              if (dropCity) dropCity.value = dropParts.city || '';
+              if (dropDistrict) dropDistrict.value = dropParts.district || '';
+              if (dropState) dropState.value = dropParts.state || '';
+
+              const recheck = isDailyAllowed(pickupParts, dropParts);
+              const refreshedDistance = parseFloat(document.getElementById('distance_km')?.value || '');
+              if (applyDistanceRule(refreshedDistance)) {
+                return;
+              }
+              if (recheck.allowed === false) {
+                setNotice('Daily Ride is only available within the same city/service area. Please switch to Outstation or update locations.', 'error');
+                const outstationBtn = document.querySelector('#ride-type-tabs [data-type="outstation"]');
+                if (outstationBtn) outstationBtn.click();
+                return;
+              }
+              if (recheck.allowed === null) {
+                setNotice('We could not confirm city/state for the locations. Please choose from suggestions.', 'info');
+                return;
+              }
+              setNotice('', 'success');
+              proceedToBooking();
+            })
+            .catch(() => {
+              setNotice('Unable to validate locations for Daily Ride. Please select suggested locations.', 'info');
+            });
+          return;
+        }
+
+        if (decision.allowed === false) {
+          setNotice('Daily Ride is only available within the same city/service area. Please switch to Outstation or update locations.', 'error');
+          const outstationBtn = document.querySelector('#ride-type-tabs [data-type="outstation"]');
+          if (outstationBtn) outstationBtn.click();
+          return;
+        }
+        setNotice('', 'success');
+        proceedToBooking();
+      }
+
+      validateBeforeBooking();
     });
   });
 </script>
@@ -270,6 +466,10 @@
     const dropoffInput = document.querySelector('input[name="dropoff"]').value;
     const mapContainer = document.getElementById('ride-map');
     const distanceBadge = document.getElementById('route-distance');
+    const distanceField = document.getElementById('distance_km');
+    const durationField = document.getElementById('duration_min');
+    const rideTypeTabs = document.getElementById('ride-type-tabs');
+    const outstationThresholdKm = rideTypeTabs && rideTypeTabs.dataset.outstationKm ? parseFloat(rideTypeTabs.dataset.outstationKm) : 40;
 
     if (!mapContainer) return;
 
@@ -371,9 +571,12 @@
           const route = e.routes && e.routes[0];
           if (!route) return;
           const meters = route.summary.totalDistance || 0;
+          const seconds = route.summary.totalTime || 0;
           const km = (meters / 1000).toFixed(2);
           distanceBadge.textContent = `Distance: ${km} km`;
           distanceBadge.classList.remove('hidden');
+          if (distanceField) distanceField.value = km;
+          if (durationField) durationField.value = Math.round(seconds / 60).toString();
 
           // Also expose distance for other scripts if needed
           window.__routeDistanceKm = km;
@@ -431,6 +634,7 @@
           const km = distance.toFixed(2);
           distanceBadge.textContent = `Distance: ${km} km (approx)`;
           distanceBadge.classList.remove('hidden');
+          if (distanceField) distanceField.value = km;
 
           // Draw simple polyline as fallback
           L.polyline([pickupLatLngObj, dropoffLatLngObj], {
@@ -444,6 +648,28 @@
           const group = new L.FeatureGroup([pickupMarker, dropoffMarker]);
           map.fitBounds(group.getBounds().pad(0.25));
           setTimeout(() => map.invalidateSize(), 100);
+        });
+
+        function syncRideTypeWithDistance(kmValue) {
+          if (!kmValue || isNaN(kmValue)) return;
+          const rideTypeInput = document.querySelector('input[name="ride_type"]');
+          const selectedRideType = rideTypeInput ? rideTypeInput.value.toLowerCase() : '';
+          if (selectedRideType === 'daily' && kmValue >= outstationThresholdKm) {
+            const outstationBtn = document.querySelector('#ride-type-tabs [data-type="outstation"]');
+            if (outstationBtn) outstationBtn.click();
+          }
+        }
+
+        control.on('routesfound', function (e) {
+          const route = e.routes && e.routes[0];
+          if (!route) return;
+          const kmValue = (route.summary.totalDistance || 0) / 1000;
+          syncRideTypeWithDistance(kmValue);
+        });
+
+        control.on('routingerror', function () {
+          const kmValue = haversineDistance(pickupLatLngObj, dropoffLatLngObj);
+          syncRideTypeWithDistance(kmValue);
         });
       })
       .catch(() => {

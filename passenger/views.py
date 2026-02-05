@@ -120,6 +120,12 @@ def choose_ride_view(request):
     pickup_lng = request.GET.get('pickup_lng')
     drop_lat = request.GET.get('drop_lat')
     drop_lng = request.GET.get('drop_lng')
+    pickup_city = request.GET.get('pickup_city')
+    pickup_district = request.GET.get('pickup_district')
+    pickup_state = request.GET.get('pickup_state')
+    drop_city = request.GET.get('drop_city')
+    drop_district = request.GET.get('drop_district')
+    drop_state = request.GET.get('drop_state')
     dynamic_distance_km = request.GET.get('distance_km')
     dynamic_duration_min = request.GET.get('duration_min')
     ride_date = request.GET.get('date')
@@ -406,6 +412,14 @@ def choose_ride_view(request):
         'pickup_lng': pickup_lng,
         'drop_lat': drop_lat,
         'drop_lng': drop_lng,
+        'distance_km': dynamic_distance_km or (distance if distance else ''),
+        'duration_min': dynamic_duration_min or (time_minutes if pickup and dropoff else ''),
+        'pickup_city': pickup_city,
+        'pickup_district': pickup_district,
+        'pickup_state': pickup_state,
+        'drop_city': drop_city,
+        'drop_district': drop_district,
+        'drop_state': drop_state,
         'ride_date': ride_date,
         'ride_time': ride_time,
         'ride_type': ride_type,
@@ -673,6 +687,14 @@ def book_ride_view(request):
     ride_time = request.GET.get('ride_time')
     ride_type = request.GET.get('ride_type')
     rental_duration = request.GET.get('rental_duration')
+    pickup_city = request.GET.get('pickup_city')
+    pickup_district = request.GET.get('pickup_district')
+    pickup_state = request.GET.get('pickup_state')
+    drop_city = request.GET.get('drop_city')
+    drop_district = request.GET.get('drop_district')
+    drop_state = request.GET.get('drop_state')
+    distance_km = request.GET.get('distance_km')
+    duration_min = request.GET.get('duration_min')
 
     # Store ride details in session
     request.session['pickup_location'] = pickup
@@ -683,6 +705,14 @@ def book_ride_view(request):
     request.session['ride_time'] = ride_time
     request.session['ride_type'] = ride_type
     request.session['rental_duration'] = rental_duration
+    request.session['pickup_city'] = pickup_city
+    request.session['pickup_district'] = pickup_district
+    request.session['pickup_state'] = pickup_state
+    request.session['drop_city'] = drop_city
+    request.session['drop_district'] = drop_district
+    request.session['drop_state'] = drop_state
+    request.session['distance_km'] = distance_km
+    request.session['duration_min'] = duration_min
 
     context = {
         'pickup': pickup,
@@ -693,6 +723,14 @@ def book_ride_view(request):
         'ride_time': ride_time,
         'ride_type': ride_type,
         'rental_duration': rental_duration,
+        'pickup_city': pickup_city,
+        'pickup_district': pickup_district,
+        'pickup_state': pickup_state,
+        'drop_city': drop_city,
+        'drop_district': drop_district,
+        'drop_state': drop_state,
+        'distance_km': distance_km,
+        'duration_min': duration_min,
         'payment_modes': ['Cash', 'Credit Card', 'Debit Card', 'UPI', 'Wallet', 'Netbanking']
     }
     print(f"[DEBUG] Booking View - Pickup: {pickup}, Dropoff: {dropoff}, Service: {service}, Fare: {fare}")
@@ -709,6 +747,13 @@ def confirm_booking(request):
         ride_date_str = request.POST.get('ride_date')
         ride_time_str = request.POST.get('ride_time')
         ride_type = request.POST.get('ride_type')
+        pickup_city = request.POST.get('pickup_city')
+        pickup_district = request.POST.get('pickup_district')
+        pickup_state = request.POST.get('pickup_state')
+        drop_city = request.POST.get('drop_city')
+        drop_district = request.POST.get('drop_district')
+        drop_state = request.POST.get('drop_state')
+        distance_km = request.POST.get('distance_km')
 
         # ✅ Capture payment mode
         payment_mode = request.POST.get('payment_mode')
@@ -723,6 +768,32 @@ def confirm_booking(request):
                 'error': 'No vehicle type selected.',
                 'ride_type': ride_type
             })
+
+        # Backend safeguard: prevent Daily rides for outstation trips
+        if ride_type and ride_type.lower() == 'daily':
+            threshold_km = getattr(settings, 'OUTSTATION_DISTANCE_KM', 40)
+            try:
+                distance_value = Decimal(distance_km) if distance_km else None
+            except Exception:
+                distance_value = None
+
+            pickup_locality = (pickup_city or pickup_district or '').strip().lower()
+            drop_locality = (drop_city or drop_district or '').strip().lower()
+            pickup_state_norm = (pickup_state or '').strip().lower()
+            drop_state_norm = (drop_state or '').strip().lower()
+
+            if distance_value is not None and distance_value >= Decimal(str(threshold_km)):
+                return render(request, 'passenger/ride_confirmed.html', {
+                    'error': f'Daily Ride is limited to local trips. Distance {distance_value} km exceeds {threshold_km} km.',
+                    'ride_type': ride_type
+                })
+
+            if pickup_locality and drop_locality and pickup_state_norm and drop_state_norm:
+                if pickup_locality != drop_locality or pickup_state_norm != drop_state_norm:
+                    return render(request, 'passenger/ride_confirmed.html', {
+                        'error': 'Daily Ride is only available within the same city/service area. Please choose Outstation.',
+                        'ride_type': ride_type
+                    })
 
         try:
             service_type_obj = ServiceType.objects.get(name__iexact=selected_vehicle_type)
