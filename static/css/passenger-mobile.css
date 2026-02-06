@@ -12,7 +12,7 @@
 .passenger-app {
   min-height: 100vh;
   background: var(--surface-muted);
-  padding-bottom: 92px;
+  padding-bottom: 0;
 }
 
 .passenger-app .mobile-header {
@@ -68,7 +68,7 @@
 
 .passenger-cta {
   position: sticky;
-  bottom: 74px;
+  bottom: env(safe-area-inset-bottom);
   z-index: 30;
 }
 
@@ -102,7 +102,7 @@
 
 .choose-ride-mobile .book-bar {
   position: sticky;
-  bottom: 74px;
+  bottom: env(safe-area-inset-bottom);
   background: transparent;
   padding-top: 8px;
 }

@@ -25,6 +25,10 @@ body {
   padding-bottom: 88px; /* space for bottom nav */
 }
 
+.app-screen.passenger-app {
+  padding-bottom: 0;
+}
+
 .app-header {
   position: sticky;
   top: 0;
