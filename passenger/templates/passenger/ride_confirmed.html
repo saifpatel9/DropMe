@@ -4,6 +4,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+<link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
+<link rel="stylesheet" href="{% static 'css/passenger-mobile.css' %}">
 <style>
   body {
     font-family: 'Inter', sans-serif;
@@ -79,6 +81,16 @@
   }
 </style>
 {% endblock %}
+<div class="app-screen passenger-app">
+  <header class="mobile-header">
+    <div>
+      <div class="brand">Booking Status</div>
+      <div class="tagline">Your ride update</div>
+    </div>
+    <a href="{% url 'homepage' %}" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+      <i class="fas fa-home"></i>
+    </a>
+  </header>
 
 
 <div class="min-h-screen py-4 px-4 flex items-center">
@@ -327,6 +339,8 @@
     }
   });
 </script>
+{% include 'partials/mobile_nav_passenger.html' %}
+</div>
 
 <script>
   // Call driver fallback for non-mobile devices

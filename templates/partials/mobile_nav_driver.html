@@ -1,0 +1,19 @@
+{% load static %}
+<nav class="app-bottom-nav">
+  <a href="{% url 'driver_homepage' %}" class="{% if request.resolver_match.url_name == 'driver_homepage' %}active{% endif %}">
+    <i class="fas fa-bolt"></i>
+    <span>Home</span>
+  </a>
+  <a href="{% url 'driver_rides' %}" class="{% if request.resolver_match.url_name == 'driver_rides' %}active{% endif %}">
+    <i class="fas fa-road"></i>
+    <span>Rides</span>
+  </a>
+  <a href="{% url 'driver_earnings' %}" class="{% if request.resolver_match.url_name == 'driver_earnings' %}active{% endif %}">
+    <i class="fas fa-wallet"></i>
+    <span>Earnings</span>
+  </a>
+  <a href="{% url 'driver_profile' %}" class="{% if request.resolver_match.url_name == 'driver_profile' %}active{% endif %}">
+    <i class="fas fa-user-circle"></i>
+    <span>Profile</span>
+  </a>
+</nav>

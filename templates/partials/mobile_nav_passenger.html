@@ -1,0 +1,19 @@
+{% load static %}
+<nav class="app-bottom-nav">
+  <a href="{% url 'homepage' %}" class="{% if request.resolver_match.url_name == 'homepage' %}active{% endif %}">
+    <i class="fas fa-home"></i>
+    <span>Home</span>
+  </a>
+  <a href="{% url 'passenger_dashboard' %}" class="{% if request.resolver_match.url_name == 'passenger_dashboard' %}active{% endif %}">
+    <i class="fas fa-compass"></i>
+    <span>Trips</span>
+  </a>
+  <a href="{% url 'choose_ride' %}" class="{% if request.resolver_match.url_name == 'choose_ride' %}active{% endif %}">
+    <i class="fas fa-car-side"></i>
+    <span>Rides</span>
+  </a>
+  <a href="{% url 'profile_page' %}" class="{% if request.resolver_match.url_name == 'profile_page' %}active{% endif %}">
+    <i class="fas fa-user"></i>
+    <span>Profile</span>
+  </a>
+</nav>

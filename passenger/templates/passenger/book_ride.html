@@ -5,8 +5,20 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+<link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
+<link rel="stylesheet" href="{% static 'css/passenger-mobile.css' %}">
 {% endblock %}
 {% block content %}
+<div class="app-screen passenger-app">
+  <header class="mobile-header">
+    <div>
+      <div class="brand">Fare Preview</div>
+      <div class="tagline">Confirm ride details</div>
+    </div>
+    <a href="{% url 'choose_ride' %}" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+      <i class="fas fa-arrow-left"></i>
+    </a>
+  </header>
 <div class="container mx-auto p-6 max-w-xl">
   <div class="bg-white shadow-md rounded-lg p-6 border border-gray-200">
     <div class="mb-4">
@@ -134,4 +146,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 </script>
+{% include 'partials/mobile_nav_passenger.html' %}
+</div>
 {% endblock %}

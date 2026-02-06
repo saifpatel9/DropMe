@@ -9,9 +9,11 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
 <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+<link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
 {% endblock %}
 
 {% block content %}
+<div class="app-screen">
 <section class="min-h-screen bg-gradient-to-br from-white via-slate-100 to-slate-200 flex items-center justify-center px-4 py-12 font-body">
   <div class="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-8 md:p-10 animate-fade-in">
     <div class="mb-8 text-center">
@@ -139,4 +141,6 @@ function togglePassword(fieldId, iconId) {
   }
 }
 </script>
+{% include 'partials/mobile_nav_passenger.html' %}
+</div>
 {% endblock %}

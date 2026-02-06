@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
 <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+<link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
 
 <style>
     :root {
@@ -463,6 +464,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="app-screen">
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
     <!-- Enhanced back button -->
     <div class="mb-8">
@@ -581,6 +583,8 @@
             </div>
         </section>
     </div>
+</div>
+{% include 'partials/mobile_nav_passenger.html' %}
 </div>
 
 {% endblock %}

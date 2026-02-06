@@ -9,6 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+    <link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
     <style>
         .section-transition {
             transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
@@ -50,6 +52,7 @@
     </style>
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
+    <div class="app-screen">
     <div class="container mx-auto px-4 py-6 max-w-4xl">
         
         <!-- SECTION 1: BOOKING FORM -->
@@ -446,6 +449,7 @@
             if (pollInterval) clearInterval(pollInterval);
         });
     </script>
+    {% include 'partials/mobile_nav_passenger.html' %}
+    </div>
 </body>
 </html>
-

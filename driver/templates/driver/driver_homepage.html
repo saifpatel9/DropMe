@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
 <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+<link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
 
 <style>
 /* Ola-like Dashboard Styles - Preserving Existing Color Theme */
@@ -796,6 +797,7 @@ body {
 </style>
 </head>
 <body>
+    <div class="app-screen">
 <div class="driver-dashboard">
     <!-- Top Navigation Bar -->
     <nav class="top-navbar">
@@ -3089,5 +3091,7 @@ body {
         stopRideTracking();
     });
 </script>
+    {% include 'partials/mobile_nav_driver.html' %}
+    </div>
 </body>
 </html>

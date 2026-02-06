@@ -1,0 +1,137 @@
+/* Mobile-centric app shell using existing brand colors */
+:root {
+  --brand-teal: #00A59E;
+  --brand-cyan: #0EB9D3;
+  --brand-dark: #0f172a;
+  --surface: #ffffff;
+  --surface-muted: #f8fafc;
+  --text-primary: #0f172a;
+  --text-muted: #64748b;
+  --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --radius-lg: 20px;
+  --radius-md: 14px;
+}
+
+body {
+  background: var(--surface-muted);
+  color: var(--text-primary);
+}
+
+.app-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-muted);
+  padding-bottom: 88px; /* space for bottom nav */
+}
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: linear-gradient(135deg, rgba(0, 165, 158, 0.98), rgba(14, 185, 211, 0.98));
+  color: #fff;
+  padding: 14px 16px;
+  box-shadow: var(--shadow-soft);
+}
+
+.app-header .app-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.app-content {
+  flex: 1;
+  padding: 16px;
+}
+
+.app-card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 16px;
+}
+
+.app-section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.app-subtle {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.app-bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  padding: 8px 10px calc(10px + env(safe-area-inset-bottom));
+  box-shadow: 0 -10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.app-bottom-nav a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 4px;
+  border-radius: 12px;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  text-decoration: none;
+}
+
+.app-bottom-nav a i {
+  font-size: 1.05rem;
+}
+
+.app-bottom-nav a.active {
+  color: var(--brand-teal);
+  background: rgba(0, 165, 158, 0.08);
+}
+
+.app-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(0, 165, 158, 0.12);
+  color: var(--brand-teal);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.app-list {
+  display: grid;
+  gap: 12px;
+}
+
+.app-input {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  padding: 12px 14px;
+  background: #fff;
+}
+
+@media (min-width: 768px) {
+  .app-screen {
+    padding-bottom: 0;
+  }
+  .app-bottom-nav {
+    display: none;
+  }
+}

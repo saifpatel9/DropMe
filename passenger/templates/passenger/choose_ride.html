@@ -7,6 +7,8 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
 <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+<link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
+<link rel="stylesheet" href="{% static 'css/passenger-mobile.css' %}">
 <style>
   /* Ensure the Leaflet map never overflows and respects rounded corners */
   #ride-map {
@@ -33,13 +35,23 @@
 {% endblock %}
 
 {% block content %}
-<section class="bg-gray-50 py-10">
+<div class="app-screen passenger-app">
+  <header class="mobile-header">
+    <div>
+      <div class="brand">Choose Ride</div>
+      <div class="tagline">Confirm your route & fare</div>
+    </div>
+    <a href="{% url 'homepage' %}" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+      <i class="fas fa-arrow-left"></i>
+    </a>
+  </header>
+<section class="bg-gray-50 py-6 choose-ride-mobile">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
     <a href="{% url 'homepage' %}" class="inline-block text-sm text-teal-600 font-semibold hover:underline hover:text-teal-800 transition">
       ← Back
     </a>
   </div>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-3 gap-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-3 gap-8 screen-content">
 
     <div class="bg-white shadow-md rounded-2xl p-6">
       <div class="flex justify-center mb-4">
@@ -105,11 +117,11 @@
             <h3 class="font-semibold text-gray-800">Route Preview</h3>
             <span id="route-distance" class="hidden text-sm bg-teal-50 text-teal-700 px-3 py-1 rounded-full border border-teal-200">Distance: --</span>
           </div>
-          <div class="mt-3 map-shell border">
-            <div id="ride-map"></div>
-          </div>
+      <div class="mt-3 map-shell border ride-map-wrap">
+        <div id="ride-map"></div>
+      </div>
         </div>
-        <div class="space-y-4 mb-6" data-outstation-disallowed="{{ outstation_disallowed_csv }}">
+        <div class="space-y-4 mb-6 service-list" data-outstation-disallowed="{{ outstation_disallowed_csv }}">
           {% if estimated_fares %}
             {% for fare in estimated_fares %}
               <label class="block">
@@ -139,7 +151,7 @@
         </div>
 
 
-        <div>
+        <div class="book-bar">
           <button id="book-ride-btn" class="w-full bg-gradient-to-r from-teal-500 to-teal-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50" disabled>Book a Ride</button>
         </div>
 
@@ -684,4 +696,6 @@
     window.addEventListener('resize', () => map.invalidateSize());
   });
 </script>
+{% include 'partials/mobile_nav_passenger.html' %}
+</div>
 {% endblock %}

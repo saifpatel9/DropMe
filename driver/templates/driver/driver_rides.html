@@ -13,8 +13,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
     <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+    <link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen">
+    <div class="app-screen">
     <div class="container mx-auto px-4 py-6 max-w-7xl">
         <div class="mb-4">
             <a href="{% url 'driver_homepage' %}" 
@@ -139,6 +141,8 @@
                 </a>
             </div>
         {% endif %}
+    </div>
+    {% include 'partials/mobile_nav_driver.html' %}
     </div>
 </body>
 </html>

@@ -1,0 +1,116 @@
+/* Passenger-only mobile-first UI */
+:root {
+  --brand-teal: #00A59E;
+  --brand-cyan: #0EB9D3;
+  --brand-dark: #0f172a;
+  --surface: #ffffff;
+  --surface-muted: #f5f7fb;
+  --text-primary: #0f172a;
+  --text-muted: #64748b;
+}
+
+.passenger-app {
+  min-height: 100vh;
+  background: var(--surface-muted);
+  padding-bottom: 92px;
+}
+
+.passenger-app .mobile-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: linear-gradient(135deg, rgba(0, 165, 158, 0.98), rgba(14, 185, 211, 0.98));
+  color: #fff;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+.passenger-app .mobile-header .brand {
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.passenger-app .mobile-header .tagline {
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.passenger-app .screen-content {
+  padding: 16px;
+}
+
+.passenger-card {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.passenger-input {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  padding: 14px 14px;
+  font-size: 16px;
+}
+
+.passenger-tabs {
+  background: #eef6f7;
+  border-radius: 999px;
+  padding: 4px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.passenger-cta {
+  position: sticky;
+  bottom: 74px;
+  z-index: 30;
+}
+
+.passenger-cta button {
+  width: 100%;
+  border-radius: 16px;
+}
+
+/* Hide desktop-oriented header/nav and hero copy */
+.desktop-only {
+  display: none !important;
+}
+
+/* Choose ride screen */
+.choose-ride-mobile .ride-map-wrap {
+  height: 42vh;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+}
+
+.choose-ride-mobile .service-list {
+  max-height: 40vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.choose-ride-mobile .service-list label {
+  margin-bottom: 12px;
+}
+
+.choose-ride-mobile .book-bar {
+  position: sticky;
+  bottom: 74px;
+  background: transparent;
+  padding-top: 8px;
+}
+
+@media (min-width: 768px) {
+  /* Desktop is secondary; keep single-column but allow more width */
+  .passenger-app .screen-content {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+}

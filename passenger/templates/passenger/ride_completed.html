@@ -4,6 +4,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <link rel="stylesheet" href="{% static 'css/global.css' %}">
 <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+<link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
+<link rel="stylesheet" href="{% static 'css/passenger-mobile.css' %}">
 <style>
   .info-card { 
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(249, 250, 251, 0.95));
@@ -22,6 +24,13 @@
 {% endblock %}
 
 {% block content %}
+<div class="app-screen passenger-app">
+  <header class="mobile-header">
+    <div>
+      <div class="brand">Ride Complete</div>
+      <div class="tagline">Thanks for riding</div>
+    </div>
+  </header>
 <div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8 px-4">
   <div class="max-w-lg mx-auto">
     <div class="info-card rounded-2xl shadow-lg p-8 mb-6 text-center animate-fade-in-up">
@@ -51,5 +60,6 @@
     </div>
   </div>
 </div>
+{% include 'partials/mobile_nav_passenger.html' %}
+</div>
 {% endblock %}
-
