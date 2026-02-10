@@ -139,7 +139,14 @@ def choose_ride_view(request):
     dynamic_duration_min = request.GET.get('duration_min')
     ride_date = request.GET.get('date')
     ride_time = request.GET.get('time')
+    user_selected_datetime = (
+        request.GET.get('user_selected_datetime') == '1' or bool(ride_date or ride_time)
+    )
     ride_type = request.GET.get('ride_type', 'daily') 
+    pickup_meta = build_meta(pickup_city, pickup_district, pickup_state)
+    drop_meta = build_meta(drop_city, drop_district, drop_state)
+    distance = parse_decimal(dynamic_distance_km)
+    duration_minutes = parse_decimal(dynamic_duration_min)
     estimated_fares = []
     outstation_disallowed = get_outstation_disallowed()
     outstation_threshold_km = get_outstation_threshold_km()
@@ -177,17 +184,12 @@ def choose_ride_view(request):
 
     if pickup and dropoff:
         # Route distance/duration must come from frontend routing (single source of truth).
-        distance = parse_decimal(dynamic_distance_km)
-        duration_minutes = parse_decimal(dynamic_duration_min)
-        
         # No backend fallback distance; routing distance is the single source of truth.
         time_minutes = None
         if distance is None or duration_minutes is None:
             ride_type_notice = "Unable to calculate route distance. Please select suggested locations and try again."
             print(f"[DEBUG] Missing route distance/duration. distance_km={dynamic_distance_km} duration_min={dynamic_duration_min} pickup={pickup} dropoff={dropoff}")
 
-        pickup_meta = build_meta(pickup_city, pickup_district, pickup_state)
-        drop_meta = build_meta(drop_city, drop_district, drop_state)
         derived = derive_ride_type(
             ride_type,
             pickup_meta,
@@ -349,6 +351,13 @@ def choose_ride_view(request):
         services_list = ServiceType.objects.all() if pickup and dropoff else []
 
     rental_options = RentalPackage.objects.all() if ride_type == 'rental' else []
+    location_ride_type = derive_ride_type(
+        'daily',
+        pickup_meta,
+        drop_meta,
+        distance,
+        threshold_km=outstation_threshold_km,
+    )["ride_type"]
 
     context = {
         'pickup': pickup,
@@ -367,7 +376,9 @@ def choose_ride_view(request):
         'drop_state': drop_state,
         'ride_date': ride_date,
         'ride_time': ride_time,
+        'user_selected_datetime': user_selected_datetime,
         'ride_type': ride_type,
+        'location_ride_type': location_ride_type,
         'ride_type_notice': ride_type_notice,
         'estimated_fares': estimated_fares,
         'services': estimated_fares,  

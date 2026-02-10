@@ -179,7 +179,7 @@
         }
 
         /* ============================================
-           BOTTOM SHEET - RIDE SELECTION PANEL
+           BOTTOM SHEET - IMPROVED SCROLLABLE DESIGN
            ============================================ */
         
         .bottom-panel {
@@ -191,7 +191,10 @@
             background: white;
             border-radius: 20px 20px 0 0;
             box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.15);
-            max-height: 70vh;
+            /* CRITICAL CHANGE: Remove max-height to allow natural sizing */
+            /* max-height: 70vh; REMOVED */
+            height: auto;
+            max-height: 85vh; /* Allow more height for scrolling */
             display: flex;
             flex-direction: column;
             width: 100%;
@@ -206,10 +209,30 @@
             flex-shrink: 0;
         }
 
-        /* Ride Type Tabs */
-        .panel-header {
-            flex-shrink: 0;
+        /* CRITICAL CHANGE: Make entire content scrollable */
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            /* CHANGED: Include padding for book button space */
+            padding: 0 0 calc(env(safe-area-inset-bottom) + 80px) 0;
+        }
+
+        .panel-content::-webkit-scrollbar {
+            width: 0;
+            display: none;
+        }
+
+        /* Ride Type Tabs - NOW SCROLLABLE */
+        .tab-section {
+            /* REMOVED: flex-shrink: 0 */
+            /* REMOVED: border-bottom */
             padding: 0 20px 16px;
+            background: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
             border-bottom: 1px solid #f3f4f6;
         }
 
@@ -246,18 +269,9 @@
             transform: scale(0.96);
         }
 
-        /* Scrollable Content */
-        .panel-scroll {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            padding: 16px 20px calc(env(safe-area-inset-bottom) + 90px);
-        }
-
-        .panel-scroll::-webkit-scrollbar {
-            width: 0;
-            display: none;
+        /* Main Content - NOW FLOWS NATURALLY */
+        .panel-main {
+            padding: 16px 20px 0;
         }
 
         /* ============================================
@@ -406,6 +420,7 @@
         
         .services {
             margin-top: 8px;
+            /* REMOVED: Nested scroll - now part of main scroll */
         }
 
         .services-title {
@@ -528,11 +543,11 @@
         }
 
         /* ============================================
-           STICKY BOOK BUTTON
+           STICKY BOOK BUTTON - FLOATS OVER SCROLL
            ============================================ */
         
         .action-bar {
-            position: absolute;
+            position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
@@ -540,6 +555,7 @@
             padding: 12px 20px calc(env(safe-area-inset-bottom) + 12px);
             border-top: 1px solid #f3f4f6;
             box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.08);
+            z-index: 1001; /* Above bottom panel */
         }
 
         .book-btn {
@@ -598,6 +614,8 @@
             border-radius: 20px 20px 0 0;
             padding: 24px 20px calc(env(safe-area-inset-bottom) + 24px);
             animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         @keyframes slideUp {
@@ -726,7 +744,8 @@
 
             .map-screen,
             .top-bar,
-            .bottom-panel {
+            .bottom-panel,
+            .action-bar {
                 max-width: 420px;
                 left: 50%;
                 transform: translateX(-50%);
@@ -747,7 +766,12 @@
 
             .bottom-panel {
                 max-height: 60vh;
+                bottom: calc(5vh + 80px); /* Above action bar */
+            }
+
+            .action-bar {
                 bottom: 5vh;
+                border-radius: 0 0 24px 24px;
             }
         }
 
@@ -786,125 +810,130 @@
     </div>
 </div>
 
-<!-- Bottom Panel: Ride Selection -->
+<!-- Bottom Panel: Fully Scrollable -->
 <div class="bottom-panel">
     <div class="panel-handle"></div>
     
-    <!-- Ride Type Tabs -->
-    <div class="panel-header">
-        <div class="tab-group" id="ride-tabs" data-outstation-km="{{ outstation_distance_km }}">
-            <button class="tab-btn {% if ride_type == 'daily' %}active{% endif %}" data-type="daily">Daily</button>
-            <button class="tab-btn {% if ride_type == 'outstation' %}active{% endif %}" data-type="outstation">Outstation</button>
-            <button class="tab-btn {% if ride_type == 'rental' %}active{% endif %}" data-type="rental">Rental</button>
-        </div>
-    </div>
-
-    <!-- Scrollable Content -->
-    <div class="panel-scroll">
-        <!-- Locations -->
-        <div class="locations">
-            <div class="loc-row">
-                <div class="loc-dot pickup"></div>
-                <div class="loc-text" id="pickup-display">{{ pickup }}</div>
-                <div class="loc-edit" onclick="openModal()">Edit</div>
-            </div>
-            <div class="loc-row">
-                <div class="loc-dot drop"></div>
-                <div class="loc-text" id="drop-display">{{ dropoff }}</div>
-                <div class="loc-edit" onclick="openModal()">Edit</div>
+    <!-- CHANGED: Single scrollable content container -->
+    <div class="panel-content">
+        
+        <!-- Ride Type Tabs - NOW INSIDE SCROLL -->
+        <div class="tab-section">
+            <div class="tab-group" id="ride-tabs" data-outstation-km="{{ outstation_distance_km }}">
+                <button class="tab-btn {% if ride_type == 'daily' %}active{% endif %}" data-type="daily">Daily</button>
+                <button class="tab-btn {% if ride_type == 'outstation' %}active{% endif %}" data-type="outstation">Outstation</button>
+                <button class="tab-btn {% if ride_type == 'rental' %}active{% endif %}" data-type="rental">Rental</button>
             </div>
         </div>
 
-        <!-- Date & Time -->
-        <div class="datetime-grid">
-            <div class="dt-box">
-                <i class="far fa-calendar"></i>
-                <span id="date-display">{{ ride_date|default:"Select date" }}</span>
+        <!-- Main Content -->
+        <div class="panel-main">
+            <!-- Locations -->
+            <div class="locations">
+                <div class="loc-row">
+                    <div class="loc-dot pickup"></div>
+                    <div class="loc-text" id="pickup-display">{{ pickup }}</div>
+                    <div class="loc-edit" onclick="openModal()">Edit</div>
+                </div>
+                <div class="loc-row">
+                    <div class="loc-dot drop"></div>
+                    <div class="loc-text" id="drop-display">{{ dropoff }}</div>
+                    <div class="loc-edit" onclick="openModal()">Edit</div>
+                </div>
             </div>
-            <div class="dt-box">
-                <i class="far fa-clock"></i>
-                <span id="time-display">{{ ride_time|default:"Select time" }}</span>
+
+            <!-- Date & Time -->
+            <div class="datetime-grid">
+                <div class="dt-box">
+                    <i class="far fa-calendar"></i>
+                    <span id="date-display">{{ ride_date|default:"Select date" }}</span>
+                </div>
+                <div class="dt-box">
+                    <i class="far fa-clock"></i>
+                    <span id="time-display">{{ ride_time|default:"Select time" }}</span>
+                </div>
             </div>
-        </div>
 
-        <!-- Notice -->
-        <div class="notice {% if ride_type_notice %}show{% endif %}" id="notice">
-            <i class="fas fa-info-circle"></i>
-            <span id="notice-text">{{ ride_type_notice }}</span>
-        </div>
-
-        <!-- Rental Package -->
-        <div class="rental-box {% if ride_type == 'rental' %}show{% endif %}" id="rental-box">
-            <div class="rental-label">
-                <i class="fas fa-clock"></i>
-                Rental Package
+            <!-- Notice -->
+            <div class="notice {% if ride_type_notice %}show{% endif %}" id="notice">
+                <i class="fas fa-info-circle"></i>
+                <span id="notice-text">{{ ride_type_notice }}</span>
             </div>
-            <select class="rental-select" id="rental-select" name="rental_duration">
-                {% if rental_options %}
-                    {% for option in rental_options %}
-                        <option value="{{ option.id }}" {% if rental_duration == option.id|stringformat:"s" %}selected{% endif %}>
-                            {{ option.distance_km }} KM / {{ option.time_hours }} Hours
-                        </option>
-                    {% endfor %}
-                {% else %}
-                    <option disabled selected>No packages available</option>
-                {% endif %}
-            </select>
-        </div>
 
-        <!-- Available Services -->
-        <div class="services">
-            <div class="services-title">Available Rides</div>
-            
-            {% if estimated_fares %}
-                {% for fare in estimated_fares %}
-                    <label class="service-item">
-                        <input 
-                            type="radio" 
-                            name="service" 
-                            value="{{ fare.service_id }}" 
-                            class="service-radio" 
-                            data-name="{{ fare.service_name }}"
-                            required
-                        >
-                        <div class="service-card">
-                            <div class="service-icon">
-                                {% if fare.icon %}
-                                    <i class="{{ fare.icon }}"></i>
-                                {% else %}
-                                    <i class="fas fa-car"></i>
-                                {% endif %}
-                            </div>
-                            <div class="service-details">
-                                <div class="service-name">{{ fare.service_name }}</div>
-                                <div class="service-meta">
-                                    <i class="fas fa-users"></i>
-                                    {{ fare.number_of_seats }} seats
+            <!-- Rental Package -->
+            <div class="rental-box {% if ride_type == 'rental' %}show{% endif %}" id="rental-box">
+                <div class="rental-label">
+                    <i class="fas fa-clock"></i>
+                    Rental Package
+                </div>
+                <select class="rental-select" id="rental-select" name="rental_duration">
+                    {% if rental_options %}
+                        {% for option in rental_options %}
+                            <option value="{{ option.id }}" {% if rental_duration == option.id|stringformat:"s" %}selected{% endif %}>
+                                {{ option.distance_km }} KM / {{ option.time_hours }} Hours
+                            </option>
+                        {% endfor %}
+                    {% else %}
+                        <option disabled selected>No packages available</option>
+                    {% endif %}
+                </select>
+            </div>
+
+            <!-- Available Services -->
+            <div class="services">
+                <div class="services-title">Available Rides</div>
+                
+                {% if estimated_fares %}
+                    {% for fare in estimated_fares %}
+                        <label class="service-item">
+                            <input 
+                                type="radio" 
+                                name="service" 
+                                value="{{ fare.service_id }}" 
+                                class="service-radio" 
+                                data-name="{{ fare.service_name }}"
+                                required
+                            >
+                            <div class="service-card">
+                                <div class="service-icon">
+                                    {% if fare.icon %}
+                                        <i class="{{ fare.icon }}"></i>
+                                    {% else %}
+                                        <i class="fas fa-car"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="service-details">
+                                    <div class="service-name">{{ fare.service_name }}</div>
+                                    <div class="service-meta">
+                                        <i class="fas fa-users"></i>
+                                        {{ fare.number_of_seats }} seats
+                                    </div>
+                                </div>
+                                <div class="service-price">
+                                    <div class="price-value">₹{{ fare.estimated_price }}</div>
+                                    <div class="price-label">Total</div>
                                 </div>
                             </div>
-                            <div class="service-price">
-                                <div class="price-value">₹{{ fare.estimated_price }}</div>
-                                <div class="price-label">Total</div>
-                            </div>
-                        </div>
-                    </label>
-                {% endfor %}
-            {% else %}
-                <div class="empty">
-                    <i class="fas fa-car"></i>
-                    <div class="empty-text">No services available</div>
-                </div>
-            {% endif %}
+                        </label>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty">
+                        <i class="fas fa-car"></i>
+                        <div class="empty-text">No services available</div>
+                    </div>
+                {% endif %}
+            </div>
         </div>
+        
     </div>
+</div>
 
-    <!-- Book Button -->
-    <div class="action-bar">
-        <button class="book-btn" id="book-btn" disabled>
-            <i class="fas fa-check-circle"></i>
-            Book Ride
-        </button>
-    </div>
+<!-- Floating Book Button -->
+<div class="action-bar">
+    <button class="book-btn" id="book-btn" disabled>
+        <i class="fas fa-check-circle"></i>
+        Book Ride
+    </button>
 </div>
 
 <!-- Edit Modal -->

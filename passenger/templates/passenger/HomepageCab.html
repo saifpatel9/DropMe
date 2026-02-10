@@ -761,6 +761,7 @@
                 <input type="hidden" name="drop_state" id="drop_state">
                 <input type="hidden" name="distance_km" id="distance_km">
                 <input type="hidden" name="duration_min" id="duration_min">
+                <input type="hidden" name="user_selected_datetime" id="user_selected_datetime" value="0">
 
                 <!-- Pickup Location -->
                 <div class="input-group">
@@ -1120,6 +1121,10 @@
         const toggleBtn = document.getElementById('toggleSchedule');
         const scheduleFields = document.getElementById('scheduleFields');
         const toggleText = document.getElementById('toggleText');
+        const rideForm = document.getElementById('rideForm');
+        const dateInput = scheduleFields?.querySelector('input[name="date"]');
+        const timeInput = scheduleFields?.querySelector('input[name="time"]');
+        const userSelectedDatetimeInput = document.getElementById('user_selected_datetime');
         let isScheduled = false;
 
         toggleBtn.addEventListener('click', () => {
@@ -1132,7 +1137,15 @@
             } else {
                 toggleText.innerHTML = 'Book Now';
                 toggleBtn.querySelector('.fa-chevron-down').style.transform = 'rotate(0deg)';
+                if (dateInput) dateInput.value = '';
+                if (timeInput) timeInput.value = '';
             }
+        });
+
+        rideForm.addEventListener('submit', () => {
+            const hasDate = dateInput && dateInput.value;
+            const hasTime = timeInput && timeInput.value;
+            userSelectedDatetimeInput.value = (isScheduled && (hasDate || hasTime)) ? '1' : '0';
         });
 
         // Desktop Profile Dropdown
