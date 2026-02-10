@@ -178,8 +178,12 @@
             text-overflow: ellipsis;
         }
 
+        .route-text.loading {
+            opacity: 0.7;
+        }
+
         /* ============================================
-           BOTTOM SHEET - IMPROVED SCROLLABLE DESIGN
+           BOTTOM SHEET - RIDE SELECTION PANEL
            ============================================ */
         
         .bottom-panel {
@@ -191,13 +195,20 @@
             background: white;
             border-radius: 20px 20px 0 0;
             box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.15);
-            /* CRITICAL CHANGE: Remove max-height to allow natural sizing */
-            /* max-height: 70vh; REMOVED */
-            height: auto;
-            max-height: 85vh; /* Allow more height for scrolling */
-            display: flex;
-            flex-direction: column;
+            height: 32vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
             width: 100%;
+            transition: height 0.25s ease;
+        }
+
+        .bottom-panel.expanded {
+            height: 75vh;
+        }
+
+        .bottom-panel.collapsed {
+            height: 26vh;
         }
 
         .panel-handle {
@@ -207,32 +218,12 @@
             border-radius: 2px;
             margin: 12px auto 8px;
             flex-shrink: 0;
+            cursor: pointer;
         }
 
-        /* CRITICAL CHANGE: Make entire content scrollable */
-        .panel-content {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
-            /* CHANGED: Include padding for book button space */
-            padding: 0 0 calc(env(safe-area-inset-bottom) + 80px) 0;
-        }
-
-        .panel-content::-webkit-scrollbar {
-            width: 0;
-            display: none;
-        }
-
-        /* Ride Type Tabs - NOW SCROLLABLE */
-        .tab-section {
-            /* REMOVED: flex-shrink: 0 */
-            /* REMOVED: border-bottom */
+        /* Ride Type Tabs */
+        .panel-header {
             padding: 0 20px 16px;
-            background: white;
-            position: sticky;
-            top: 0;
-            z-index: 10;
             border-bottom: 1px solid #f3f4f6;
         }
 
@@ -265,13 +256,23 @@
             box-shadow: var(--shadow-sm);
         }
 
+        .tab-btn.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
         .tab-btn:active {
             transform: scale(0.96);
         }
 
-        /* Main Content - NOW FLOWS NATURALLY */
-        .panel-main {
-            padding: 16px 20px 0;
+        /* Scrollable Content */
+        .panel-content {
+            padding: 16px 20px calc(env(safe-area-inset-bottom) + 24px);
+        }
+
+        .bottom-panel::-webkit-scrollbar {
+            width: 0;
+            display: none;
         }
 
         /* ============================================
@@ -334,6 +335,12 @@
             grid-template-columns: 1fr 1fr;
             gap: 8px;
             margin-bottom: 16px;
+        }
+
+        .datetime-caption {
+            font-size: 12px;
+            color: var(--text-gray);
+            margin: 4px 0 8px;
         }
 
         .dt-box {
@@ -420,7 +427,6 @@
         
         .services {
             margin-top: 8px;
-            /* REMOVED: Nested scroll - now part of main scroll */
         }
 
         .services-title {
@@ -543,19 +549,16 @@
         }
 
         /* ============================================
-           STICKY BOOK BUTTON - FLOATS OVER SCROLL
+           STICKY BOOK BUTTON
            ============================================ */
         
         .action-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            position: static;
             background: white;
             padding: 12px 20px calc(env(safe-area-inset-bottom) + 12px);
             border-top: 1px solid #f3f4f6;
             box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.08);
-            z-index: 1001; /* Above bottom panel */
+            margin-top: 16px;
         }
 
         .book-btn {
@@ -614,8 +617,6 @@
             border-radius: 20px 20px 0 0;
             padding: 24px 20px calc(env(safe-area-inset-bottom) + 24px);
             animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            max-height: 90vh;
-            overflow-y: auto;
         }
 
         @keyframes slideUp {
@@ -650,6 +651,7 @@
 
         .input-box {
             margin-bottom: 16px;
+            position: relative;
         }
 
         .input-label {
@@ -677,6 +679,35 @@
             outline: none;
             border-color: var(--primary);
             background: #f9fafb;
+        }
+
+        /* Autocomplete */
+        .autocomplete-list {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-height: 240px;
+            overflow-y: auto;
+            z-index: 60;
+        }
+
+        .autocomplete-item {
+            padding: 12px 14px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 13px;
+            color: #334155;
+        }
+
+        .autocomplete-item:active {
+            background: #f8fafc;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
         }
 
         .save-btn {
@@ -744,8 +775,7 @@
 
             .map-screen,
             .top-bar,
-            .bottom-panel,
-            .action-bar {
+            .bottom-panel {
                 max-width: 420px;
                 left: 50%;
                 transform: translateX(-50%);
@@ -766,12 +796,7 @@
 
             .bottom-panel {
                 max-height: 60vh;
-                bottom: calc(5vh + 80px); /* Above action bar */
-            }
-
-            .action-bar {
                 bottom: 5vh;
-                border-radius: 0 0 24px 24px;
             }
         }
 
@@ -810,130 +835,131 @@
     </div>
 </div>
 
-<!-- Bottom Panel: Fully Scrollable -->
+<!-- Bottom Panel: Ride Selection -->
 <div class="bottom-panel">
-    <div class="panel-handle"></div>
-    
-    <!-- CHANGED: Single scrollable content container -->
+    <div class="panel-handle" id="panel-handle" aria-label="Expand or collapse panel" role="button" tabindex="0"></div>
+
     <div class="panel-content">
-        
-        <!-- Ride Type Tabs - NOW INSIDE SCROLL -->
-        <div class="tab-section">
-            <div class="tab-group" id="ride-tabs" data-outstation-km="{{ outstation_distance_km }}">
-                <button class="tab-btn {% if ride_type == 'daily' %}active{% endif %}" data-type="daily">Daily</button>
-                <button class="tab-btn {% if ride_type == 'outstation' %}active{% endif %}" data-type="outstation">Outstation</button>
+        <!-- Ride Type Tabs -->
+        <div class="panel-header">
+            <div class="tab-group" id="ride-tabs" data-outstation-km="{{ outstation_distance_km }}" data-outstation-disallowed="{{ outstation_disallowed_csv }}" data-derived-type="{{ location_ride_type }}">
+                <button class="tab-btn {% if ride_type == 'daily' %}active{% endif %}{% if location_ride_type != 'daily' %} disabled{% endif %}" data-type="daily" {% if location_ride_type != 'daily' %}aria-disabled="true"{% endif %}>Daily</button>
+                <button class="tab-btn {% if ride_type == 'outstation' %}active{% endif %}{% if location_ride_type != 'outstation' %} disabled{% endif %}" data-type="outstation" {% if location_ride_type != 'outstation' %}aria-disabled="true"{% endif %}>Outstation</button>
                 <button class="tab-btn {% if ride_type == 'rental' %}active{% endif %}" data-type="rental">Rental</button>
             </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="panel-main">
-            <!-- Locations -->
-            <div class="locations">
-                <div class="loc-row">
-                    <div class="loc-dot pickup"></div>
-                    <div class="loc-text" id="pickup-display">{{ pickup }}</div>
-                    <div class="loc-edit" onclick="openModal()">Edit</div>
-                </div>
-                <div class="loc-row">
-                    <div class="loc-dot drop"></div>
-                    <div class="loc-text" id="drop-display">{{ dropoff }}</div>
-                    <div class="loc-edit" onclick="openModal()">Edit</div>
-                </div>
+        <!-- Locations -->
+        <div class="locations">
+            <div class="loc-row">
+                <div class="loc-dot pickup"></div>
+                <div class="loc-text" id="pickup-display">{{ pickup }}</div>
+                <div class="loc-edit" onclick="openModal()">Edit</div>
             </div>
-
-            <!-- Date & Time -->
-            <div class="datetime-grid">
-                <div class="dt-box">
-                    <i class="far fa-calendar"></i>
-                    <span id="date-display">{{ ride_date|default:"Select date" }}</span>
-                </div>
-                <div class="dt-box">
-                    <i class="far fa-clock"></i>
-                    <span id="time-display">{{ ride_time|default:"Select time" }}</span>
-                </div>
-            </div>
-
-            <!-- Notice -->
-            <div class="notice {% if ride_type_notice %}show{% endif %}" id="notice">
-                <i class="fas fa-info-circle"></i>
-                <span id="notice-text">{{ ride_type_notice }}</span>
-            </div>
-
-            <!-- Rental Package -->
-            <div class="rental-box {% if ride_type == 'rental' %}show{% endif %}" id="rental-box">
-                <div class="rental-label">
-                    <i class="fas fa-clock"></i>
-                    Rental Package
-                </div>
-                <select class="rental-select" id="rental-select" name="rental_duration">
-                    {% if rental_options %}
-                        {% for option in rental_options %}
-                            <option value="{{ option.id }}" {% if rental_duration == option.id|stringformat:"s" %}selected{% endif %}>
-                                {{ option.distance_km }} KM / {{ option.time_hours }} Hours
-                            </option>
-                        {% endfor %}
-                    {% else %}
-                        <option disabled selected>No packages available</option>
-                    {% endif %}
-                </select>
-            </div>
-
-            <!-- Available Services -->
-            <div class="services">
-                <div class="services-title">Available Rides</div>
-                
-                {% if estimated_fares %}
-                    {% for fare in estimated_fares %}
-                        <label class="service-item">
-                            <input 
-                                type="radio" 
-                                name="service" 
-                                value="{{ fare.service_id }}" 
-                                class="service-radio" 
-                                data-name="{{ fare.service_name }}"
-                                required
-                            >
-                            <div class="service-card">
-                                <div class="service-icon">
-                                    {% if fare.icon %}
-                                        <i class="{{ fare.icon }}"></i>
-                                    {% else %}
-                                        <i class="fas fa-car"></i>
-                                    {% endif %}
-                                </div>
-                                <div class="service-details">
-                                    <div class="service-name">{{ fare.service_name }}</div>
-                                    <div class="service-meta">
-                                        <i class="fas fa-users"></i>
-                                        {{ fare.number_of_seats }} seats
-                                    </div>
-                                </div>
-                                <div class="service-price">
-                                    <div class="price-value">₹{{ fare.estimated_price }}</div>
-                                    <div class="price-label">Total</div>
-                                </div>
-                            </div>
-                        </label>
-                    {% endfor %}
-                {% else %}
-                    <div class="empty">
-                        <i class="fas fa-car"></i>
-                        <div class="empty-text">No services available</div>
-                    </div>
-                {% endif %}
+            <div class="loc-row">
+                <div class="loc-dot drop"></div>
+                <div class="loc-text" id="drop-display">{{ dropoff }}</div>
+                <div class="loc-edit" onclick="openModal()">Edit</div>
             </div>
         </div>
-        
-    </div>
-</div>
 
-<!-- Floating Book Button -->
-<div class="action-bar">
-    <button class="book-btn" id="book-btn" disabled>
-        <i class="fas fa-check-circle"></i>
-        Book Ride
-    </button>
+        <!-- Date & Time -->
+        {% if user_selected_datetime %}
+            <div class="datetime-caption">Scheduled (your selection)</div>
+        {% endif %}
+        <div class="datetime-grid{% if not user_selected_datetime %} hidden{% endif %}" id="datetime-grid">
+            {% if ride_date %}
+                <div class="dt-box">
+                    <i class="far fa-calendar"></i>
+                    <span id="date-display">{{ ride_date }}</span>
+                </div>
+            {% endif %}
+            {% if ride_time %}
+                <div class="dt-box">
+                    <i class="far fa-clock"></i>
+                    <span id="time-display">{{ ride_time }}</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Notice -->
+        <div class="notice {% if ride_type_notice %}show{% endif %}" id="notice">
+            <i class="fas fa-info-circle"></i>
+            <span id="notice-text">{{ ride_type_notice }}</span>
+        </div>
+
+        <!-- Rental Package -->
+        <div class="rental-box {% if ride_type == 'rental' %}show{% endif %}" id="rental-box">
+            <div class="rental-label">
+                <i class="fas fa-clock"></i>
+                Rental Package
+            </div>
+            <select class="rental-select" id="rental-select" name="rental_duration">
+                {% if rental_options %}
+                    {% for option in rental_options %}
+                        <option value="{{ option.id }}" {% if rental_duration == option.id|stringformat:"s" %}selected{% endif %}>
+                            {{ option.distance_km }} KM / {{ option.time_hours }} Hours
+                        </option>
+                    {% endfor %}
+                {% else %}
+                    <option disabled selected>No packages available</option>
+                {% endif %}
+            </select>
+        </div>
+
+        <!-- Available Services -->
+        <div class="services">
+            <div class="services-title">Available Rides</div>
+            
+            {% if estimated_fares %}
+                {% for fare in estimated_fares %}
+                    <label class="service-item">
+                        <input 
+                            type="radio" 
+                            name="service" 
+                            value="{{ fare.service_id }}" 
+                            class="service-radio" 
+                            data-name="{{ fare.service_name }}"
+                            required
+                        >
+                        <div class="service-card">
+                            <div class="service-icon">
+                                {% if fare.icon %}
+                                    <i class="{{ fare.icon }}"></i>
+                                {% else %}
+                                    <i class="fas fa-car"></i>
+                                {% endif %}
+                            </div>
+                            <div class="service-details">
+                                <div class="service-name">{{ fare.service_name }}</div>
+                                <div class="service-meta">
+                                    <i class="fas fa-users"></i>
+                                    {{ fare.number_of_seats }} seats
+                                </div>
+                            </div>
+                            <div class="service-price">
+                                <div class="price-value">₹{{ fare.estimated_price }}</div>
+                                <div class="price-label">Total</div>
+                            </div>
+                        </div>
+                    </label>
+                {% endfor %}
+            {% else %}
+                <div class="empty">
+                    <i class="fas fa-car"></i>
+                    <div class="empty-text">No services available</div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Book Button -->
+        <div class="action-bar">
+            <button class="book-btn" id="book-btn" disabled>
+                <i class="fas fa-check-circle"></i>
+                Book Ride
+            </button>
+        </div>
+    </div>
 </div>
 
 <!-- Edit Modal -->
@@ -952,6 +978,7 @@
                 Pickup Location
             </div>
             <input type="text" class="input-field" id="pickup-input" value="{{ pickup }}" placeholder="Enter pickup">
+            <div id="pickup-suggestions" class="autocomplete-list hidden"></div>
         </div>
 
         <div class="input-box">
@@ -960,9 +987,10 @@
                 Drop-off Location
             </div>
             <input type="text" class="input-field" id="drop-input" value="{{ dropoff }}" placeholder="Enter drop-off">
+            <div id="drop-suggestions" class="autocomplete-list hidden"></div>
         </div>
 
-        <div class="grid-2">
+        <div class="grid-2{% if not user_selected_datetime %} hidden{% endif %}">
             <div class="input-box">
                 <div class="input-label">
                     <i class="far fa-calendar"></i>
@@ -994,11 +1022,19 @@
     <input type="hidden" id="drop_lng" value="{{ drop_lng|default:'' }}">
     <input type="hidden" id="distance_km" value="{{ distance_km|default:'' }}">
     <input type="hidden" id="duration_min" value="{{ duration_min|default:'' }}">
+    <input type="hidden" id="pickup_city" value="{{ pickup_city|default:'' }}">
+    <input type="hidden" id="pickup_district" value="{{ pickup_district|default:'' }}">
+    <input type="hidden" id="pickup_state" value="{{ pickup_state|default:'' }}">
+    <input type="hidden" id="drop_city" value="{{ drop_city|default:'' }}">
+    <input type="hidden" id="drop_district" value="{{ drop_district|default:'' }}">
+    <input type="hidden" id="drop_state" value="{{ drop_state|default:'' }}">
+    <input type="hidden" id="user-selected-datetime" value="{% if user_selected_datetime %}1{% else %}0{% endif %}">
 </div>
 
 <!-- Scripts -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+<script src="{% static 'passenger/js/ride-rules.js' %}"></script>
 
 <script>
 // ============================================
@@ -1006,6 +1042,239 @@
 // ============================================
 let mapInstance = null;
 let routingControl = null;
+let pickupMarker = null;
+let dropMarker = null;
+let routeInfoEl = null;
+let noticeEl = null;
+let noticeTextEl = null;
+let routeRequestId = 0;
+let pendingRouteTimer = null;
+let lastRouteKey = '';
+let routeInFlight = false;
+let lastRouteStartAt = 0;
+let lastUiLoadingAt = 0;
+const userSelectedDatetime = document.getElementById('user-selected-datetime')?.value === '1';
+const rideTabsEl = document.getElementById('ride-tabs');
+const derivedRideType = rideTabsEl?.dataset.derivedType || '';
+const rideRules = window.RideRules || null;
+const bottomPanel = document.querySelector('.bottom-panel');
+const panelHandle = document.getElementById('panel-handle');
+const panelHeader = document.querySelector('.panel-header');
+const COLLAPSED_VH = 0.26;
+const EXPANDED_VH = 0.75;
+const DRAG_THRESHOLD_PX = 40;
+let dragStartY = 0;
+let dragStartHeight = 0;
+let isDraggingPanel = false;
+
+function setPanelState(expanded) {
+    if (!bottomPanel) return;
+    bottomPanel.style.transition = 'height 0.25s ease';
+    if (expanded) {
+        bottomPanel.classList.add('expanded');
+        bottomPanel.classList.remove('collapsed');
+        bottomPanel.style.height = `${Math.round(window.innerHeight * EXPANDED_VH)}px`;
+    } else {
+        bottomPanel.classList.add('collapsed');
+        bottomPanel.classList.remove('expanded');
+        bottomPanel.style.height = `${Math.round(window.innerHeight * COLLAPSED_VH)}px`;
+        bottomPanel.scrollTop = 0;
+    }
+}
+
+setPanelState(false);
+
+if (panelHandle) {
+    panelHandle.addEventListener('click', () => {
+        const isExpanded = bottomPanel?.classList.contains('expanded');
+        setPanelState(!isExpanded);
+    });
+    panelHandle.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            const isExpanded = bottomPanel?.classList.contains('expanded');
+            setPanelState(!isExpanded);
+        }
+    });
+}
+
+if (bottomPanel) {
+    bottomPanel.addEventListener('scroll', () => {
+        if (bottomPanel.classList.contains('collapsed') && bottomPanel.scrollTop > 8) {
+            setPanelState(true);
+        }
+    });
+}
+
+function canStartDrag(target) {
+    if (!bottomPanel) return false;
+    if (target === panelHandle || panelHandle?.contains(target)) return true;
+    if (target === panelHeader || panelHeader?.contains(target)) return true;
+    return bottomPanel.scrollTop === 0;
+}
+
+function onPanelTouchStart(e) {
+    if (!bottomPanel || e.touches.length !== 1) return;
+    if (!canStartDrag(e.target)) return;
+    isDraggingPanel = true;
+    dragStartY = e.touches[0].clientY;
+    dragStartHeight = bottomPanel.getBoundingClientRect().height;
+    bottomPanel.style.transition = 'none';
+}
+
+function onPanelTouchMove(e) {
+    if (!isDraggingPanel || !bottomPanel || e.touches.length !== 1) return;
+    const currentY = e.touches[0].clientY;
+    const deltaY = dragStartY - currentY;
+    const minHeight = window.innerHeight * COLLAPSED_VH;
+    const maxHeight = window.innerHeight * EXPANDED_VH;
+    const nextHeight = Math.min(maxHeight, Math.max(minHeight, dragStartHeight + deltaY));
+    bottomPanel.style.height = `${nextHeight}px`;
+    e.preventDefault();
+}
+
+function onPanelTouchEnd(e) {
+    if (!isDraggingPanel || !bottomPanel) return;
+    isDraggingPanel = false;
+    const endY = e.changedTouches[0].clientY;
+    const deltaY = dragStartY - endY;
+    const isExpanded = bottomPanel.classList.contains('expanded');
+    if (deltaY > DRAG_THRESHOLD_PX) {
+        setPanelState(true);
+    } else if (deltaY < -DRAG_THRESHOLD_PX) {
+        setPanelState(false);
+    } else {
+        setPanelState(isExpanded);
+    }
+}
+
+if (bottomPanel) {
+    bottomPanel.addEventListener('touchstart', onPanelTouchStart, { passive: true });
+    bottomPanel.addEventListener('touchmove', onPanelTouchMove, { passive: false });
+    bottomPanel.addEventListener('touchend', onPanelTouchEnd);
+    bottomPanel.addEventListener('touchcancel', onPanelTouchEnd);
+}
+
+window.addEventListener('resize', () => {
+    const isExpanded = bottomPanel?.classList.contains('expanded');
+    setPanelState(isExpanded);
+});
+
+function parseCsv(value) {
+    if (!value) return [];
+    return value.split(',').map(item => item.trim()).filter(Boolean);
+}
+
+const outstationDisallowed = (parseCsv(rideTabsEl?.dataset.outstationDisallowed) || [])
+    .map(item => item.toLowerCase())
+    .filter(Boolean);
+
+function showNotice(message, tone) {
+    const notice = noticeEl || document.getElementById('notice');
+    const noticeText = noticeTextEl || document.getElementById('notice-text');
+    if (!notice || !noticeText) return;
+    if (!message) {
+        notice.classList.remove('show', 'error');
+        noticeText.textContent = '';
+        return;
+    }
+    noticeText.textContent = message;
+    notice.classList.add('show');
+    if (tone === 'error') {
+        notice.classList.add('error');
+    } else {
+        notice.classList.remove('error');
+    }
+}
+
+function setRouteLoadingState(isLoading) {
+    if (!routeInfoEl) return;
+    if (isLoading) {
+        lastUiLoadingAt = performance.now();
+        routeInfoEl.textContent = 'Updating route...';
+        routeInfoEl.classList.add('loading');
+    } else {
+        routeInfoEl.classList.remove('loading');
+        if (lastUiLoadingAt) {
+            const uiMs = Math.round(performance.now() - lastUiLoadingAt);
+            console.log(`[RoutePerf] UI loading state: ${uiMs}ms`);
+            lastUiLoadingAt = 0;
+        }
+    }
+}
+
+function extractAddressParts(result) {
+    if (rideRules && rideRules.extractAddressParts) {
+        return rideRules.extractAddressParts(result);
+    }
+    const address = result && result.address ? result.address : {};
+    return {
+        city: address.city || address.town || address.village || address.hamlet || address.municipality || address.suburb || '',
+        district: address.state_district || address.county || address.district || '',
+        state: address.state || address.province || address.region || ''
+    };
+}
+
+function setLocationFields(prefix, meta) {
+    if (!meta) return;
+    if (prefix === 'pickup') {
+        const city = document.getElementById('pickup_city');
+        const district = document.getElementById('pickup_district');
+        const state = document.getElementById('pickup_state');
+        if (city) city.value = meta.city || '';
+        if (district) district.value = meta.district || '';
+        if (state) state.value = meta.state || '';
+    } else if (prefix === 'dropoff') {
+        const city = document.getElementById('drop_city');
+        const district = document.getElementById('drop_district');
+        const state = document.getElementById('drop_state');
+        if (city) city.value = meta.city || '';
+        if (district) district.value = meta.district || '';
+        if (state) state.value = meta.state || '';
+    }
+}
+
+function debounce(fn, delay) {
+    let t;
+    return function(...args) {
+        clearTimeout(t);
+        t = setTimeout(() => fn.apply(this, args), delay);
+    };
+}
+
+function geocodeAddress(query) {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(query)}&limit=5`;
+    return fetch(url, {
+        headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'DropMeCabApp/1.0'
+        }
+    }).then(response => {
+        if (!response.ok) {
+            throw new Error('Geocoding request failed');
+        }
+        return response.json();
+    });
+}
+
+function renderSuggestions(container, results, onPick) {
+    container.innerHTML = '';
+    if (!results || results.length === 0) {
+        container.classList.add('hidden');
+        return;
+    }
+    results.slice(0, 8).forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'autocomplete-item';
+        div.textContent = item.display_name;
+        div.addEventListener('click', () => {
+            onPick(item);
+            container.classList.add('hidden');
+        });
+        container.appendChild(div);
+    });
+    container.classList.remove('hidden');
+}
 
 // ============================================
 // MODAL CONTROLS
@@ -1021,19 +1290,48 @@ function closeModal() {
 function saveChanges() {
     const pickup = document.getElementById('pickup-input').value;
     const drop = document.getElementById('drop-input').value;
-    const date = document.getElementById('date-input').value;
-    const time = document.getElementById('time-input').value;
+    const date = document.getElementById('date-input')?.value || '';
+    const time = document.getElementById('time-input')?.value || '';
     const rideType = document.getElementById('ride-type-value').value;
+    const pickupLat = document.getElementById('pickup_lat')?.value || '';
+    const pickupLng = document.getElementById('pickup_lng')?.value || '';
+    const dropLat = document.getElementById('drop_lat')?.value || '';
+    const dropLng = document.getElementById('drop_lng')?.value || '';
+    const distanceKm = document.getElementById('distance_km')?.value || '';
+    const durationMin = document.getElementById('duration_min')?.value || '';
+    const pickupCity = document.getElementById('pickup_city')?.value || '';
+    const pickupDistrict = document.getElementById('pickup_district')?.value || '';
+    const pickupState = document.getElementById('pickup_state')?.value || '';
+    const dropCity = document.getElementById('drop_city')?.value || '';
+    const dropDistrict = document.getElementById('drop_district')?.value || '';
+    const dropState = document.getElementById('drop_state')?.value || '';
 
-    if (!pickup || !drop || !date || !time) {
+    if (!pickup || !drop || (userSelectedDatetime && (!date || !time))) {
         alert('Please fill all fields');
+        return;
+    }
+    if (!distanceKm || !durationMin) {
+        showNotice('Route is still calculating. You can continue editing, or wait a moment before saving.', 'error');
         return;
     }
 
     const rentalSelect = document.getElementById('rental-select');
     const rentalDuration = rentalSelect ? rentalSelect.value : '';
     
-    let url = `/passenger/choose-ride/?pickup=${encodeURIComponent(pickup)}&dropoff=${encodeURIComponent(drop)}&ride_date=${date}&ride_time=${time}&ride_type=${rideType}`;
+    let url = `/passenger/choose-ride/?pickup=${encodeURIComponent(pickup)}&dropoff=${encodeURIComponent(drop)}&ride_type=${rideType}&user_selected_datetime=${userSelectedDatetime ? '1' : '0'}`;
+    if (userSelectedDatetime) {
+        url += `&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}`;
+    }
+    if (pickupLat && pickupLng) url += `&pickup_lat=${encodeURIComponent(pickupLat)}&pickup_lng=${encodeURIComponent(pickupLng)}`;
+    if (dropLat && dropLng) url += `&drop_lat=${encodeURIComponent(dropLat)}&drop_lng=${encodeURIComponent(dropLng)}`;
+    if (distanceKm) url += `&distance_km=${encodeURIComponent(distanceKm)}`;
+    if (durationMin) url += `&duration_min=${encodeURIComponent(durationMin)}`;
+    if (pickupCity) url += `&pickup_city=${encodeURIComponent(pickupCity)}`;
+    if (pickupDistrict) url += `&pickup_district=${encodeURIComponent(pickupDistrict)}`;
+    if (pickupState) url += `&pickup_state=${encodeURIComponent(pickupState)}`;
+    if (dropCity) url += `&drop_city=${encodeURIComponent(dropCity)}`;
+    if (dropDistrict) url += `&drop_district=${encodeURIComponent(dropDistrict)}`;
+    if (dropState) url += `&drop_state=${encodeURIComponent(dropState)}`;
     
     if (rideType === 'rental' && rentalDuration) {
         url += `&rental_duration=${rentalDuration}`;
@@ -1043,14 +1341,110 @@ function saveChanges() {
 }
 
 // ============================================
+// ADDRESS AUTOCOMPLETE (EDIT MODAL)
+// ============================================
+const pickupInput = document.getElementById('pickup-input');
+const dropInput = document.getElementById('drop-input');
+const pickupSuggestions = document.getElementById('pickup-suggestions');
+const dropSuggestions = document.getElementById('drop-suggestions');
+const pickupLatInput = document.getElementById('pickup_lat');
+const pickupLngInput = document.getElementById('pickup_lng');
+const dropLatInput = document.getElementById('drop_lat');
+const dropLngInput = document.getElementById('drop_lng');
+const distanceField = document.getElementById('distance_km');
+const durationField = document.getElementById('duration_min');
+
+function tryUpdateRoute() {
+    if (!pickupLatInput || !pickupLngInput || !dropLatInput || !dropLngInput) return;
+    const pLat = parseFloat(pickupLatInput.value);
+    const pLng = parseFloat(pickupLngInput.value);
+    const dLat = parseFloat(dropLatInput.value);
+    const dLng = parseFloat(dropLngInput.value);
+    if ([pLat, pLng, dLat, dLng].some(val => Number.isNaN(val))) return;
+    if (typeof window.updateRouteWithCoords === 'function') {
+        window.updateRouteWithCoords(pLat, pLng, dLat, dLng);
+    }
+}
+
+function handlePick(prefix, item) {
+    const lat = parseFloat(item.lat);
+    const lng = parseFloat(item.lon);
+    if (Number.isNaN(lat) || Number.isNaN(lng)) return;
+    if (prefix === 'pickup') {
+        if (pickupInput) pickupInput.value = item.display_name;
+        if (pickupLatInput) pickupLatInput.value = lat;
+        if (pickupLngInput) pickupLngInput.value = lng;
+    } else {
+        if (dropInput) dropInput.value = item.display_name;
+        if (dropLatInput) dropLatInput.value = lat;
+        if (dropLngInput) dropLngInput.value = lng;
+    }
+    setLocationFields(prefix, extractAddressParts(item));
+    if (distanceField) distanceField.value = '';
+    if (durationField) durationField.value = '';
+    tryUpdateRoute();
+}
+
+if (pickupInput && pickupSuggestions) {
+    const onPickupInput = debounce(() => {
+        const query = pickupInput.value.trim();
+        if (query.length < 2) {
+            pickupSuggestions.classList.add('hidden');
+            return;
+        }
+        geocodeAddress(query)
+            .then(results => renderSuggestions(pickupSuggestions, results, item => handlePick('pickup', item)))
+            .catch(err => {
+                console.error('Pickup geocoding error:', err);
+                pickupSuggestions.classList.add('hidden');
+            });
+    }, 300);
+    pickupInput.addEventListener('input', onPickupInput);
+}
+
+if (dropInput && dropSuggestions) {
+    const onDropInput = debounce(() => {
+        const query = dropInput.value.trim();
+        if (query.length < 2) {
+            dropSuggestions.classList.add('hidden');
+            return;
+        }
+        geocodeAddress(query)
+            .then(results => renderSuggestions(dropSuggestions, results, item => handlePick('dropoff', item)))
+            .catch(err => {
+                console.error('Dropoff geocoding error:', err);
+                dropSuggestions.classList.add('hidden');
+            });
+    }, 300);
+    dropInput.addEventListener('input', onDropInput);
+}
+
+document.addEventListener('click', function(e) {
+    if (pickupSuggestions && !pickupSuggestions.contains(e.target) && e.target !== pickupInput) {
+        pickupSuggestions.classList.add('hidden');
+    }
+    if (dropSuggestions && !dropSuggestions.contains(e.target) && e.target !== dropInput) {
+        dropSuggestions.classList.add('hidden');
+    }
+});
+
+// ============================================
 // RIDE TYPE TABS
 // ============================================
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', function() {
+        const type = this.getAttribute('data-type');
+        if (this.classList.contains('disabled')) {
+            showNotice('Daily and Outstation are set automatically based on your route.', 'error');
+            return;
+        }
+        if ((type === 'daily' || type === 'outstation') && derivedRideType && type !== derivedRideType) {
+            showNotice('Ride type is determined by pickup and dropoff location. Update the address to change it.', 'error');
+            return;
+        }
+
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
-        
-        const type = this.getAttribute('data-type');
         document.getElementById('ride-type-value').value = type;
         
         // Show/hide rental
@@ -1063,14 +1457,14 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
         // Filter services (hide bike/auto for outstation)
         const cards = document.querySelectorAll('.service-item');
-        const outstationDisallowed = ['bike', 'auto'];
+        const disallowed = outstationDisallowed.length ? outstationDisallowed : ['bike', 'auto'];
         
         cards.forEach(card => {
             const radio = card.querySelector('.service-radio');
             const serviceName = radio.getAttribute('data-name').toLowerCase();
             const serviceCard = card.querySelector('.service-card');
             
-            if (type === 'outstation' && outstationDisallowed.includes(serviceName)) {
+            if (type === 'outstation' && disallowed.includes(serviceName)) {
                 card.style.display = 'none';
                 radio.disabled = true;
                 serviceCard.classList.add('disabled');
@@ -1088,14 +1482,17 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         // Reload with new ride type
         const pickup = document.getElementById('pickup-input').value;
         const drop = document.getElementById('drop-input').value;
-        const date = document.getElementById('date-input').value;
-        const time = document.getElementById('time-input').value;
+        const date = document.getElementById('date-input')?.value || '';
+        const time = document.getElementById('time-input')?.value || '';
 
-        if (pickup && drop && date && time) {
+        if (pickup && drop && (!userSelectedDatetime || (date && time))) {
             const rentalSelect = document.getElementById('rental-select');
             const rentalDuration = rentalSelect ? rentalSelect.value : '';
             
-            let url = `/passenger/choose-ride/?pickup=${encodeURIComponent(pickup)}&dropoff=${encodeURIComponent(drop)}&ride_date=${date}&ride_time=${time}&ride_type=${type}`;
+            let url = `/passenger/choose-ride/?pickup=${encodeURIComponent(pickup)}&dropoff=${encodeURIComponent(drop)}&ride_type=${type}&user_selected_datetime=${userSelectedDatetime ? '1' : '0'}`;
+            if (userSelectedDatetime) {
+                url += `&date=${encodeURIComponent(date)}&time=${encodeURIComponent(time)}`;
+            }
             
             const pickupLat = document.getElementById('pickup_lat')?.value || '';
             const pickupLng = document.getElementById('pickup_lng')?.value || '';
@@ -1103,11 +1500,23 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
             const dropLng = document.getElementById('drop_lng')?.value || '';
             const distanceKm = document.getElementById('distance_km')?.value || '';
             const durationMin = document.getElementById('duration_min')?.value || '';
+            const pickupCity = document.getElementById('pickup_city')?.value || '';
+            const pickupDistrict = document.getElementById('pickup_district')?.value || '';
+            const pickupState = document.getElementById('pickup_state')?.value || '';
+            const dropCity = document.getElementById('drop_city')?.value || '';
+            const dropDistrict = document.getElementById('drop_district')?.value || '';
+            const dropState = document.getElementById('drop_state')?.value || '';
             
             if (pickupLat && pickupLng) url += `&pickup_lat=${pickupLat}&pickup_lng=${pickupLng}`;
             if (dropLat && dropLng) url += `&drop_lat=${dropLat}&drop_lng=${dropLng}`;
             if (distanceKm) url += `&distance_km=${distanceKm}`;
             if (durationMin) url += `&duration_min=${durationMin}`;
+            if (pickupCity) url += `&pickup_city=${encodeURIComponent(pickupCity)}`;
+            if (pickupDistrict) url += `&pickup_district=${encodeURIComponent(pickupDistrict)}`;
+            if (pickupState) url += `&pickup_state=${encodeURIComponent(pickupState)}`;
+            if (dropCity) url += `&drop_city=${encodeURIComponent(dropCity)}`;
+            if (dropDistrict) url += `&drop_district=${encodeURIComponent(dropDistrict)}`;
+            if (dropState) url += `&drop_state=${encodeURIComponent(dropState)}`;
             
             if (type === 'rental' && rentalDuration) {
                 url += `&rental_duration=${rentalDuration}`;
@@ -1169,19 +1578,42 @@ bookBtn.addEventListener('click', () => {
     
     const pickup = document.getElementById('pickup-input').value;
     const drop = document.getElementById('drop-input').value;
-    const date = document.getElementById('date-input').value;
-    const time = document.getElementById('time-input').value;
+    const date = document.getElementById('date-input')?.value || '';
+    const time = document.getElementById('time-input')?.value || '';
     const rideType = document.getElementById('ride-type-value').value;
     const rentalSelect = document.getElementById('rental-select');
     const rentalDuration = rentalSelect ? rentalSelect.value : '';
+    const pickupCity = document.getElementById('pickup_city')?.value || '';
+    const pickupDistrict = document.getElementById('pickup_district')?.value || '';
+    const pickupState = document.getElementById('pickup_state')?.value || '';
+    const dropCity = document.getElementById('drop_city')?.value || '';
+    const dropDistrict = document.getElementById('drop_district')?.value || '';
+    const dropState = document.getElementById('drop_state')?.value || '';
     
-    let url = `/passenger/book-ride/?pickup=${encodeURIComponent(pickup)}&dropoff=${encodeURIComponent(drop)}&ride_date=${date}&ride_time=${time}&ride_type=${rideType}&service_id=${serviceId}&service_name=${encodeURIComponent(serviceName)}&fare=${encodeURIComponent(price)}`;
-    
+    if (userSelectedDatetime && (!date || !time)) {
+        alert('Please select both date and time');
+        return;
+    }
+
     const distanceKm = document.getElementById('distance_km')?.value || '';
     const durationMin = document.getElementById('duration_min')?.value || '';
-    
+    if (!distanceKm || !durationMin) {
+        showNotice('Route is still calculating. Please wait a moment.', 'error');
+        return;
+    }
+
+    let url = `/passenger/book-ride/?pickup=${encodeURIComponent(pickup)}&dropoff=${encodeURIComponent(drop)}&ride_type=${rideType}&service_id=${serviceId}&service_name=${encodeURIComponent(serviceName)}&fare=${encodeURIComponent(price)}`;
+    if (userSelectedDatetime) {
+        url += `&ride_date=${encodeURIComponent(date)}&ride_time=${encodeURIComponent(time)}`;
+    }
     if (distanceKm) url += `&distance_km=${encodeURIComponent(distanceKm)}`;
     if (durationMin) url += `&duration_min=${encodeURIComponent(durationMin)}`;
+    if (pickupCity) url += `&pickup_city=${encodeURIComponent(pickupCity)}`;
+    if (pickupDistrict) url += `&pickup_district=${encodeURIComponent(pickupDistrict)}`;
+    if (pickupState) url += `&pickup_state=${encodeURIComponent(pickupState)}`;
+    if (dropCity) url += `&drop_city=${encodeURIComponent(dropCity)}`;
+    if (dropDistrict) url += `&drop_district=${encodeURIComponent(dropDistrict)}`;
+    if (dropState) url += `&drop_state=${encodeURIComponent(dropState)}`;
     if (rideType === 'rental' && rentalDuration) url += `&rental_duration=${rentalDuration}`;
     
     window.location.href = url;
@@ -1194,9 +1626,9 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Initializing map and routing...');
     
     const mapEl = document.getElementById('ride-map');
-    const routeInfoEl = document.getElementById('route-info');
-    const noticeEl = document.getElementById('notice');
-    const noticeTextEl = document.getElementById('notice-text');
+    routeInfoEl = document.getElementById('route-info');
+    noticeEl = document.getElementById('notice');
+    noticeTextEl = document.getElementById('notice-text');
     
     if (!mapEl) {
         console.error('Map element not found');
@@ -1340,6 +1772,20 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        const routeKey = `${pickupLat},${pickupLng}|${dropLat},${dropLng}`;
+        if (routeKey === lastRouteKey && routingControl) {
+            return;
+        }
+        lastRouteKey = routeKey;
+
+        // Update markers without re-creating them
+        if (pickupMarker) {
+            pickupMarker.setLatLng([pickupLat, pickupLng]);
+        }
+        if (dropMarker) {
+            dropMarker.setLatLng([dropLat, dropLng]);
+        }
+
         // CRITICAL: Create L.LatLng objects with validation
         let pickupLatLng, dropLatLng;
         
@@ -1376,35 +1822,56 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Add markers
         try {
-            L.marker(pickupLatLng, { icon: pickupIcon }).addTo(mapInstance);
-            L.marker(dropLatLng, { icon: dropIcon }).addTo(mapInstance);
-            console.log('Markers added successfully');
+            if (!pickupMarker) {
+                pickupMarker = L.marker(pickupLatLng, { icon: pickupIcon }).addTo(mapInstance);
+            }
+            if (!dropMarker) {
+                dropMarker = L.marker(dropLatLng, { icon: dropIcon }).addTo(mapInstance);
+            }
+            console.log('Markers ready');
         } catch (error) {
             console.error('Error adding markers:', error);
         }
 
-        // CRITICAL: Create routing control with error handling
+        // Create routing control once; update waypoints thereafter
+        const currentRequestId = ++routeRequestId;
+        routeInFlight = true;
+        lastRouteStartAt = performance.now();
+        setRouteLoadingState(true);
+        console.log(`[RoutePerf] Route request #${currentRequestId} started`);
         try {
-            routingControl = L.Routing.control({
-                waypoints: [pickupLatLng, dropLatLng],
-                router: L.Routing.osrmv1({
-                    serviceUrl: 'https://router.project-osrm.org/route/v1'
-                }),
-                addWaypoints: false,
-                draggableWaypoints: false,
-                fitSelectedRoutes: true,
-                show: false,
-                lineOptions: {
-                    styles: [{ color: '#00A59E', opacity: 0.8, weight: 6 }]
-                },
-                createMarker: function() { return null; } // Don't create default markers
-            }).addTo(mapInstance);
+            if (!routingControl) {
+                routingControl = L.Routing.control({
+                    waypoints: [pickupLatLng, dropLatLng],
+                    router: L.Routing.osrmv1({
+                        serviceUrl: 'https://router.project-osrm.org/route/v1'
+                    }),
+                    addWaypoints: false,
+                    draggableWaypoints: false,
+                    fitSelectedRoutes: true,
+                    show: false,
+                    lineOptions: {
+                        styles: [{ color: '#00A59E', opacity: 0.8, weight: 6 }]
+                    },
+                    createMarker: function() { return null; } // Don't create default markers
+                }).addTo(mapInstance);
+            } else {
+                routingControl.setWaypoints([pickupLatLng, dropLatLng]);
+            }
 
-            console.log('Routing control created');
+            console.log('Routing control ready');
+
+            if (routingControl.off) {
+                routingControl.off('routesfound');
+                routingControl.off('routingerror');
+            }
 
             // Handle successful routing
             routingControl.on('routesfound', function(e) {
-                console.log('Route found:', e);
+                    if (currentRequestId !== routeRequestId) {
+                        return;
+                    }
+                    console.log('Route found:', e);
                 
                 const route = e.routes && e.routes[0];
                 if (!route) {
@@ -1420,6 +1887,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 console.log(`Route: ${km} km, ${mins} min`);
                 routeInfoEl.textContent = `${km} km • ${mins} min`;
+                routeInFlight = false;
+                setRouteLoadingState(false);
+                showNotice('', 'success');
+                if (lastRouteStartAt) {
+                    const elapsed = Math.round(performance.now() - lastRouteStartAt);
+                    console.log(`[RoutePerf] Route response: ${elapsed}ms`);
+                    lastRouteStartAt = 0;
+                }
 
                 // Update hidden fields
                 const distanceField = document.getElementById('distance_km');
@@ -1449,8 +1924,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Handle routing errors
             routingControl.on('routingerror', function(e) {
-                console.error('Routing error:', e);
+                    if (currentRequestId !== routeRequestId) {
+                        return;
+                    }
+                    console.error('Routing error:', e);
                 routeInfoEl.textContent = 'Route unavailable';
+                routeInFlight = false;
+                setRouteLoadingState(false);
+                if (lastRouteStartAt) {
+                    const elapsed = Math.round(performance.now() - lastRouteStartAt);
+                    console.log(`[RoutePerf] Route error after: ${elapsed}ms`);
+                    lastRouteStartAt = 0;
+                }
                 
                 if (noticeEl && noticeTextEl) {
                     noticeEl.classList.add('show', 'error');
@@ -1461,6 +1946,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Error creating routing control:', error);
             routeInfoEl.textContent = 'Routing error';
+            setRouteLoadingState(false);
             
             if (noticeEl && noticeTextEl) {
                 noticeEl.classList.add('show', 'error');
@@ -1468,6 +1954,17 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
+
+    window.updateRouteWithCoords = function(pickupLat, pickupLng, dropLat, dropLng) {
+        if (!mapInstance) return;
+        if (pendingRouteTimer) {
+            clearTimeout(pendingRouteTimer);
+        }
+        setRouteLoadingState(true);
+        pendingRouteTimer = setTimeout(() => {
+            drawRoute(pickupLat, pickupLng, dropLat, dropLng);
+        }, 250);
+    };
 
     // ============================================
     // HANDLE RESIZE EVENTS
