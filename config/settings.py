@@ -153,13 +153,14 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 # Security
-ALLOWED_HOSTS = [
-    "160.187.80.217",
-    "saifpatel.com",
-    "www.saifpatel.com",
-    "localhost",
-    "127.0.0.1",
-]
+#ALLOWED_HOSTS = [
+#    "160.187.80.217",
+#    "saifpatel.com",
+#    "www.saifpatel.com",
+#    "localhost",
+#    "127.0.0.1",
+#]
+ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = [
     "http://160.187.80.217",

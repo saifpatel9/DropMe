@@ -1,700 +1,1459 @@
 {% load static %}
 {% load custom_filters %}
 
-{% block extra_css %}
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-<link rel="stylesheet" href="{% static 'css/responsive.css' %}">
-<link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
-<link rel="stylesheet" href="{% static 'css/passenger-mobile.css' %}">
-<style>
-  /* Ensure the Leaflet map never overflows and respects rounded corners */
-  #ride-map {
-    height: 320px;
-    width: 100%;
-  }
-  .map-shell {
-    overflow: hidden; /* clip any overflowing tiles/controls */
-    border-radius: 0.75rem; /* rounded-xl */
-  }
-  .leaflet-container {
-    font: inherit; /* keep consistent typography */
-  }
-  .leaflet-top, .leaflet-bottom {
-    z-index: 10; /* stay under sticky headers if any */
-  }
-  @media (min-width: 1024px) {
-    #ride-map { height: 360px; }
-  }
-  @media (max-width: 640px) {
-    #ride-map { height: 260px; }
-  }
-}</style>
-{% endblock %}
-
-{% block content %}
-<div class="app-screen passenger-app">
-  <header class="mobile-header">
-    <div>
-      <div class="brand">Choose Ride</div>
-      <div class="tagline">Confirm your route & fare</div>
-    </div>
-    <a href="{% url 'homepage' %}" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-      <i class="fas fa-arrow-left"></i>
-    </a>
-  </header>
-<section class="bg-gray-50 py-6 choose-ride-mobile">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-4">
-    <a href="{% url 'homepage' %}" class="inline-block text-sm text-teal-600 font-semibold hover:underline hover:text-teal-800 transition">
-      ← Back
-    </a>
-  </div>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-3 gap-8 screen-content">
-
-    <div class="bg-white shadow-md rounded-2xl p-6">
-      <div class="flex justify-center mb-4">
-        <div id="ride-type-tabs" class="flex bg-gray-100 rounded-xl p-1 w-full" data-outstation-km="{{ outstation_distance_km }}">
-          <button data-type="daily" class="flex-1 py-2 {% if ride_type == 'daily' %}bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-l-xl font-medium text-sm{% else %}text-gray-600 hover:bg-gray-200 transition font-medium text-sm{% endif %}">Daily Ride</button>
-          <button data-type="outstation" class="flex-1 py-2 {% if ride_type == 'outstation' %}bg-gradient-to-r from-teal-500 to-teal-600 text-white font-medium text-sm{% else %}text-gray-600 hover:bg-gray-200 transition font-medium text-sm{% endif %}">Outstation</button>
-          <button data-type="rental" class="flex-1 py-2 {% if ride_type == 'rental' %}bg-gradient-to-r from-teal-500 to-teal-600 text-white rounded-r-xl font-medium text-sm{% else %}text-gray-600 hover:bg-gray-200 transition font-medium text-sm rounded-r-xl{% endif %}">Rental</button>
-        </div>
-      </div>
-
-      <input type="hidden" name="ride_type" value="{{ ride_type }}">
-      <input type="hidden" id="pickup_lat" value="{{ pickup_lat|default:'' }}">
-      <input type="hidden" id="pickup_lng" value="{{ pickup_lng|default:'' }}">
-      <input type="hidden" id="drop_lat" value="{{ drop_lat|default:'' }}">
-      <input type="hidden" id="drop_lng" value="{{ drop_lng|default:'' }}">
-      <input type="hidden" id="pickup_city" value="{{ pickup_city|default:'' }}">
-      <input type="hidden" id="pickup_district" value="{{ pickup_district|default:'' }}">
-      <input type="hidden" id="pickup_state" value="{{ pickup_state|default:'' }}">
-      <input type="hidden" id="drop_city" value="{{ drop_city|default:'' }}">
-      <input type="hidden" id="drop_district" value="{{ drop_district|default:'' }}">
-      <input type="hidden" id="drop_state" value="{{ drop_state|default:'' }}">
-      <input type="hidden" id="distance_km" value="{{ distance_km|default:'' }}">
-      <input type="hidden" id="duration_min" value="{{ duration_min|default:'' }}">
-      <div class="mb-4">
-        <input type="text" name="pickup" placeholder="Pickup Location" value="{{ pickup }}" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500">
-      </div>
-      <div class="mb-4">
-        <input type="text" name="dropoff" placeholder="Dropoff Location" value="{{ dropoff }}" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500">
-      </div>
-      <div id="ride_type_notice" class="{% if ride_type_notice %}text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4{% else %}hidden text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4{% endif %}">{{ ride_type_notice }}</div>
-
-      <div class="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <input type="date" name="ride_date" value="{{ ride_date }}" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500">
-        </div>
-        <div>
-          <input type="time" name="ride_time" value="{{ ride_time }}" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500">
-        </div>
-      </div>
-
-      {% if ride_type == 'rental' %}
-      <div class="mt-4">
-        <label for="rental_duration" class="block text-sm font-medium text-gray-700 mb-1">Select Rental Package</label>
-        <select name="rental_duration" class="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-teal-500">
-          {% if rental_options %}
-            {% for option in rental_options %}
-              <option value="{{ option.id }}" {% if rental_duration == option.id|stringformat:"s" %}selected{% endif %}>
-                {{ option.distance_km }} KM / {{ option.time_hours }} Hours
-              </option>
-            {% endfor %}
-          {% else %}
-            <option disabled selected>No durations available</option>
-          {% endif %}
-        </select>
-      </div>
-      {% endif %}
-    </div>
-
-    <div class="lg:col-span-2">
-      <div class="bg-white shadow-md rounded-2xl p-6">
-        <div class="mb-4">
-          <div class="flex items-center justify-between">
-            <h3 class="font-semibold text-gray-800">Route Preview</h3>
-            <span id="route-distance" class="hidden text-sm bg-teal-50 text-teal-700 px-3 py-1 rounded-full border border-teal-200">Distance: --</span>
-          </div>
-      <div class="mt-3 map-shell border ride-map-wrap">
-        <div id="ride-map"></div>
-      </div>
-        </div>
-        <div class="space-y-4 mb-6 service-list" data-outstation-disallowed="{{ outstation_disallowed_csv }}">
-          {% if estimated_fares %}
-            {% for fare in estimated_fares %}
-              <label class="block">
-                <input type="radio" name="selected_service" value="{{ fare.service_id }}" class="peer hidden" required data-service-name="{{ fare.service_name }}">
-                <div class="flex items-center p-4 border rounded-xl hover:shadow transition cursor-pointer peer-checked:border-2 peer-checked:border-teal-500 mb-2">
-                  <div class="mr-4 flex-shrink-0">
-                    {% if fare.icon %}
-                      <i class="{{ fare.icon }} text-teal-500 text-2xl"></i>
-                    {% else %}
-                      <i class="fas fa-car text-teal-500 text-2xl"></i>
-                    {% endif %}
-                  </div>
-                  <div class="flex-1">
-                    <p class="font-semibold text-gray-800">{{ fare.service_name }}</p> {# CHANGED THIS LINE #}
-                    <p class="text-sm text-gray-500">{{ fare.number_of_seats }} Seater</p>
-                  </div>
-                  <div class="text-right text-sm text-gray-600">
-                    <p class="text-teal-600 font-bold text-lg mt-1">₹{{ fare.estimated_price }}</p>
-                    <p class="text-xs text-gray-400">Total Fare</p>
-                  </div>
-                </div>
-              </label>
-            {% endfor %}
-          {% else %}
-            <p class="text-center text-gray-500">No services available.</p>
-          {% endif %}
-        </div>
-
-
-        <div class="book-bar">
-          <button id="book-ride-btn" class="w-full bg-gradient-to-r from-teal-500 to-teal-600 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50" disabled>Book a Ride</button>
-        </div>
-
-      </div>
-    </div>
-  </div>
-</section>
-
-<script src="{% static 'passenger/js/ride-rules.js' %}"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const rideRules = window.RideRules || null;
-    const tabsContainer = document.getElementById('ride-type-tabs');
-    const buttons = tabsContainer.querySelectorAll('button');
-    const rideTypeNotice = document.getElementById('ride_type_notice');
-    const outstationThresholdKm = tabsContainer && tabsContainer.dataset.outstationKm ? parseFloat(tabsContainer.dataset.outstationKm) : 40;
-    const serviceList = document.querySelector('.space-y-4[data-outstation-disallowed]');
-    const outstationDisallowed = serviceList && serviceList.dataset.outstationDisallowed
-      ? serviceList.dataset.outstationDisallowed.split(',').map(item => item.trim().toLowerCase()).filter(Boolean)
-      : ['bike', 'auto'];
-
-    const pickupCity = document.getElementById('pickup_city');
-    const pickupDistrict = document.getElementById('pickup_district');
-    const pickupState = document.getElementById('pickup_state');
-    const dropCity = document.getElementById('drop_city');
-    const dropDistrict = document.getElementById('drop_district');
-    const dropState = document.getElementById('drop_state');
-
-    function normalizeText(value) {
-      return rideRules && rideRules.normalizeText ? rideRules.normalizeText(value) : (value || '').toString().trim().toLowerCase();
-    }
-
-    function setNotice(message, tone) {
-      if (!rideTypeNotice) return;
-      if (!message) {
-        rideTypeNotice.textContent = '';
-        rideTypeNotice.classList.add('hidden');
-        return;
-      }
-      rideTypeNotice.textContent = message;
-      rideTypeNotice.classList.remove('hidden');
-      rideTypeNotice.classList.remove('text-amber-800','bg-amber-50','border-amber-200','text-red-800','bg-red-50','border-red-200','text-green-800','bg-green-50','border-green-200');
-      if (tone === 'error') {
-        rideTypeNotice.classList.add('text-red-800','bg-red-50','border-red-200');
-      } else if (tone === 'success') {
-        rideTypeNotice.classList.add('text-green-800','bg-green-50','border-green-200');
-      } else {
-        rideTypeNotice.classList.add('text-amber-800','bg-amber-50','border-amber-200');
-      }
-    }
-
-    function extractAddressParts(result) {
-      if (rideRules && rideRules.extractAddressParts) {
-        return rideRules.extractAddressParts(result);
-      }
-      return { city: '', district: '', state: '' };
-    }
-
-    function isDailyAllowed(pickupMeta, dropoffMeta) {
-      if (!rideRules || !rideRules.isDailyAllowed) return { allowed: null };
-      return rideRules.isDailyAllowed(pickupMeta, dropoffMeta, {});
-    }
-
-    function applyDistanceRule(distanceKm) {
-      if (!distanceKm || isNaN(distanceKm)) return false;
-      const rideTypeInput = document.querySelector('input[name="ride_type"]');
-      const selectedRideType = normalizeText(rideTypeInput ? rideTypeInput.value : '');
-      if (selectedRideType !== 'daily') return false;
-      if (distanceKm >= outstationThresholdKm) {
-        setNotice(`Daily Ride is limited to local trips. Distance is ${distanceKm.toFixed(1)} km, switched to Outstation.`, 'error');
-        const outstationBtn = document.querySelector('#ride-type-tabs [data-type="outstation"]');
-        if (outstationBtn) outstationBtn.click();
-        return true;
-      }
-      return false;
-    }
-
-    function geocodeWithAddress(place) {
-      const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${encodeURIComponent(place)}&limit=1`;
-      return fetch(url, { headers: { 'Accept': 'application/json' } })
-        .then(r => r.json())
-        .then(res => {
-          if (Array.isArray(res) && res.length) return res[0];
-          throw new Error('No results');
-        });
-    }
-
-    const rideType = document.querySelector('input[name="ride_type"]').value;
-    buttons.forEach(btn => {
-      if (btn.getAttribute('data-type') === rideType) {
-        btn.classList.add('bg-gradient-to-r', 'from-teal-500', 'to-teal-600', 'text-white');
-        btn.classList.remove('text-gray-600', 'hover:bg-gray-200');
-        if (btn === buttons[0]) btn.classList.add('rounded-l-xl');
-        if (btn === buttons[buttons.length - 1]) btn.classList.add('rounded-r-xl');
-      } else {
-        btn.classList.remove('bg-gradient-to-r', 'from-teal-500', 'to-teal-600', 'text-white');
-        btn.classList.add('text-gray-600', 'hover:bg-gray-200');
-        btn.classList.remove('rounded-l-xl', 'rounded-r-xl');
-      }
-    });
-
-    buttons.forEach(button => {
-      button.addEventListener('click', () => {
-        buttons.forEach(btn => {
-          btn.classList.remove('bg-gradient-to-r', 'from-teal-500', 'to-teal-600', 'text-white');
-          btn.classList.add('text-gray-600', 'hover:bg-gray-200');
-          // Reset rounded corners
-          btn.classList.remove('rounded-l-xl', 'rounded-r-xl');
-        });
-
-        // Add active classes to clicked button
-        button.classList.add('bg-gradient-to-r', 'from-teal-500', 'to-teal-600', 'text-white');
-        button.classList.remove('text-gray-600', 'hover:bg-gray-200');
-
-        // Add rounded corners based on position
-        if (button === buttons[0]) {
-          button.classList.add('rounded-l-xl');
-        } else if (button === buttons[buttons.length - 1]) {
-          button.classList.add('rounded-r-xl');
-        }
-
-        const selectedType = button.getAttribute('data-type');
-        const rideTypeInput = document.querySelector('input[name="ride_type"]');
-        if (rideTypeInput) rideTypeInput.value = selectedType;
-        const pickup = document.querySelector('input[name="pickup"]').value;
-        const dropoff = document.querySelector('input[name="dropoff"]').value;
-        const date = document.querySelector('input[name="ride_date"]').value;
-        const time = document.querySelector('input[name="ride_time"]').value;
-        const rentalSelect = document.querySelector('select[name="rental_duration"]');
-        const rentalDuration = rentalSelect ? rentalSelect.value : '';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Choose Ride</title>
+    
+    <!-- External Dependencies -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ============================================
+           CRITICAL RESET - OVERRIDE ALL EXTERNAL CSS
+           ============================================ */
         
-        if (pickup && dropoff && date && time) {
-          // Get coordinates from hidden fields if available
-          const pickupLat = document.getElementById('pickup_lat')?.value || '';
-          const pickupLng = document.getElementById('pickup_lng')?.value || '';
-          const dropLat = document.getElementById('drop_lat')?.value || '';
-          const dropLng = document.getElementById('drop_lng')?.value || '';
-          const distanceKm = document.getElementById('distance_km')?.value || '';
-          const durationMin = document.getElementById('duration_min')?.value || '';
-          
-          let url = `/passenger/choose-ride/?pickup=${encodeURIComponent(pickup)}&dropoff=${encodeURIComponent(dropoff)}&ride_date=${date}&ride_time=${time}&ride_type=${selectedType}`;
-          
-          // Add coordinates if available
-          if (pickupLat && pickupLng) {
-            url += `&pickup_lat=${pickupLat}&pickup_lng=${pickupLng}`;
-          }
-          if (dropLat && dropLng) {
-            url += `&drop_lat=${dropLat}&drop_lng=${dropLng}`;
-          }
-          if (distanceKm) {
-            url += `&distance_km=${distanceKm}`;
-          }
-          if (durationMin) {
-            url += `&duration_min=${durationMin}`;
-          }
-          if (pickupCity && pickupCity.value) {
-            url += `&pickup_city=${encodeURIComponent(pickupCity.value)}`;
-          }
-          if (pickupDistrict && pickupDistrict.value) {
-            url += `&pickup_district=${encodeURIComponent(pickupDistrict.value)}`;
-          }
-          if (pickupState && pickupState.value) {
-            url += `&pickup_state=${encodeURIComponent(pickupState.value)}`;
-          }
-          if (dropCity && dropCity.value) {
-            url += `&drop_city=${encodeURIComponent(dropCity.value)}`;
-          }
-          if (dropDistrict && dropDistrict.value) {
-            url += `&drop_district=${encodeURIComponent(dropDistrict.value)}`;
-          }
-          if (dropState && dropState.value) {
-            url += `&drop_state=${encodeURIComponent(dropState.value)}`;
-          }
-          
-          if (selectedType === 'rental' && rentalDuration) {
-            url += `&rental_duration=${rentalDuration}`;
-          }
-          window.location.href = url;
-        }
-        applyServiceFilter();
-      });
-    });
-
-    const serviceRadios = document.querySelectorAll('input[name="selected_service"]');
-    const bookButton = document.getElementById('book-ride-btn');
-
-    function applyServiceFilter() {
-      const rideTypeInput = document.querySelector('input[name="ride_type"]');
-      const rideType = rideTypeInput ? rideTypeInput.value.toLowerCase() : '';
-      serviceRadios.forEach(radio => {
-        const label = radio.closest('label');
-        const serviceName = (radio.dataset.serviceName || '').toLowerCase();
-        const shouldHide = rideType === 'outstation' && outstationDisallowed.includes(serviceName);
-        if (label) {
-          label.style.display = shouldHide ? 'none' : '';
-        }
-        radio.disabled = shouldHide;
-        if (shouldHide && radio.checked) {
-          radio.checked = false;
-          if (bookButton) bookButton.disabled = true;
-        }
-      });
-    }
-
-    serviceRadios.forEach(radio => {
-      radio.addEventListener('change', () => {
-        if (radio.checked) {
-          bookButton.disabled = false;
-          bookButton.dataset.selectedService = radio.value;
-        }
-      });
-    });
-
-    applyServiceFilter();
-
-    bookButton.addEventListener('click', () => {
-      const rideTypeInput = document.querySelector('input[name="ride_type"]');
-      const selectedRideType = normalizeText(rideTypeInput ? rideTypeInput.value : '');
-      const selectedService = document.querySelector('input[name="selected_service"]:checked');
-      if (!selectedService) {
-        alert('Please select a service option before booking.');
-        return;
-      }
-      const distanceKmValue = document.getElementById('distance_km')?.value || '';
-      const durationMinValue = document.getElementById('duration_min')?.value || '';
-      if (!distanceKmValue || !durationMinValue) {
-        setNotice('Unable to calculate route distance. Please choose suggested locations and try again.', 'error');
-        return;
-      }
-
-      // Capture selected service name and fare
-      const selectedServiceContainer = selectedService.closest('label').querySelector('div.flex-1 p.font-semibold');
-      const selectedFareContainer = selectedService.closest('label').querySelector('div.text-right p.text-teal-600');
-      const selectedServiceName = selectedServiceContainer ? selectedServiceContainer.textContent.trim() : '';
-      const selectedFare = selectedFareContainer ? selectedFareContainer.textContent.replace('₹', '').trim() : '';
-
-      const pickup = document.querySelector('input[name="pickup"]').value;
-      const dropoff = document.querySelector('input[name="dropoff"]').value;
-      const ride_date = document.querySelector('input[name="ride_date"]').value;
-      const ride_time = document.querySelector('input[name="ride_time"]').value;
-      const ride_type = document.querySelector('input[name="ride_type"]').value;
-      const rentalSelect = document.querySelector('select[name="rental_duration"]');
-      const rental_duration = rentalSelect ? rentalSelect.value : '';
-
-      function proceedToBooking() {
-        let url = `/passenger/book-ride/?pickup=${encodeURIComponent(pickup)}&dropoff=${encodeURIComponent(dropoff)}&ride_date=${ride_date}&ride_time=${ride_time}&ride_type=${ride_type}&service_id=${selectedService.value}&service_name=${encodeURIComponent(selectedServiceName)}&fare=${encodeURIComponent(selectedFare)}`;
-        const distanceKmValue = document.getElementById('distance_km')?.value || '';
-        const durationMinValue = document.getElementById('duration_min')?.value || '';
-        if (pickupCity && pickupCity.value) {
-          url += `&pickup_city=${encodeURIComponent(pickupCity.value)}`;
-        }
-        if (pickupDistrict && pickupDistrict.value) {
-          url += `&pickup_district=${encodeURIComponent(pickupDistrict.value)}`;
-        }
-        if (pickupState && pickupState.value) {
-          url += `&pickup_state=${encodeURIComponent(pickupState.value)}`;
-        }
-        if (dropCity && dropCity.value) {
-          url += `&drop_city=${encodeURIComponent(dropCity.value)}`;
-        }
-        if (dropDistrict && dropDistrict.value) {
-          url += `&drop_district=${encodeURIComponent(dropDistrict.value)}`;
-        }
-        if (dropState && dropState.value) {
-          url += `&drop_state=${encodeURIComponent(dropState.value)}`;
-        }
-        if (distanceKmValue) {
-          url += `&distance_km=${encodeURIComponent(distanceKmValue)}`;
-        }
-        if (durationMinValue) {
-          url += `&duration_min=${encodeURIComponent(durationMinValue)}`;
-        }
-        if (ride_type === 'rental' && rental_duration) {
-          url += `&rental_duration=${rental_duration}`;
-        }
-        window.location.href = url;
-      }
-
-      function validateBeforeBooking() {
-        if (selectedRideType !== 'daily') {
-          setNotice('', 'success');
-          proceedToBooking();
-          return;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        const pickupMeta = { city: pickupCity ? pickupCity.value : '', district: pickupDistrict ? pickupDistrict.value : '', state: pickupState ? pickupState.value : '' };
-        const dropoffMeta = { city: dropCity ? dropCity.value : '', district: dropDistrict ? dropDistrict.value : '', state: dropState ? dropState.value : '' };
-        const decision = isDailyAllowed(pickupMeta, dropoffMeta);
-        const distanceKmValue = parseFloat(document.getElementById('distance_km')?.value || '');
-        if (applyDistanceRule(distanceKmValue)) {
-          return;
+        html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        if (decision.allowed === null) {
-          Promise.all([geocodeWithAddress(pickup), geocodeWithAddress(dropoff)])
-            .then(([pickupResult, dropoffResult]) => {
-              const pickupParts = extractAddressParts(pickupResult);
-              const dropParts = extractAddressParts(dropoffResult);
-              if (pickupCity) pickupCity.value = pickupParts.city || '';
-              if (pickupDistrict) pickupDistrict.value = pickupParts.district || '';
-              if (pickupState) pickupState.value = pickupParts.state || '';
-              if (dropCity) dropCity.value = dropParts.city || '';
-              if (dropDistrict) dropDistrict.value = dropParts.district || '';
-              if (dropState) dropState.value = dropParts.state || '';
-
-              const recheck = isDailyAllowed(pickupParts, dropParts);
-              const refreshedDistance = parseFloat(document.getElementById('distance_km')?.value || '');
-              if (applyDistanceRule(refreshedDistance)) {
-                return;
-              }
-              if (recheck.allowed === false) {
-                setNotice('Daily Ride is only available within the same city/service area. Please switch to Outstation or update locations.', 'error');
-                const outstationBtn = document.querySelector('#ride-type-tabs [data-type="outstation"]');
-                if (outstationBtn) outstationBtn.click();
-                return;
-              }
-              if (recheck.allowed === null) {
-                setNotice('We could not confirm city/state for the locations. Please choose from suggestions.', 'info');
-                return;
-              }
-              setNotice('', 'success');
-              proceedToBooking();
-            })
-            .catch(() => {
-              setNotice('Unable to validate locations for Daily Ride. Please select suggested locations.', 'info');
-            });
-          return;
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            margin: 0 !important;
+            padding: 0 !important;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f5f5;
         }
 
-        if (decision.allowed === false) {
-          setNotice('Daily Ride is only available within the same city/service area. Please switch to Outstation or update locations.', 'error');
-          const outstationBtn = document.querySelector('#ride-type-tabs [data-type="outstation"]');
-          if (outstationBtn) outstationBtn.click();
-          return;
+        /* Force remove any container constraints */
+        .container,
+        .app-container,
+        .screen-content {
+            max-width: none !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
-        setNotice('', 'success');
-        proceedToBooking();
-      }
 
-      validateBeforeBooking();
-    });
-  });
-</script>
+        :root {
+            --primary: #00A59E;
+            --primary-dark: #008580;
+            --secondary: #0EB9D3;
+            --text-dark: #1a1a1a;
+            --text-gray: #6b7280;
+            --text-light: #9ca3af;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
 
+        /* ============================================
+           FULL-SCREEN MAP LAYER (BASE)
+           ============================================ */
+        
+        .map-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            z-index: 1;
+            background: #e5e7eb;
+        }
+
+        #ride-map {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* Force Leaflet to fill container */
+        .leaflet-container {
+            width: 100% !important;
+            height: 100% !important;
+            font-family: inherit !important;
+            background: #e5e7eb !important;
+        }
+
+        .leaflet-pane {
+            z-index: auto !important;
+        }
+
+        /* ============================================
+           TOP BAR - BACK BUTTON & ROUTE INFO
+           ============================================ */
+        
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: max(env(safe-area-inset-top), 12px) 16px 12px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .top-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+            max-width: 100%;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-md);
+            border: none;
+            color: var(--text-dark);
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .back-btn:active {
+            transform: scale(0.94);
+        }
+
+        .route-badge {
+            flex: 1;
+            min-width: 0;
+            background: white;
+            padding: 10px 16px;
+            border-radius: 24px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .route-badge i {
+            color: var(--primary);
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .route-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* ============================================
+           BOTTOM SHEET - RIDE SELECTION PANEL
+           ============================================ */
+        
+        .bottom-panel {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            background: white;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.15);
+            max-height: 70vh;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .panel-handle {
+            width: 36px;
+            height: 4px;
+            background: #d1d5db;
+            border-radius: 2px;
+            margin: 12px auto 8px;
+            flex-shrink: 0;
+        }
+
+        /* Ride Type Tabs */
+        .panel-header {
+            flex-shrink: 0;
+            padding: 0 20px 16px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .tab-group {
+            display: flex;
+            gap: 8px;
+            background: #f9fafb;
+            padding: 4px;
+            border-radius: 12px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-gray);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            font-family: inherit;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tab-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Scrollable Content */
+        .panel-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px 20px calc(env(safe-area-inset-bottom) + 90px);
+        }
+
+        .panel-scroll::-webkit-scrollbar {
+            width: 0;
+            display: none;
+        }
+
+        /* ============================================
+           LOCATION DISPLAY
+           ============================================ */
+        
+        .locations {
+            margin-bottom: 16px;
+        }
+
+        .loc-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: #f9fafb;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        .loc-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .loc-dot.pickup {
+            background: #10b981;
+        }
+
+        .loc-dot.drop {
+            background: #ef4444;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+        }
+
+        .loc-text {
+            flex: 1;
+            font-size: 14px;
+            color: var(--text-dark);
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .loc-edit {
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        /* DateTime */
+        .datetime-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .dt-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 10px;
+            font-size: 13px;
+            color: var(--text-dark);
+        }
+
+        .dt-box i {
+            color: var(--text-gray);
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        /* Notice Banner */
+        .notice {
+            margin: 12px 0;
+            padding: 12px 14px;
+            background: #fef3c7;
+            border-left: 3px solid #f59e0b;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #92400e;
+            display: none;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .notice.show {
+            display: flex;
+        }
+
+        .notice i {
+            margin-top: 1px;
+            flex-shrink: 0;
+        }
+
+        .notice.error {
+            background: #fee2e2;
+            border-left-color: #ef4444;
+            color: #991b1b;
+        }
+
+        /* Rental Selector */
+        .rental-box {
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .rental-box.show {
+            display: block;
+        }
+
+        .rental-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-gray);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .rental-select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 14px;
+            color: var(--text-dark);
+            background: white;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        /* ============================================
+           SERVICE CARDS
+           ============================================ */
+        
+        .services {
+            margin-top: 8px;
+        }
+
+        .services-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .service-item {
+            display: block;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .service-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.15s;
+        }
+
+        .service-card:active {
+            transform: scale(0.98);
+        }
+
+        .service-card.selected {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(0, 165, 158, 0.04), rgba(14, 185, 211, 0.04));
+        }
+
+        .service-card.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .service-icon {
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #e6f7f6, #e0f7fa);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .service-icon i {
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        .service-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .service-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 2px;
+        }
+
+        .service-meta {
+            font-size: 12px;
+            color: var(--text-gray);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .service-meta i {
+            font-size: 10px;
+        }
+
+        .service-price {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .price-value {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        .price-label {
+            font-size: 10px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .service-radio {
+            display: none;
+        }
+
+        /* Empty State */
+        .empty {
+            text-align: center;
+            padding: 32px 0;
+            color: var(--text-gray);
+        }
+
+        .empty i {
+            font-size: 32px;
+            opacity: 0.3;
+            margin-bottom: 8px;
+        }
+
+        .empty-text {
+            font-size: 14px;
+        }
+
+        /* ============================================
+           STICKY BOOK BUTTON
+           ============================================ */
+        
+        .action-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 12px 20px calc(env(safe-area-inset-bottom) + 12px);
+            border-top: 1px solid #f3f4f6;
+            box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .book-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0, 165, 158, 0.3);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: inherit;
+        }
+
+        .book-btn:active {
+            transform: scale(0.98);
+        }
+
+        .book-btn:disabled {
+            background: #d1d5db;
+            color: #9ca3af;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* ============================================
+           EDIT MODAL
+           ============================================ */
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            display: none;
+            align-items: flex-end;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-sheet {
+            width: 100%;
+            background: white;
+            border-radius: 20px 20px 0 0;
+            padding: 24px 20px calc(env(safe-area-inset-bottom) + 24px);
+            animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .input-box {
+            margin-bottom: 16px;
+        }
+
+        .input-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-gray);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 15px;
+            color: var(--text-dark);
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #f9fafb;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            font-family: inherit;
+        }
+
+        .save-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* ============================================
+           LEAFLET CUSTOMIZATION
+           ============================================ */
+        
+        .leaflet-routing-container {
+            display: none !important;
+        }
+
+        .leaflet-control-zoom {
+            border: none !important;
+            box-shadow: var(--shadow-md) !important;
+            border-radius: 10px !important;
+            overflow: hidden;
+            margin-top: 60px !important;
+        }
+
+        .leaflet-control-zoom a {
+            width: 36px !important;
+            height: 36px !important;
+            line-height: 36px !important;
+            border: none !important;
+            background: white !important;
+            color: var(--text-dark) !important;
+        }
+
+        .leaflet-top {
+            top: 0 !important;
+        }
+
+        .leaflet-left {
+            left: 0 !important;
+        }
+
+        /* ============================================
+           DESKTOP RESPONSIVE
+           ============================================ */
+        
+        @media (min-width: 768px) {
+            body {
+                background: #cbd5e1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .map-screen,
+            .top-bar,
+            .bottom-panel {
+                max-width: 420px;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+
+            .map-screen {
+                box-shadow: 0 0 60px rgba(0, 0, 0, 0.3);
+                border-radius: 24px;
+                overflow: hidden;
+                height: 90vh;
+                top: 5vh;
+            }
+
+            .top-bar {
+                top: 5vh;
+                border-radius: 24px 24px 0 0;
+            }
+
+            .bottom-panel {
+                max-height: 60vh;
+                bottom: 5vh;
+            }
+        }
+
+        /* ============================================
+           UTILITY
+           ============================================ */
+        
+        .hidden {
+            display: none !important;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Base Layer: Full-Screen Map -->
+<div class="map-screen">
+    <div id="ride-map"></div>
+</div>
+
+<!-- Top Bar: Back Button + Route Info -->
+<div class="top-bar">
+    <div class="top-content">
+        <a href="{% url 'homepage' %}" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div class="route-badge">
+            <i class="fas fa-route"></i>
+            <span class="route-text" id="route-info">Calculating route...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Panel: Ride Selection -->
+<div class="bottom-panel">
+    <div class="panel-handle"></div>
+    
+    <!-- Ride Type Tabs -->
+    <div class="panel-header">
+        <div class="tab-group" id="ride-tabs" data-outstation-km="{{ outstation_distance_km }}">
+            <button class="tab-btn {% if ride_type == 'daily' %}active{% endif %}" data-type="daily">Daily</button>
+            <button class="tab-btn {% if ride_type == 'outstation' %}active{% endif %}" data-type="outstation">Outstation</button>
+            <button class="tab-btn {% if ride_type == 'rental' %}active{% endif %}" data-type="rental">Rental</button>
+        </div>
+    </div>
+
+    <!-- Scrollable Content -->
+    <div class="panel-scroll">
+        <!-- Locations -->
+        <div class="locations">
+            <div class="loc-row">
+                <div class="loc-dot pickup"></div>
+                <div class="loc-text" id="pickup-display">{{ pickup }}</div>
+                <div class="loc-edit" onclick="openModal()">Edit</div>
+            </div>
+            <div class="loc-row">
+                <div class="loc-dot drop"></div>
+                <div class="loc-text" id="drop-display">{{ dropoff }}</div>
+                <div class="loc-edit" onclick="openModal()">Edit</div>
+            </div>
+        </div>
+
+        <!-- Date & Time -->
+        <div class="datetime-grid">
+            <div class="dt-box">
+                <i class="far fa-calendar"></i>
+                <span id="date-display">{{ ride_date|default:"Select date" }}</span>
+            </div>
+            <div class="dt-box">
+                <i class="far fa-clock"></i>
+                <span id="time-display">{{ ride_time|default:"Select time" }}</span>
+            </div>
+        </div>
+
+        <!-- Notice -->
+        <div class="notice {% if ride_type_notice %}show{% endif %}" id="notice">
+            <i class="fas fa-info-circle"></i>
+            <span id="notice-text">{{ ride_type_notice }}</span>
+        </div>
+
+        <!-- Rental Package -->
+        <div class="rental-box {% if ride_type == 'rental' %}show{% endif %}" id="rental-box">
+            <div class="rental-label">
+                <i class="fas fa-clock"></i>
+                Rental Package
+            </div>
+            <select class="rental-select" id="rental-select" name="rental_duration">
+                {% if rental_options %}
+                    {% for option in rental_options %}
+                        <option value="{{ option.id }}" {% if rental_duration == option.id|stringformat:"s" %}selected{% endif %}>
+                            {{ option.distance_km }} KM / {{ option.time_hours }} Hours
+                        </option>
+                    {% endfor %}
+                {% else %}
+                    <option disabled selected>No packages available</option>
+                {% endif %}
+            </select>
+        </div>
+
+        <!-- Available Services -->
+        <div class="services">
+            <div class="services-title">Available Rides</div>
+            
+            {% if estimated_fares %}
+                {% for fare in estimated_fares %}
+                    <label class="service-item">
+                        <input 
+                            type="radio" 
+                            name="service" 
+                            value="{{ fare.service_id }}" 
+                            class="service-radio" 
+                            data-name="{{ fare.service_name }}"
+                            required
+                        >
+                        <div class="service-card">
+                            <div class="service-icon">
+                                {% if fare.icon %}
+                                    <i class="{{ fare.icon }}"></i>
+                                {% else %}
+                                    <i class="fas fa-car"></i>
+                                {% endif %}
+                            </div>
+                            <div class="service-details">
+                                <div class="service-name">{{ fare.service_name }}</div>
+                                <div class="service-meta">
+                                    <i class="fas fa-users"></i>
+                                    {{ fare.number_of_seats }} seats
+                                </div>
+                            </div>
+                            <div class="service-price">
+                                <div class="price-value">₹{{ fare.estimated_price }}</div>
+                                <div class="price-label">Total</div>
+                            </div>
+                        </div>
+                    </label>
+                {% endfor %}
+            {% else %}
+                <div class="empty">
+                    <i class="fas fa-car"></i>
+                    <div class="empty-text">No services available</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Book Button -->
+    <div class="action-bar">
+        <button class="book-btn" id="book-btn" disabled>
+            <i class="fas fa-check-circle"></i>
+            Book Ride
+        </button>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal" id="edit-modal">
+    <div class="modal-sheet">
+        <div class="modal-header">
+            <div class="modal-title">Edit Trip Details</div>
+            <button class="modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="input-box">
+            <div class="input-label">
+                <i class="fas fa-circle" style="color: #10b981; font-size: 8px;"></i>
+                Pickup Location
+            </div>
+            <input type="text" class="input-field" id="pickup-input" value="{{ pickup }}" placeholder="Enter pickup">
+        </div>
+
+        <div class="input-box">
+            <div class="input-label">
+                <i class="fas fa-map-marker-alt" style="color: #ef4444; font-size: 10px;"></i>
+                Drop-off Location
+            </div>
+            <input type="text" class="input-field" id="drop-input" value="{{ dropoff }}" placeholder="Enter drop-off">
+        </div>
+
+        <div class="grid-2">
+            <div class="input-box">
+                <div class="input-label">
+                    <i class="far fa-calendar"></i>
+                    Date
+                </div>
+                <input type="date" class="input-field" id="date-input" value="{{ ride_date }}">
+            </div>
+            <div class="input-box">
+                <div class="input-label">
+                    <i class="far fa-clock"></i>
+                    Time
+                </div>
+                <input type="time" class="input-field" id="time-input" value="{{ ride_time }}">
+            </div>
+        </div>
+
+        <button class="save-btn" onclick="saveChanges()">
+            Save & Update Route
+        </button>
+    </div>
+</div>
+
+<!-- Hidden Data Fields -->
+<div class="hidden">
+    <input type="hidden" id="ride-type-value" value="{{ ride_type }}">
+    <input type="hidden" id="pickup_lat" value="{{ pickup_lat|default:'' }}">
+    <input type="hidden" id="pickup_lng" value="{{ pickup_lng|default:'' }}">
+    <input type="hidden" id="drop_lat" value="{{ drop_lat|default:'' }}">
+    <input type="hidden" id="drop_lng" value="{{ drop_lng|default:'' }}">
+    <input type="hidden" id="distance_km" value="{{ distance_km|default:'' }}">
+    <input type="hidden" id="duration_min" value="{{ duration_min|default:'' }}">
+</div>
+
+<!-- Scripts -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const pickupInput = document.querySelector('input[name="pickup"]').value;
-    const dropoffInput = document.querySelector('input[name="dropoff"]').value;
-    const mapContainer = document.getElementById('ride-map');
-    const distanceBadge = document.getElementById('route-distance');
-    const distanceField = document.getElementById('distance_km');
-    const durationField = document.getElementById('duration_min');
-    const rideTypeTabs = document.getElementById('ride-type-tabs');
-    const outstationThresholdKm = rideTypeTabs && rideTypeTabs.dataset.outstationKm ? parseFloat(rideTypeTabs.dataset.outstationKm) : 40;
+// ============================================
+// GLOBAL STATE
+// ============================================
+let mapInstance = null;
+let routingControl = null;
 
-    if (!mapContainer) return;
+// ============================================
+// MODAL CONTROLS
+// ============================================
+function openModal() {
+    document.getElementById('edit-modal').classList.add('show');
+}
 
-    const map = L.map('ride-map', { scrollWheelZoom: false });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+function closeModal() {
+    document.getElementById('edit-modal').classList.remove('show');
+}
 
-    // Basic initial view (India center fallback)
-    map.setView([20.5937, 78.9629], 5);
+function saveChanges() {
+    const pickup = document.getElementById('pickup-input').value;
+    const drop = document.getElementById('drop-input').value;
+    const date = document.getElementById('date-input').value;
+    const time = document.getElementById('time-input').value;
+    const rideType = document.getElementById('ride-type-value').value;
 
-    if (!pickupInput || !dropoffInput) {
-      // No locations yet; nothing to route
-      return;
+    if (!pickup || !drop || !date || !time) {
+        alert('Please fill all fields');
+        return;
     }
 
-    function geocode(place) {
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(place)}&limit=1`;
-      return fetch(url, { headers: { 'Accept': 'application/json' } })
-        .then(r => r.json())
-        .then(res => {
-          if (Array.isArray(res) && res.length) {
-            // Nominatim returns lat and lon, ensure we use [lat, lng] format for Leaflet
-            const lat = parseFloat(res[0].lat);
-            const lon = parseFloat(res[0].lon);
-            console.log('Geocoded:', place, '->', [lat, lon]); // Debug log
-            if (isNaN(lat) || isNaN(lon)) {
-              throw new Error('Invalid coordinates');
-            }
-            return [lat, lon]; // [latitude, longitude] - correct for Leaflet
-          }
-          throw new Error('No results');
-        });
+    const rentalSelect = document.getElementById('rental-select');
+    const rentalDuration = rentalSelect ? rentalSelect.value : '';
+    
+    let url = `/passenger/choose-ride/?pickup=${encodeURIComponent(pickup)}&dropoff=${encodeURIComponent(drop)}&ride_date=${date}&ride_time=${time}&ride_type=${rideType}`;
+    
+    if (rideType === 'rental' && rentalDuration) {
+        url += `&rental_duration=${rentalDuration}`;
     }
+    
+    window.location.href = url;
+}
 
-    Promise.all([geocode(pickupInput), geocode(dropoffInput)])
-      .then(([pickupLatLng, dropoffLatLng]) => {
-        // Validate coordinates
-        if (!Array.isArray(pickupLatLng) || !Array.isArray(dropoffLatLng) ||
-            pickupLatLng.length !== 2 || dropoffLatLng.length !== 2) {
-          console.error('Invalid coordinate arrays:', pickupLatLng, dropoffLatLng);
-          return;
+// ============================================
+// RIDE TYPE TABS
+// ============================================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        const type = this.getAttribute('data-type');
+        document.getElementById('ride-type-value').value = type;
+        
+        // Show/hide rental
+        const rentalBox = document.getElementById('rental-box');
+        if (type === 'rental') {
+            rentalBox.classList.add('show');
+        } else {
+            rentalBox.classList.remove('show');
         }
 
-        // Ensure coordinates are numbers
-        const pickupLat = parseFloat(pickupLatLng[0]);
-        const pickupLng = parseFloat(pickupLatLng[1]);
-        const dropoffLat = parseFloat(dropoffLatLng[0]);
-        const dropoffLng = parseFloat(dropoffLatLng[1]);
-
-        if (isNaN(pickupLat) || isNaN(pickupLng) || isNaN(dropoffLat) || isNaN(dropoffLng)) {
-          console.error('Invalid coordinate values:', { pickupLatLng, dropoffLatLng });
-          return;
-        }
-
-        // Create LatLng objects with correct [lat, lng] order
-        const pickupLatLngObj = L.latLng(pickupLat, pickupLng);
-        const dropoffLatLngObj = L.latLng(dropoffLat, dropoffLng);
-
-        console.log('Creating markers at:', { pickup: [pickupLat, pickupLng], dropoff: [dropoffLat, dropoffLng] });
-
-        // Create custom markers
-        const pickupIcon = L.divIcon({
-          className: 'custom-pickup-marker',
-          html: '<div style="background: #10b981; width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
-          iconSize: [30, 30],
-          iconAnchor: [15, 30]
-        });
-
-        const dropoffIcon = L.divIcon({
-          className: 'custom-dropoff-marker',
-          html: '<div style="background: #dc2626; width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
-          iconSize: [30, 30],
-          iconAnchor: [15, 30]
-        });
-
-        const pickupMarker = L.marker(pickupLatLngObj, { icon: pickupIcon }).addTo(map).bindPopup('Pickup');
-        const dropoffMarker = L.marker(dropoffLatLngObj, { icon: dropoffIcon }).addTo(map).bindPopup('Dropoff');
-
-        const control = L.Routing.control({
-          waypoints: [
-            pickupLatLngObj,
-            dropoffLatLngObj
-          ],
-          router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
-          addWaypoints: false,
-          draggableWaypoints: false,
-          fitSelectedRoutes: true,
-          show: false,
-          lineOptions: {
-            styles: [
-              { color: '#14b8a6', opacity: 0.9, weight: 6 },
-              { color: '#0f766e', opacity: 0.7, weight: 2 }
-            ]
-          }
-        }).addTo(map);
-
-        control.on('routesfound', function (e) {
-          const route = e.routes && e.routes[0];
-          if (!route) return;
-          const meters = route.summary.totalDistance || 0;
-          const seconds = route.summary.totalTime || 0;
-          const km = (meters / 1000).toFixed(2);
-          distanceBadge.textContent = `Distance: ${km} km`;
-          distanceBadge.classList.remove('hidden');
-          if (distanceField) distanceField.value = km;
-          if (durationField) durationField.value = Math.round(seconds / 60).toString();
-
-          // Also expose distance for other scripts if needed
-          window.__routeDistanceKm = km;
-
-          // Ensure bounds fit nicely using route coordinates (more reliable than only markers)
-          const coordinates = route.coordinates || [];
-          if (coordinates.length) {
-            // Route coordinates from OSRM are in [lat, lng] format
-            const latLngs = coordinates.map(c => {
-              // Handle both {lat, lng} object and [lat, lng] array formats
-              if (Array.isArray(c)) {
-                return L.latLng(c[0], c[1]); // [lat, lng]
-              } else if (c.lat !== undefined && c.lng !== undefined) {
-                return L.latLng(c.lat, c.lng); // {lat, lng}
-              } else if (c.latitude !== undefined && c.longitude !== undefined) {
-                return L.latLng(c.latitude, c.longitude); // {latitude, longitude}
-              }
-              console.warn('Unknown coordinate format:', c);
-              return null;
-            }).filter(c => c !== null);
+        // Filter services (hide bike/auto for outstation)
+        const cards = document.querySelectorAll('.service-item');
+        const outstationDisallowed = ['bike', 'auto'];
+        
+        cards.forEach(card => {
+            const radio = card.querySelector('.service-radio');
+            const serviceName = radio.getAttribute('data-name').toLowerCase();
+            const serviceCard = card.querySelector('.service-card');
             
-            if (latLngs.length > 0) {
-              const routeBounds = L.latLngBounds(latLngs);
-              map.fitBounds(routeBounds.pad(0.25));
+            if (type === 'outstation' && outstationDisallowed.includes(serviceName)) {
+                card.style.display = 'none';
+                radio.disabled = true;
+                serviceCard.classList.add('disabled');
+                if (radio.checked) {
+                    radio.checked = false;
+                    document.getElementById('book-btn').disabled = true;
+                }
             } else {
-              const group = new L.FeatureGroup([pickupMarker, dropoffMarker]);
-              map.fitBounds(group.getBounds().pad(0.25));
+                card.style.display = 'block';
+                radio.disabled = false;
+                serviceCard.classList.remove('disabled');
             }
-          } else {
-            const group = new L.FeatureGroup([pickupMarker, dropoffMarker]);
-            map.fitBounds(group.getBounds().pad(0.25));
-          }
-
-          // Invalidate size after fitting to ensure proper rendering
-          setTimeout(() => map.invalidateSize(), 100);
         });
 
-        control.on('routingerror', function (e) {
-          console.warn('Routing error:', e);
-          if (distanceField) distanceField.value = '';
-          if (durationField) durationField.value = '';
-          distanceBadge.textContent = 'Distance unavailable';
-          distanceBadge.classList.remove('hidden');
+        // Reload with new ride type
+        const pickup = document.getElementById('pickup-input').value;
+        const drop = document.getElementById('drop-input').value;
+        const date = document.getElementById('date-input').value;
+        const time = document.getElementById('time-input').value;
 
-          const group = new L.FeatureGroup([pickupMarker, dropoffMarker]);
-          map.fitBounds(group.getBounds().pad(0.25));
-          setTimeout(() => map.invalidateSize(), 100);
+        if (pickup && drop && date && time) {
+            const rentalSelect = document.getElementById('rental-select');
+            const rentalDuration = rentalSelect ? rentalSelect.value : '';
+            
+            let url = `/passenger/choose-ride/?pickup=${encodeURIComponent(pickup)}&dropoff=${encodeURIComponent(drop)}&ride_date=${date}&ride_time=${time}&ride_type=${type}`;
+            
+            const pickupLat = document.getElementById('pickup_lat')?.value || '';
+            const pickupLng = document.getElementById('pickup_lng')?.value || '';
+            const dropLat = document.getElementById('drop_lat')?.value || '';
+            const dropLng = document.getElementById('drop_lng')?.value || '';
+            const distanceKm = document.getElementById('distance_km')?.value || '';
+            const durationMin = document.getElementById('duration_min')?.value || '';
+            
+            if (pickupLat && pickupLng) url += `&pickup_lat=${pickupLat}&pickup_lng=${pickupLng}`;
+            if (dropLat && dropLng) url += `&drop_lat=${dropLat}&drop_lng=${dropLng}`;
+            if (distanceKm) url += `&distance_km=${distanceKm}`;
+            if (durationMin) url += `&duration_min=${durationMin}`;
+            
+            if (type === 'rental' && rentalDuration) {
+                url += `&rental_duration=${rentalDuration}`;
+            }
+            
+            window.location.href = url;
+        }
+    });
+});
+
+// ============================================
+// SERVICE SELECTION
+// ============================================
+const serviceRadios = document.querySelectorAll('.service-radio');
+const serviceCards = document.querySelectorAll('.service-card');
+const bookBtn = document.getElementById('book-btn');
+
+serviceRadios.forEach((radio, index) => {
+    const card = serviceCards[index];
+    
+    if (card) {
+        card.addEventListener('click', () => {
+            if (!radio.disabled) {
+                radio.checked = true;
+                updateSelection();
+            }
+        });
+    }
+    
+    radio.addEventListener('change', updateSelection);
+});
+
+function updateSelection() {
+    serviceCards.forEach((card, idx) => {
+        const radio = serviceRadios[idx];
+        if (radio && radio.checked) {
+            card.classList.add('selected');
+            bookBtn.disabled = false;
+        } else {
+            card.classList.remove('selected');
+        }
+    });
+}
+
+// ============================================
+// BOOK BUTTON
+// ============================================
+bookBtn.addEventListener('click', () => {
+    const selected = document.querySelector('.service-radio:checked');
+    if (!selected) {
+        alert('Please select a service');
+        return;
+    }
+    
+    const serviceName = selected.getAttribute('data-name');
+    const serviceId = selected.value;
+    const priceEl = selected.closest('.service-item').querySelector('.price-value');
+    const price = priceEl ? priceEl.textContent.replace('₹', '').trim() : '';
+    
+    const pickup = document.getElementById('pickup-input').value;
+    const drop = document.getElementById('drop-input').value;
+    const date = document.getElementById('date-input').value;
+    const time = document.getElementById('time-input').value;
+    const rideType = document.getElementById('ride-type-value').value;
+    const rentalSelect = document.getElementById('rental-select');
+    const rentalDuration = rentalSelect ? rentalSelect.value : '';
+    
+    let url = `/passenger/book-ride/?pickup=${encodeURIComponent(pickup)}&dropoff=${encodeURIComponent(drop)}&ride_date=${date}&ride_time=${time}&ride_type=${rideType}&service_id=${serviceId}&service_name=${encodeURIComponent(serviceName)}&fare=${encodeURIComponent(price)}`;
+    
+    const distanceKm = document.getElementById('distance_km')?.value || '';
+    const durationMin = document.getElementById('duration_min')?.value || '';
+    
+    if (distanceKm) url += `&distance_km=${encodeURIComponent(distanceKm)}`;
+    if (durationMin) url += `&duration_min=${encodeURIComponent(durationMin)}`;
+    if (rideType === 'rental' && rentalDuration) url += `&rental_duration=${rentalDuration}`;
+    
+    window.location.href = url;
+});
+
+// ============================================
+// MAP & ROUTING - WITH COMPREHENSIVE ERROR HANDLING
+// ============================================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Initializing map and routing...');
+    
+    const mapEl = document.getElementById('ride-map');
+    const routeInfoEl = document.getElementById('route-info');
+    const noticeEl = document.getElementById('notice');
+    const noticeTextEl = document.getElementById('notice-text');
+    
+    if (!mapEl) {
+        console.error('Map element not found');
+        return;
+    }
+
+    // ============================================
+    // STEP 1: INITIALIZE MAP
+    // ============================================
+    try {
+        mapInstance = L.map('ride-map', {
+            scrollWheelZoom: false,
+            zoomControl: true,
+            attributionControl: false
         });
 
-        function syncRideTypeWithDistance(kmValue) {
-          if (!kmValue || isNaN(kmValue)) return;
-          const rideTypeInput = document.querySelector('input[name="ride_type"]');
-          const selectedRideType = rideTypeInput ? rideTypeInput.value.toLowerCase() : '';
-          if (selectedRideType === 'daily' && kmValue >= outstationThresholdKm) {
-            const outstationBtn = document.querySelector('#ride-type-tabs [data-type="outstation"]');
-            if (outstationBtn) outstationBtn.click();
-          }
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19
+        }).addTo(mapInstance);
+
+        // Default view (India)
+        mapInstance.setView([20.5937, 78.9629], 5);
+
+        // Force size recalculation
+        setTimeout(() => {
+            if (mapInstance) mapInstance.invalidateSize();
+        }, 100);
+
+        console.log('Map initialized successfully');
+    } catch (error) {
+        console.error('Map initialization error:', error);
+        routeInfoEl.textContent = 'Map error';
+        return;
+    }
+
+    // ============================================
+    // STEP 2: GET LOCATION DATA
+    // ============================================
+    const pickupText = document.getElementById('pickup-input').value;
+    const dropText = document.getElementById('drop-input').value;
+
+    if (!pickupText || !dropText) {
+        console.warn('Missing pickup or drop location');
+        routeInfoEl.textContent = 'Enter locations';
+        return;
+    }
+
+    // ============================================
+    // STEP 3: TRY TO USE CACHED COORDINATES FIRST
+    // ============================================
+    const pickupLatInput = document.getElementById('pickup_lat');
+    const pickupLngInput = document.getElementById('pickup_lng');
+    const dropLatInput = document.getElementById('drop_lat');
+    const dropLngInput = document.getElementById('drop_lng');
+
+    const hasCachedCoords = pickupLatInput && pickupLngInput && dropLatInput && dropLngInput &&
+                            pickupLatInput.value && pickupLngInput.value && 
+                            dropLatInput.value && dropLngInput.value;
+
+    if (hasCachedCoords) {
+        console.log('Using cached coordinates');
+        
+        const pickupLat = parseFloat(pickupLatInput.value);
+        const pickupLng = parseFloat(pickupLngInput.value);
+        const dropLat = parseFloat(dropLatInput.value);
+        const dropLng = parseFloat(dropLngInput.value);
+
+        // Validate coordinates
+        if (!isNaN(pickupLat) && !isNaN(pickupLng) && !isNaN(dropLat) && !isNaN(dropLng)) {
+            drawRoute(pickupLat, pickupLng, dropLat, dropLng);
+            return;
+        } else {
+            console.warn('Cached coordinates are invalid, falling back to geocoding');
+        }
+    }
+
+    // ============================================
+    // STEP 4: GEOCODE LOCATIONS
+    // ============================================
+    console.log('Geocoding locations...');
+    routeInfoEl.textContent = 'Finding route...';
+
+    function geocode(locationText) {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationText)}&limit=1`;
+        
+        return fetch(url, { 
+            headers: { 'Accept': 'application/json' },
+            method: 'GET'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (!Array.isArray(data) || data.length === 0) {
+                throw new Error(`No results found for: ${locationText}`);
+            }
+            
+            const lat = parseFloat(data[0].lat);
+            const lng = parseFloat(data[0].lon);
+            
+            if (isNaN(lat) || isNaN(lng)) {
+                throw new Error(`Invalid coordinates for: ${locationText}`);
+            }
+            
+            console.log(`Geocoded ${locationText}:`, lat, lng);
+            return { lat, lng };
+        });
+    }
+
+    Promise.all([
+        geocode(pickupText),
+        geocode(dropText)
+    ])
+    .then(([pickup, drop]) => {
+        console.log('Geocoding successful', pickup, drop);
+        drawRoute(pickup.lat, pickup.lng, drop.lat, drop.lng);
+    })
+    .catch(error => {
+        console.error('Geocoding error:', error);
+        routeInfoEl.textContent = 'Location not found';
+        
+        if (noticeEl && noticeTextEl) {
+            noticeEl.classList.add('show', 'error');
+            noticeTextEl.textContent = `Unable to find route: ${error.message}`;
+        }
+    });
+
+    // ============================================
+    // STEP 5: DRAW ROUTE FUNCTION (WITH SAFETY CHECKS)
+    // ============================================
+    function drawRoute(pickupLat, pickupLng, dropLat, dropLng) {
+        console.log('Drawing route:', { pickupLat, pickupLng, dropLat, dropLng });
+
+        // CRITICAL: Validate all coordinates before creating route
+        if (isNaN(pickupLat) || isNaN(pickupLng) || isNaN(dropLat) || isNaN(dropLng)) {
+            console.error('Invalid coordinates provided to drawRoute');
+            routeInfoEl.textContent = 'Invalid coordinates';
+            return;
         }
 
-        control.on('routesfound', function (e) {
-          const route = e.routes && e.routes[0];
-          if (!route) return;
-          const kmValue = (route.summary.totalDistance || 0) / 1000;
-          syncRideTypeWithDistance(kmValue);
+        // CRITICAL: Create L.LatLng objects with validation
+        let pickupLatLng, dropLatLng;
+        
+        try {
+            pickupLatLng = L.latLng(pickupLat, pickupLng);
+            dropLatLng = L.latLng(dropLat, dropLng);
+            
+            // Double-check that lat/lng properties exist
+            if (!pickupLatLng.lat || !pickupLatLng.lng || !dropLatLng.lat || !dropLatLng.lng) {
+                throw new Error('LatLng objects missing lat/lng properties');
+            }
+            
+            console.log('Created LatLng objects:', pickupLatLng, dropLatLng);
+        } catch (error) {
+            console.error('Error creating LatLng objects:', error);
+            routeInfoEl.textContent = 'Coordinate error';
+            return;
+        }
+
+        // Custom marker icons
+        const pickupIcon = L.divIcon({
+            className: 'custom-marker',
+            html: '<div style="background: #10b981; width: 28px; height: 28px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
+            iconSize: [28, 28],
+            iconAnchor: [14, 28]
         });
 
-        control.on('routingerror', function () {
-          return;
+        const dropIcon = L.divIcon({
+            className: 'custom-marker',
+            html: '<div style="background: #ef4444; width: 28px; height: 28px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);"></div>',
+            iconSize: [28, 28],
+            iconAnchor: [14, 28]
         });
-      })
-      .catch(() => {
-        // If geocoding fails, no-op
-      });
 
-    // Invalidate size after initial render and when tiles finish loading
-    setTimeout(() => map.invalidateSize(), 300);
-    map.whenReady(() => setTimeout(() => map.invalidateSize(), 100));
-    map.on('load', () => setTimeout(() => map.invalidateSize(), 50));
-    window.addEventListener('resize', () => map.invalidateSize());
-  });
+        // Add markers
+        try {
+            L.marker(pickupLatLng, { icon: pickupIcon }).addTo(mapInstance);
+            L.marker(dropLatLng, { icon: dropIcon }).addTo(mapInstance);
+            console.log('Markers added successfully');
+        } catch (error) {
+            console.error('Error adding markers:', error);
+        }
+
+        // CRITICAL: Create routing control with error handling
+        try {
+            routingControl = L.Routing.control({
+                waypoints: [pickupLatLng, dropLatLng],
+                router: L.Routing.osrmv1({
+                    serviceUrl: 'https://router.project-osrm.org/route/v1'
+                }),
+                addWaypoints: false,
+                draggableWaypoints: false,
+                fitSelectedRoutes: true,
+                show: false,
+                lineOptions: {
+                    styles: [{ color: '#00A59E', opacity: 0.8, weight: 6 }]
+                },
+                createMarker: function() { return null; } // Don't create default markers
+            }).addTo(mapInstance);
+
+            console.log('Routing control created');
+
+            // Handle successful routing
+            routingControl.on('routesfound', function(e) {
+                console.log('Route found:', e);
+                
+                const route = e.routes && e.routes[0];
+                if (!route) {
+                    console.warn('No route in response');
+                    routeInfoEl.textContent = 'No route found';
+                    return;
+                }
+
+                const meters = route.summary.totalDistance || 0;
+                const seconds = route.summary.totalTime || 0;
+                const km = (meters / 1000).toFixed(1);
+                const mins = Math.round(seconds / 60);
+
+                console.log(`Route: ${km} km, ${mins} min`);
+                routeInfoEl.textContent = `${km} km • ${mins} min`;
+
+                // Update hidden fields
+                const distanceField = document.getElementById('distance_km');
+                const durationField = document.getElementById('duration_min');
+                if (distanceField) distanceField.value = km;
+                if (durationField) durationField.value = mins.toString();
+
+                // Fit bounds to route
+                const coords = route.coordinates;
+                if (coords && coords.length > 0) {
+                    const latLngs = coords.map(c => {
+                        if (Array.isArray(c)) return L.latLng(c[0], c[1]);
+                        if (c.lat && c.lng) return L.latLng(c.lat, c.lng);
+                        return null;
+                    }).filter(c => c !== null);
+
+                    if (latLngs.length > 0) {
+                        const bounds = L.latLngBounds(latLngs);
+                        mapInstance.fitBounds(bounds.pad(0.15));
+                    }
+                }
+
+                setTimeout(() => {
+                    if (mapInstance) mapInstance.invalidateSize();
+                }, 100);
+            });
+
+            // Handle routing errors
+            routingControl.on('routingerror', function(e) {
+                console.error('Routing error:', e);
+                routeInfoEl.textContent = 'Route unavailable';
+                
+                if (noticeEl && noticeTextEl) {
+                    noticeEl.classList.add('show', 'error');
+                    noticeTextEl.textContent = 'Unable to calculate route. Please check locations.';
+                }
+            });
+
+        } catch (error) {
+            console.error('Error creating routing control:', error);
+            routeInfoEl.textContent = 'Routing error';
+            
+            if (noticeEl && noticeTextEl) {
+                noticeEl.classList.add('show', 'error');
+                noticeTextEl.textContent = `Routing error: ${error.message}`;
+            }
+        }
+    }
+
+    // ============================================
+    // HANDLE RESIZE EVENTS
+    // ============================================
+    window.addEventListener('resize', () => {
+        if (mapInstance) mapInstance.invalidateSize();
+    });
+
+    window.addEventListener('orientationchange', () => {
+        setTimeout(() => {
+            if (mapInstance) mapInstance.invalidateSize();
+        }, 200);
+    });
+});
 </script>
-</div>
-{% endblock %}
+
+</body>
+</html>
