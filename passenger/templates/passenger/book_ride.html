@@ -4,617 +4,1029 @@
 {% block extra_css %}
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
 <link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
 <link rel="stylesheet" href="{% static 'css/passenger-mobile.css' %}">
 <style>
-  /* Reset and Base Styles */
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
+/* =====================================================
+   DESIGN TOKENS — inherit from global.css root vars
+   ===================================================== */
+:root {
+  --p: #00A59E;
+  --p2: #0EB9D3;
+  --p-grad: linear-gradient(135deg, #00A59E 0%, #0EB9D3 100%);
+  --p-glow: rgba(0, 165, 158, 0.28);
+  --surface: #ffffff;
+  --bg: #f4f7f9;
+  --ink: #1e293b;
+  --ink2: #64748b;
+  --ink3: #94a3b8;
+  --border: #e2e8f0;
+  --red: #ef4444;
+  --green: #10b981;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 26px;
+}
 
-  body {
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-  }
+*, *::before, *::after {
+  margin: 0; padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
 
-  /* Wrapper - full width on mobile, contained on desktop */
-  .booking-wrapper {
-    width: 100%;
-    min-height: 100vh;
-  }
+html, body {
+  width: 100%;
+  overflow-x: hidden;
+  background: var(--bg);
+  font-family: 'Raleway', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
 
-  /* Mobile App-Like Styles */
-  .booking-screen {
-    min-height: 100vh;
-    background: #f8fafc;
-    padding-bottom: 100px;
-    width: 100%;
-  }
+/* =====================================================
+   SCREEN WRAPPER
+   ===================================================== */
+.screen {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--bg);
+  padding-bottom: 130px; /* space for fixed bottom bar */
+}
 
-  .booking-header {
-    background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
-    padding: 1.5rem 1rem 2rem;
-    color: white;
-    width: 100%;
-  }
+/* =====================================================
+   TOP APP BAR  — immersive gradient, no card feel
+   ===================================================== */
+.app-bar {
+  width: 100%;
+  background: var(--p-grad);
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
 
-  .header-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-  }
+/* subtle noise texture layered on header */
+.app-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
 
-  .back-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    color: white;
-    font-size: 1.125rem;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
+/* decorative circle accent, top-right */
+.app-bar::after {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+  pointer-events: none;
+}
 
-  .back-btn:active {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(0.95);
-  }
+.app-bar-inner {
+  position: relative;
+  z-index: 1;
+  padding: 52px 20px 56px; /* extra bottom so route card overlaps */
+}
 
-  .header-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-  }
+.nav-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 22px;
+}
 
-  .header-subtitle {
-    font-size: 0.875rem;
-    opacity: 0.9;
-  }
+.back-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-sm);
+  background: rgba(255,255,255,0.18);
+  border: none;
+  color: white;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: background 0.18s;
+  backdrop-filter: blur(4px);
+}
+.back-btn:active { background: rgba(255,255,255,0.3); }
 
-  /* Trip Summary Card */
-  .trip-card {
-    background: white;
-    border-radius: 20px;
-    margin: -40px 1rem 1rem;
-    padding: 1.5rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    position: relative;
-  }
+.app-bar-title {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.92);
+  letter-spacing: 0.01em;
+}
 
-  .location-row {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 1.25rem;
-  }
+/* Step indicator — "Step 3 of 3" */
+.step-pill {
+  margin-left: auto;
+  background: rgba(255,255,255,0.18);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(4px);
+}
 
-  .location-icon {
-    width: 40px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-right: 1rem;
-    padding-top: 0.25rem;
-  }
+/* =====================================================
+   HERO FARE — large number, center of attention
+   ===================================================== */
+.fare-hero {
+  text-align: center;
+  padding-bottom: 8px;
+}
 
-  .location-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    margin-bottom: 4px;
-  }
+.fare-hero-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 4px;
+}
 
-  .pickup-dot {
-    background: #14b8a6;
-    border: 3px solid #99f6e4;
-  }
+.fare-hero-amount {
+  font-size: 3.25rem;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-family: 'Open Sans', sans-serif;
+  position: relative;
+  display: inline-block;
+}
 
-  .dropoff-dot {
-    background: #ef4444;
-    border: 3px solid #fecaca;
-  }
+.fare-hero-amount .currency {
+  font-size: 1.75rem;
+  font-weight: 700;
+  vertical-align: top;
+  margin-top: 8px;
+  margin-right: 2px;
+}
 
-  .location-line {
-    width: 2px;
-    flex: 1;
-    background: #e5e7eb;
-    margin: 0 auto;
-  }
+.fare-original-hero {
+  font-size: 0.9375rem;
+  color: rgba(255,255,255,0.55);
+  text-decoration: line-through;
+  margin-top: 4px;
+  display: none;
+  font-weight: 600;
+}
+.fare-original-hero.visible { display: block; }
 
-  .location-text {
-    flex: 1;
-  }
+.fare-sub {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.72);
+}
 
-  .location-label {
-    font-size: 0.75rem;
-    color: #6b7280;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 0.25rem;
-  }
+.fare-sub-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.5);
+}
 
-  .location-address {
-    font-size: 0.9375rem;
-    color: #111827;
-    font-weight: 500;
-    line-height: 1.4;
-  }
+/* =====================================================
+   CONTENT LAYER — slides up over the gradient
+   ===================================================== */
+.content-layer {
+  width: 100%;
+  background: var(--bg);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  margin-top: -28px;
+  position: relative;
+  z-index: 2;
+  padding: 8px 0 0;
+}
 
-  /* Service & Fare Card */
-  .service-card {
-    background: white;
-    border-radius: 16px;
-    margin: 1rem;
-    padding: 1.25rem;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  }
+/* =====================================================
+   ROUTE CARD — app drawer card, not a form row
+   ===================================================== */
+.section-card {
+  background: var(--surface);
+  margin: 12px 16px;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+}
 
-  .service-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid #f1f5f9;
-    margin-bottom: 1rem;
-  }
+.section-label {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  color: var(--ink3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 14px 16px 0;
+}
 
-  .service-info {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
+/* Route timeline inside card */
+.route-timeline {
+  padding: 14px 16px 18px;
+  position: relative;
+}
 
-  .service-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 1.5rem;
-  }
+.route-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  position: relative;
+}
 
-  .service-details h3 {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: #111827;
-    margin-bottom: 0.125rem;
-  }
+.route-row + .route-row {
+  margin-top: 0;
+}
 
-  .service-meta {
-    font-size: 0.8125rem;
-    color: #6b7280;
-  }
+/* The vertical connector between dots */
+.route-track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 18px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
 
-  .fare-amount {
-    text-align: right;
-  }
+.r-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.r-dot.pickup  { background: var(--p); box-shadow: 0 0 0 3px rgba(0,165,158,0.2); }
+.r-dot.dropoff { background: var(--red); box-shadow: 0 0 0 3px rgba(239,68,68,0.18); }
 
-  .fare-label {
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin-bottom: 0.125rem;
-  }
+.r-line {
+  width: 2px;
+  height: 36px;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--border) 0px,
+    var(--border) 5px,
+    transparent 5px,
+    transparent 9px
+  );
+  flex-shrink: 0;
+  margin: 4px 0;
+}
 
-  .fare-price {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: #0d9488;
-  }
+.route-text-wrap {
+  flex: 1;
+  padding-bottom: 18px;
+}
+.route-row:last-child .route-text-wrap { padding-bottom: 0; }
 
-  .fare-original {
-    font-size: 0.875rem;
-    color: #9ca3af;
-    text-decoration: line-through;
-    margin-top: 0.125rem;
-  }
+.route-tag {
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.route-tag.pickup  { color: var(--p); }
+.route-tag.dropoff { color: var(--red); }
 
-  /* Payment & Promo Section */
-  .options-section {
-    margin: 0 1rem 1rem;
-  }
+.route-addr {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.45;
+}
 
-  .option-card {
-    background: white;
-    border-radius: 16px;
-    padding: 1.25rem;
-    margin-bottom: 0.75rem;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-  }
+/* =====================================================
+   RIDE DETAILS ROW — icon + name/distance + badge
+   ===================================================== */
+.ride-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 16px;
+}
 
-  .option-label {
-    font-size: 0.8125rem;
-    color: #6b7280;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 0.75rem;
-    display: block;
-  }
+.ride-icon-box {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-md);
+  background: linear-gradient(135deg, rgba(0,165,158,0.1), rgba(14,185,211,0.1));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(0,165,158,0.15);
+}
+.ride-icon-box i {
+  font-size: 1.375rem;
+  background: var(--p-grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 
-  .payment-select {
-    width: 100%;
-    padding: 0.875rem 1rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    font-size: 1rem;
-    color: #111827;
-    font-weight: 500;
-    background: white;
-    cursor: pointer;
-    transition: all 0.2s;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 1.25rem;
-    padding-right: 3rem;
-  }
+.ride-meta { flex: 1; }
+.ride-meta-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 3px;
+}
+.ride-meta-sub {
+  font-size: 0.8125rem;
+  color: var(--ink2);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.ride-meta-sub i { font-size: 0.6875rem; color: var(--ink3); }
 
-  .payment-select:focus {
-    outline: none;
-    border-color: #0d9488;
-  }
+.eta-badge {
+  background: linear-gradient(135deg, rgba(0,165,158,0.1), rgba(14,185,211,0.1));
+  border: 1.5px solid rgba(0,165,158,0.2);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--p);
+  white-space: nowrap;
+}
 
-  .promo-input-group {
-    display: flex;
-    gap: 0.5rem;
-  }
+/* =====================================================
+   DIVIDER
+   ===================================================== */
+.inset-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0 16px;
+}
 
-  .promo-input {
-    flex: 1;
-    padding: 0.875rem 1rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    font-size: 1rem;
-    color: #111827;
-    transition: all 0.2s;
-  }
+/* =====================================================
+   SELECTION ROWS — Pill tap style (not dropdowns)
+   ===================================================== */
+.select-row {
+  display: flex;
+  align-items: center;
+  padding: 15px 16px;
+  gap: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.select-row:active { background: var(--bg); }
 
-  .promo-input:focus {
-    outline: none;
-    border-color: #0d9488;
-  }
+.select-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-sm);
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.125rem;
+  color: var(--ink2);
+}
 
-  .promo-input::placeholder {
-    color: #9ca3af;
-  }
+.select-content { flex: 1; }
+.select-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink3);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 2px;
+}
+.select-value {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink);
+}
 
-  .apply-btn {
-    padding: 0.875rem 1.5rem;
-    background: #0d9488;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 0.9375rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
+.select-chevron {
+  color: var(--ink3);
+  font-size: 0.875rem;
+}
 
-  .apply-btn:active {
-    transform: scale(0.98);
-    background: #0f766e;
-  }
+/* Payment method bottom sheet trigger */
+.payment-options-sheet {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 0 16px 14px;
+}
+.pay-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 2px solid var(--border);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ink2);
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 0.18s;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.pay-chip:active { transform: scale(0.95); }
+.pay-chip.active {
+  border-color: var(--p);
+  color: var(--p);
+  background: rgba(0,165,158,0.06);
+}
+.pay-chip .chip-emoji {
+  font-size: 0.9375rem;
+  line-height: 1;
+}
 
-  .promo-message {
-    margin-top: 0.625rem;
-    font-size: 0.8125rem;
-    font-weight: 500;
-  }
+/* Hidden real select for form submission */
+.hidden-select {
+  display: none;
+}
 
-  .promo-success {
-    color: #059669;
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-  }
+/* =====================================================
+   PROMO SECTION — inline, not a traditional field
+   ===================================================== */
+.promo-section {
+  padding: 14px 16px;
+}
 
-  .promo-error {
-    color: #dc2626;
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-  }
+.promo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-  /* Sticky Bottom Action Bar */
-  .bottom-action-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: white;
-    padding: 1rem 1rem 1.5rem;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
-    border-top-left-radius: 24px;
-    border-top-right-radius: 24px;
-    z-index: 50;
-  }
+.promo-field {
+  flex: 1;
+  position: relative;
+}
+.promo-field .promo-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+  color: var(--ink3);
+  pointer-events: none;
+}
 
-  .confirm-btn {
-    width: 100%;
-    padding: 1rem;
-    background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
-    color: white;
-    border: none;
-    border-radius: 16px;
-    font-size: 1.125rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 4px 16px rgba(13, 148, 136, 0.3);
-  }
+.promo-input-styled {
+  width: 100%;
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 12px 14px 12px 38px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink);
+  font-family: inherit;
+  transition: border 0.18s, background 0.18s;
+}
+.promo-input-styled:focus {
+  outline: none;
+  border-color: var(--p);
+  background: var(--surface);
+}
+.promo-input-styled::placeholder {
+  color: var(--ink3);
+  font-weight: 400;
+}
+.promo-input-styled:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
 
-  .confirm-btn:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
-  }
+.promo-apply-btn {
+  padding: 12px 20px;
+  border-radius: var(--r-md);
+  border: none;
+  background: var(--p-grad);
+  color: white;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.18s, transform 0.15s;
+  box-shadow: 0 3px 10px var(--p-glow);
+}
+.promo-apply-btn:active { transform: scale(0.96); }
+.promo-apply-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
 
-  .terms-text {
-    text-align: center;
-    font-size: 0.75rem;
-    color: #9ca3af;
-    margin-top: 0.75rem;
-    line-height: 1.4;
-  }
+.promo-status {
+  display: none;
+  align-items: center;
+  gap: 7px;
+  margin-top: 9px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 9px 12px;
+  border-radius: var(--r-sm);
+}
+.promo-status.visible { display: flex; }
+.promo-status.success { background: rgba(16,185,129,0.1); color: #059669; }
+.promo-status.error   { background: rgba(239,68,68,0.08); color: #dc2626; }
 
-  .terms-link {
-    color: #0d9488;
-    text-decoration: none;
-    font-weight: 600;
-  }
+/* =====================================================
+   PRICE BREAKDOWN — accordion summary
+   ===================================================== */
+.breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+}
+.breakdown-label {
+  font-size: 0.875rem;
+  color: var(--ink2);
+  font-weight: 500;
+}
+.breakdown-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.breakdown-row.total {
+  padding: 13px 16px;
+  background: linear-gradient(135deg, rgba(0,165,158,0.04), rgba(14,185,211,0.04));
+  border-top: 1.5px solid var(--border);
+}
+.breakdown-row.total .breakdown-label {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+.breakdown-row.total .breakdown-value {
+  font-size: 1.125rem;
+  font-weight: 900;
+  color: var(--p);
+}
+.breakdown-row.discount .breakdown-value {
+  color: var(--green);
+}
 
-  /* Desktop adjustments */
-  @media (min-width: 768px) {
-    .booking-screen {
-      background: #e5e7eb;
-      display: flex;
-      justify-content: center;
-      padding: 2rem 1rem;
-      min-height: 100vh;
-    }
+/* =====================================================
+   STICKY BOTTOM ACTION BAR
+   ===================================================== */
+.bottom-action {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -8px 24px rgba(0,0,0,0.09);
+  border-top: 1px solid rgba(0,0,0,0.05);
+  z-index: 200;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
 
-    .booking-wrapper {
-      max-width: 480px;
-      width: 100%;
-      background: #f8fafc;
-      border-radius: 24px;
-      overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-      height: fit-content;
-    }
+.confirm-btn {
+  width: 100%;
+  padding: 17px 24px;
+  background: var(--p-grad);
+  color: white;
+  border: none;
+  border-radius: var(--r-md);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 6px 20px var(--p-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+}
 
-    .booking-header {
-      border-radius: 24px 24px 0 0;
-    }
+/* ripple layer */
+.confirm-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0);
+  transition: background 0.3s;
+}
+.confirm-btn:active::after { background: rgba(255,255,255,0.12); }
+.confirm-btn:active { transform: translateY(1px); box-shadow: 0 3px 10px var(--p-glow); }
+.confirm-btn:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
 
-    .bottom-action-bar {
-      position: sticky;
-      border-radius: 0 0 24px 24px;
-    }
-  }
+.confirm-btn-icon {
+  width: 28px;
+  height: 28px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+.terms-line {
+  text-align: center;
+  font-size: 0.6875rem;
+  color: var(--ink3);
+  margin-top: 9px;
+  line-height: 1.5;
+}
+.terms-link {
+  color: var(--p);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* =====================================================
+   SECTION SPACER HEADER
+   ===================================================== */
+.section-group-label {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  color: var(--ink3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 18px 20px 6px;
+}
+
+/* =====================================================
+   PAGE ENTER ANIMATION (staggered cards)
+   ===================================================== */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.section-card { animation: slideUp 0.35s ease both; }
+.section-card:nth-child(1) { animation-delay: 0.05s; }
+.section-card:nth-child(2) { animation-delay: 0.12s; }
+.section-card:nth-child(3) { animation-delay: 0.19s; }
+.section-card:nth-child(4) { animation-delay: 0.26s; }
+.section-card:nth-child(5) { animation-delay: 0.33s; }
+
+/* =====================================================
+   LOADING OVERLAY
+   ===================================================== */
+.booking-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(30, 41, 59, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.booking-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.overlay-card {
+  background: white;
+  border-radius: var(--r-xl);
+  padding: 32px 28px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  min-width: 220px;
+  animation: slideUp 0.35s ease;
+}
+.overlay-spinner {
+  width: 44px;
+  height: 44px;
+  border: 4px solid rgba(0,165,158,0.15);
+  border-top-color: var(--p);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  margin: 0 auto 14px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.overlay-text {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.overlay-sub {
+  font-size: 0.8125rem;
+  color: var(--ink2);
+}
+
+/* =====================================================
+   SMALL SCREEN ADJUSTMENTS
+   ===================================================== */
+@media (max-width: 360px) {
+  .fare-hero-amount { font-size: 2.75rem; }
+  .pay-chip { font-size: 0.75rem; padding: 6px 11px; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="booking-screen">
-  <div class="booking-wrapper">
-    <!-- Header -->
-    <div class="booking-header">
-      <div class="header-top">
-        <a href="{% url 'choose_ride' %}" class="back-btn">
-          <i class="fas fa-arrow-left"></i>
+<!-- Loading overlay -->
+<div class="booking-overlay" id="bookingOverlay">
+  <div class="overlay-card">
+    <div class="overlay-spinner"></div>
+    <div class="overlay-text">Booking your ride…</div>
+    <div class="overlay-sub">This will just take a moment</div>
+  </div>
+</div>
+
+<div class="screen">
+
+  <!-- ═══════════════════════════════════════════
+       APP BAR — gradient with fare as hero
+  ══════════════════════════════════════════════ -->
+  <header class="app-bar">
+    <div class="app-bar-inner">
+
+      <!-- nav row -->
+      <div class="nav-row">
+        <a href="{% url 'choose_ride' %}" class="back-btn" aria-label="Go back">
+          <i class="fas fa-chevron-left"></i>
         </a>
-        <div style="width: 40px;"></div>
+        <span class="app-bar-title">Confirm Booking</span>
+        <span class="step-pill">Step 3 of 3</span>
       </div>
-      <div class="header-title">Confirm Your Ride</div>
-      <div class="header-subtitle">Review details before booking</div>
+
+      <!-- FARE HERO -->
+      <div class="fare-hero">
+        <div class="fare-hero-label">Total Fare</div>
+        <div class="fare-hero-amount" id="fare_display">
+          <span class="currency">₹</span><span id="fare_number">{{ fare|default_if_none:'0' }}</span>
+        </div>
+        <div class="fare-original-hero" id="original_fare_hero"></div>
+        <div class="fare-sub">
+          {% if distance_km %}<span>{{ distance_km }} km</span>{% endif %}
+          {% if distance_km and duration_min %}<span class="fare-sub-dot"></span>{% endif %}
+          {% if duration_min %}<span>{{ duration_min }} min</span>{% endif %}
+          {% if selected_service %}
+            {% if distance_km or duration_min %}<span class="fare-sub-dot"></span>{% endif %}
+            <span>{{ selected_service }}</span>
+          {% endif %}
+        </div>
+      </div>
+
     </div>
+  </header>
 
-    <!-- Trip Summary Card -->
-    <div class="trip-card">
-      <div class="location-row">
-        <div class="location-icon">
-          <div class="location-dot pickup-dot"></div>
-          <div class="location-line"></div>
-        </div>
-        <div class="location-text">
-          <div class="location-label">Pickup</div>
-          <div class="location-address">{{ pickup|default_if_none:'Not specified' }}</div>
-        </div>
-      </div>
+  <!-- ═══════════════════════════════════════════
+       CONTENT LAYER — slides over gradient
+  ══════════════════════════════════════════════ -->
+  <div class="content-layer">
 
-      <div class="location-row" style="margin-bottom: 0;">
-        <div class="location-icon">
-          <div class="location-dot dropoff-dot"></div>
-        </div>
-        <div class="location-text">
-          <div class="location-label">Drop-off</div>
-          <div class="location-address">{{ dropoff|default_if_none:'Not specified' }}</div>
-        </div>
-      </div>
-    </div>
+    <!-- ── BOOKING FORM ──────────────────────── -->
+    <form method="post" action="{% url 'confirm_booking' %}" id="booking_form">
+      {% csrf_token %}
+      <input type="hidden" name="vehicle_type"     value="{{ selected_service }}">
+      <input type="hidden" name="fare"              value="{{ fare }}" id="fare_input">
+      <input type="hidden" name="pickup"            value="{{ pickup }}">
+      <input type="hidden" name="dropoff"           value="{{ dropoff }}">
+      <input type="hidden" name="ride_date"         value="{{ ride_date }}">
+      <input type="hidden" name="ride_time"         value="{{ ride_time }}">
+      <input type="hidden" name="ride_type"         value="{{ ride_type }}">
+      <input type="hidden" name="pickup_city"       value="{{ pickup_city }}">
+      <input type="hidden" name="pickup_district"   value="{{ pickup_district }}">
+      <input type="hidden" name="pickup_state"      value="{{ pickup_state }}">
+      <input type="hidden" name="drop_city"         value="{{ drop_city }}">
+      <input type="hidden" name="drop_district"     value="{{ drop_district }}">
+      <input type="hidden" name="drop_state"        value="{{ drop_state }}">
+      <input type="hidden" name="distance_km"       value="{{ distance_km }}">
+      <input type="hidden" name="duration_min"      value="{{ duration_min }}">
+      {% if ride_type == 'rental' %}
+      <input type="hidden" name="rental_duration"   value="{{ rental_duration }}">
+      {% endif %}
+      <!-- payment hidden — populated by JS -->
+      <select id="payment_mode" name="payment_mode" class="hidden-select">
+        <option value="Cash">Cash</option>
+        <option value="UPI">UPI</option>
+        <option value="Credit Card">Credit Card</option>
+        <option value="Debit Card">Debit Card</option>
+        <option value="Wallet">Wallet</option>
+        <option value="Netbanking">Netbanking</option>
+      </select>
+      <input type="hidden" name="promo_code" id="promo_code_hidden">
 
-    <!-- Service & Fare Card -->
-    <div class="service-card">
-      <div class="service-header">
-        <div class="service-info">
-          <div class="service-icon">
-            <i class="fas fa-car"></i>
+      <!-- ── 1. ROUTE SUMMARY ─────────────────── -->
+      <p class="section-group-label">Your Route</p>
+      <div class="section-card">
+        <div class="route-timeline">
+          <!-- pickup -->
+          <div class="route-row">
+            <div class="route-track">
+              <div class="r-dot pickup"></div>
+              <div class="r-line"></div>
+            </div>
+            <div class="route-text-wrap">
+              <div class="route-tag pickup">Pickup</div>
+              <div class="route-addr">{{ pickup|default_if_none:'Not specified' }}</div>
+            </div>
           </div>
-          <div class="service-details">
-            <h3>{{ selected_service|default:'Standard' }}</h3>
-            <div class="service-meta">
-              {% if distance_km %}{{ distance_km }} km{% endif %}
-              {% if duration_min %} • {{ duration_min }} min{% endif %}
+          <!-- dropoff -->
+          <div class="route-row">
+            <div class="route-track">
+              <div class="r-dot dropoff"></div>
+            </div>
+            <div class="route-text-wrap">
+              <div class="route-tag dropoff">Drop-off</div>
+              <div class="route-addr">{{ dropoff|default_if_none:'Not specified' }}</div>
             </div>
           </div>
         </div>
-        <div class="fare-amount">
-          <div class="fare-label">Total Fare</div>
-          <div class="fare-price" id="fare_display">₹{{ fare|default_if_none:'0' }}</div>
-          <div class="fare-original" id="original_fare" style="display: none;"></div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Payment & Promo Options -->
-    <form method="post" action="{% url 'confirm_booking' %}" id="booking_form">
-      {% csrf_token %}
-      
-      <!-- Hidden Fields -->
-      <input type="hidden" name="vehicle_type" value="{{ selected_service }}">
-      <input type="hidden" name="fare" value="{{ fare }}" id="fare_input">
-      <input type="hidden" name="pickup" value="{{ pickup }}">
-      <input type="hidden" name="dropoff" value="{{ dropoff }}">
-      <input type="hidden" name="ride_date" value="{{ ride_date }}">
-      <input type="hidden" name="ride_time" value="{{ ride_time }}">
-      <input type="hidden" name="ride_type" value="{{ ride_type }}">
-      <input type="hidden" name="pickup_city" value="{{ pickup_city }}">
-      <input type="hidden" name="pickup_district" value="{{ pickup_district }}">
-      <input type="hidden" name="pickup_state" value="{{ pickup_state }}">
-      <input type="hidden" name="drop_city" value="{{ drop_city }}">
-      <input type="hidden" name="drop_district" value="{{ drop_district }}">
-      <input type="hidden" name="drop_state" value="{{ drop_state }}">
-      <input type="hidden" name="distance_km" value="{{ distance_km }}">
-      <input type="hidden" name="duration_min" value="{{ duration_min }}">
-      {% if ride_type == 'rental' %}
-      <input type="hidden" name="rental_duration" value="{{ rental_duration }}">
-      {% endif %}
-
-      <div class="options-section">
-        <!-- Payment Method -->
-        <div class="option-card">
-          <label for="payment_mode" class="option-label">Payment Method</label>
-          <select id="payment_mode" name="payment_mode" class="payment-select">
-            <option value="Cash">💵 Cash</option>
-            <option value="UPI">📱 UPI</option>
-            <option value="Credit Card">💳 Credit Card</option>
-            <option value="Debit Card">💳 Debit Card</option>
-            <option value="Wallet">👛 Wallet</option>
-            <option value="Netbanking">🏦 Netbanking</option>
-          </select>
-        </div>
-
-        <!-- Promo Code -->
-        <div class="option-card">
-          <label for="promo_code" class="option-label">Promo Code</label>
-          <div class="promo-input-group">
-            <input 
-              type="text" 
-              id="promo_code" 
-              name="promo_code" 
-              placeholder="Have a code?" 
-              class="promo-input"
-            >
-            <button type="button" id="apply_promo" class="apply-btn">Apply</button>
+        <!-- ride detail strip -->
+        <div class="inset-divider"></div>
+        <div class="ride-row">
+          <div class="ride-icon-box">
+            <i class="fas fa-car"></i>
           </div>
-          <div id="promo_message" class="promo-message"></div>
+          <div class="ride-meta">
+            <div class="ride-meta-name">{{ selected_service|default:'Standard' }}</div>
+            <div class="ride-meta-sub">
+              {% if distance_km %}<i class="fas fa-road"></i> {{ distance_km }} km{% endif %}
+              {% if duration_min %}&nbsp;&bull;&nbsp;<i class="fas fa-clock"></i> {{ duration_min }} min{% endif %}
+            </div>
+          </div>
+          <div class="eta-badge">
+            <i class="fas fa-bolt"></i>&nbsp;Instant
+          </div>
         </div>
       </div>
 
-      <!-- Sticky Bottom Action Bar -->
-      <div class="bottom-action-bar">
-        <button type="submit" class="confirm-btn">
-          Confirm & Book Ride
+      <!-- ── 3. PAYMENT METHOD ─────────────────── -->
+      <p class="section-group-label">Payment</p>
+      <div class="section-card">
+        <div class="payment-options-sheet" id="pay_chips">
+          <div class="pay-chip active" data-value="Cash">     <span class="chip-emoji">💵</span> Cash</div>
+          <div class="pay-chip"        data-value="UPI">      <span class="chip-emoji">📱</span> UPI</div>
+          <div class="pay-chip"        data-value="Credit Card"><span class="chip-emoji">💳</span> Credit</div>
+          <div class="pay-chip"        data-value="Debit Card"><span class="chip-emoji">💳</span> Debit</div>
+          <div class="pay-chip"        data-value="Wallet">   <span class="chip-emoji">👛</span> Wallet</div>
+          <div class="pay-chip"        data-value="Netbanking"><span class="chip-emoji">🏦</span> Netbank</div>
+        </div>
+      </div>
+
+      <!-- ── 4. PROMO CODE ─────────────────────── -->
+      <p class="section-group-label">Promo Code</p>
+      <div class="section-card">
+        <div class="promo-section">
+          <div class="promo-row">
+            <div class="promo-field">
+              <i class="fas fa-tag promo-icon"></i>
+              <input
+                type="text"
+                id="promo_code_input"
+                placeholder="Enter promo code"
+                class="promo-input-styled"
+                autocomplete="off"
+                autocapitalize="characters"
+              >
+            </div>
+            <button type="button" id="apply_promo" class="promo-apply-btn">Apply</button>
+          </div>
+          <div class="promo-status" id="promo_message">
+            <i class="fas fa-check-circle" id="promo_icon"></i>
+            <span id="promo_text"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── BOTTOM CTA ────────────────────────── -->
+      <div class="bottom-action">
+        <button type="submit" class="confirm-btn ripple" id="confirm_btn">
+          <span class="confirm-btn-icon"><i class="fas fa-check"></i></span>
+          Confirm &amp; Book Ride
         </button>
-        <p class="terms-text">
-          By booking, you agree to our <a href="#" class="terms-link">Terms & Conditions</a>
+        <p class="terms-line">
+          By booking you agree to our <a href="#" class="terms-link">Terms &amp; Conditions</a> and <a href="#" class="terms-link">Privacy Policy</a>
         </p>
       </div>
+
     </form>
-  </div>
-</div>
-</div>
+  </div><!-- /content-layer -->
+</div><!-- /screen -->
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  const applyBtn = document.getElementById('apply_promo');
-  const promoInput = document.getElementById('promo_code');
-  const fareInput = document.getElementById('fare_input');
-  const fareDisplay = document.getElementById('fare_display');
-  const originalFareDisplay = document.getElementById('original_fare');
-  const promoMessage = document.getElementById('promo_message');
-  const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
-  const originalFare = fareInput.value;
+  /* ── State ─────────────────────────────────── */
+  const fareInput       = document.getElementById('fare_input');
+  const fareNumber      = document.getElementById('fare_number');
+  const fareOrigHero    = document.getElementById('original_fare_hero');
+  const bdBase          = document.getElementById('bd_base');
+  const bdDiscountRow   = document.getElementById('bd_discount_row');
+  const bdDiscount      = document.getElementById('bd_discount');
+  const bdTotal         = document.getElementById('bd_total');
+  const promoInput      = document.getElementById('promo_code_input');
+  const promoHidden     = document.getElementById('promo_code_hidden');
+  const applyBtn        = document.getElementById('apply_promo');
+  const promoMsg        = document.getElementById('promo_message');
+  const promoIcon       = document.getElementById('promo_icon');
+  const promoText       = document.getElementById('promo_text');
+  const paySelect       = document.getElementById('payment_mode');
+  const confirmBtn      = document.getElementById('confirm_btn');
+  const form            = document.getElementById('booking_form');
+  const overlay         = document.getElementById('bookingOverlay');
+  const csrfToken       = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+  const originalFare    = parseFloat(fareInput.value) || 0;
 
-  applyBtn.addEventListener('click', function () {
-    const promoCode = promoInput.value.trim();
-    const currentFare = fareInput.value;
-
-    if (!promoCode) {
-      promoMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please enter a promo code';
-      promoMessage.className = 'promo-message promo-error';
-      return;
-    }
-
-    // Disable button during request
-    applyBtn.disabled = true;
-    applyBtn.textContent = 'Applying...';
-
-    fetch("{% url 'apply_promo' %}", {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrfToken,
-      },
-      body: JSON.stringify({
-        promo_code: promoCode,
-        fare: currentFare
-      })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        // Update fare
-        fareInput.value = data.discounted_fare;
-        fareDisplay.textContent = '₹' + data.discounted_fare;
-        
-        // Show original fare with strikethrough
-        originalFareDisplay.textContent = '₹' + originalFare;
-        originalFareDisplay.style.display = 'block';
-        
-        // Success message
-        promoMessage.innerHTML = '<i class="fas fa-check-circle"></i> ' + (data.message || 'Promo applied successfully!');
-        promoMessage.className = 'promo-message promo-success';
-        
-        // Disable input and button
-        promoInput.disabled = true;
-        applyBtn.textContent = 'Applied';
-      } else {
-        promoMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + (data.message || 'Invalid promo code');
-        promoMessage.className = 'promo-message promo-error';
-        applyBtn.disabled = false;
-        applyBtn.textContent = 'Apply';
-      }
-    })
-    .catch(() => {
-      promoMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i> An error occurred';
-      promoMessage.className = 'promo-message promo-error';
-      applyBtn.disabled = false;
-      applyBtn.textContent = 'Apply';
+  /* ── Payment Chips ─────────────────────────── */
+  document.querySelectorAll('#pay_chips .pay-chip').forEach(chip => {
+    chip.addEventListener('click', function () {
+      document.querySelectorAll('#pay_chips .pay-chip').forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+      paySelect.value = this.dataset.value;
     });
   });
 
-  // Form submission with visual feedback
-  const form = document.getElementById('booking_form');
-  const confirmBtn = form.querySelector('.confirm-btn');
-  
-  form.addEventListener('submit', function(e) {
-    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+  /* ── Promo Code ────────────────────────────── */
+  applyBtn.addEventListener('click', function () {
+    const code = promoInput.value.trim();
+    if (!code) {
+      showPromoMsg('error', 'fas fa-exclamation-circle', 'Please enter a promo code');
+      return;
+    }
+    applyBtn.disabled = true;
+    applyBtn.textContent = 'Checking…';
+
+    fetch("{% url 'apply_promo' %}", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+      body: JSON.stringify({ promo_code: code, fare: fareInput.value })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        const disc = originalFare - parseFloat(data.discounted_fare);
+        fareInput.value = data.discounted_fare;
+        fareNumber.textContent = data.discounted_fare;
+        fareOrigHero.textContent = '₹' + originalFare;
+        fareOrigHero.classList.add('visible');
+        bdBase.textContent = '₹' + originalFare;
+        bdDiscountRow.style.display = 'flex';
+        bdDiscount.textContent = '–₹' + disc.toFixed(0);
+        bdTotal.textContent = '₹' + data.discounted_fare;
+        promoHidden.value = code;
+        promoInput.disabled = true;
+        applyBtn.textContent = '✓ Applied';
+        showPromoMsg('success', 'fas fa-check-circle', data.message || 'Promo applied successfully!');
+      } else {
+        applyBtn.disabled = false;
+        applyBtn.textContent = 'Apply';
+        showPromoMsg('error', 'fas fa-times-circle', data.message || 'Invalid promo code');
+      }
+    })
+    .catch(() => {
+      applyBtn.disabled = false;
+      applyBtn.textContent = 'Apply';
+      showPromoMsg('error', 'fas fa-exclamation-circle', 'Something went wrong. Try again.');
+    });
+  });
+
+  function showPromoMsg(type, icon, text) {
+    promoMsg.className = 'promo-status visible ' + type;
+    promoIcon.className = icon;
+    promoText.textContent = text;
+  }
+
+  /* ── Form Submit ───────────────────────────── */
+  form.addEventListener('submit', function (e) {
+    // sync promo code to hidden field before submit
+    if (!promoHidden.value) promoHidden.value = promoInput.value.trim();
+    confirmBtn.innerHTML = '<div style="width:20px;height:20px;border:3px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin .75s linear infinite;flex-shrink:0;"></div>&nbsp;Processing…';
     confirmBtn.disabled = true;
+    overlay.classList.add('active');
   });
 });
 </script>

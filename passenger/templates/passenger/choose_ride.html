@@ -765,38 +765,40 @@
            DESKTOP RESPONSIVE
            ============================================ */
         
-        @media (min-width: 768px) {
+        @media (min-width: 1024px) {
             body {
-                background: #cbd5e1;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .map-screen,
-            .top-bar,
-            .bottom-panel {
-                max-width: 420px;
-                left: 50%;
-                transform: translateX(-50%);
+                background: #e2e8f0;
             }
 
             .map-screen {
-                box-shadow: 0 0 60px rgba(0, 0, 0, 0.3);
+                top: 24px;
+                bottom: 24px;
+                left: 24px;
+                right: 448px;
+                width: auto;
+                height: auto;
                 border-radius: 24px;
                 overflow: hidden;
-                height: 90vh;
-                top: 5vh;
+                box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
             }
 
             .top-bar {
-                top: 5vh;
-                border-radius: 24px 24px 0 0;
+                top: 24px;
+                left: 24px;
+                right: 448px;
+                border-radius: 18px;
             }
 
             .bottom-panel {
-                max-height: 60vh;
-                bottom: 5vh;
+                top: 24px;
+                bottom: 24px;
+                right: 24px;
+                left: auto;
+                width: 400px;
+                height: auto;
+                max-height: calc(100vh - 48px);
+                border-radius: 22px;
+                box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
             }
         }
 
@@ -1060,6 +1062,7 @@ const rideRules = window.RideRules || null;
 const bottomPanel = document.querySelector('.bottom-panel');
 const panelHandle = document.getElementById('panel-handle');
 const panelHeader = document.querySelector('.panel-header');
+const isDesktopLayout = window.matchMedia('(min-width: 1024px)').matches;
 const COLLAPSED_VH = 0.26;
 const EXPANDED_VH = 0.75;
 const DRAG_THRESHOLD_PX = 40;
@@ -1071,6 +1074,11 @@ let dragFromHandle = false;
 function setPanelState(expanded) {
     if (!bottomPanel) return;
     bottomPanel.style.transition = 'height 0.25s ease';
+    if (isDesktopLayout) {
+        bottomPanel.classList.remove('collapsed', 'expanded');
+        bottomPanel.style.height = 'calc(100vh - 48px)';
+        return;
+    }
     if (expanded) {
         bottomPanel.classList.add('expanded');
         bottomPanel.classList.remove('collapsed');
@@ -1083,7 +1091,7 @@ function setPanelState(expanded) {
     }
 }
 
-setPanelState(false);
+setPanelState(!isDesktopLayout ? false : true);
 
 if (panelHandle) {
     panelHandle.addEventListener('click', () => {
@@ -1099,7 +1107,7 @@ if (panelHandle) {
     });
 }
 
-if (bottomPanel) {
+if (bottomPanel && !isDesktopLayout) {
     bottomPanel.addEventListener('scroll', () => {
         if (bottomPanel.classList.contains('collapsed') && bottomPanel.scrollTop > 8) {
             setPanelState(true);
@@ -1115,6 +1123,7 @@ function canStartDrag(target) {
 }
 
 function onPanelTouchStart(e) {
+    if (isDesktopLayout) return;
     if (!bottomPanel || e.touches.length !== 1) return;
     if (!canStartDrag(e.target)) return;
     isDraggingPanel = false;
@@ -1125,6 +1134,7 @@ function onPanelTouchStart(e) {
 }
 
 function onPanelTouchMove(e) {
+    if (isDesktopLayout) return;
     if (!bottomPanel || e.touches.length !== 1) return;
     const currentY = e.touches[0].clientY;
     const deltaY = dragStartY - currentY;
@@ -1150,6 +1160,7 @@ function onPanelTouchMove(e) {
 }
 
 function onPanelTouchEnd(e) {
+    if (isDesktopLayout) return;
     if (!bottomPanel) return;
     if (!isDraggingPanel) {
         dragFromHandle = false;
@@ -1169,7 +1180,7 @@ function onPanelTouchEnd(e) {
     }
 }
 
-if (bottomPanel) {
+if (bottomPanel && !isDesktopLayout) {
     bottomPanel.addEventListener('touchstart', onPanelTouchStart, { passive: true });
     bottomPanel.addEventListener('touchmove', onPanelTouchMove, { passive: false });
     bottomPanel.addEventListener('touchend', onPanelTouchEnd);
@@ -1177,7 +1188,13 @@ if (bottomPanel) {
 }
 
 window.addEventListener('resize', () => {
+    const desktopNow = window.matchMedia('(min-width: 1024px)').matches;
     const isExpanded = bottomPanel?.classList.contains('expanded');
+    if (desktopNow) {
+        bottomPanel.classList.remove('collapsed', 'expanded');
+        bottomPanel.style.height = 'calc(100vh - 48px)';
+        return;
+    }
     setPanelState(isExpanded);
 });
 
