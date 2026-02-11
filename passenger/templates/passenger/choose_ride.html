@@ -1066,6 +1066,7 @@ const DRAG_THRESHOLD_PX = 40;
 let dragStartY = 0;
 let dragStartHeight = 0;
 let isDraggingPanel = false;
+let dragFromHandle = false;
 
 function setPanelState(expanded) {
     if (!bottomPanel) return;
@@ -1116,26 +1117,46 @@ function canStartDrag(target) {
 function onPanelTouchStart(e) {
     if (!bottomPanel || e.touches.length !== 1) return;
     if (!canStartDrag(e.target)) return;
-    isDraggingPanel = true;
+    isDraggingPanel = false;
+    dragFromHandle = (e.target === panelHandle || panelHandle?.contains(e.target) || e.target === panelHeader || panelHeader?.contains(e.target));
     dragStartY = e.touches[0].clientY;
     dragStartHeight = bottomPanel.getBoundingClientRect().height;
     bottomPanel.style.transition = 'none';
 }
 
 function onPanelTouchMove(e) {
-    if (!isDraggingPanel || !bottomPanel || e.touches.length !== 1) return;
+    if (!bottomPanel || e.touches.length !== 1) return;
     const currentY = e.touches[0].clientY;
     const deltaY = dragStartY - currentY;
     const minHeight = window.innerHeight * COLLAPSED_VH;
     const maxHeight = window.innerHeight * EXPANDED_VH;
+    const isExpanded = bottomPanel.classList.contains('expanded');
+    const atTop = bottomPanel.scrollTop <= 0;
+    const scrollingDown = deltaY < 0;
+
+    if (!isDraggingPanel) {
+        if (dragFromHandle) {
+            isDraggingPanel = true;
+        } else if (isExpanded && atTop && scrollingDown) {
+            isDraggingPanel = true;
+        } else {
+            return;
+        }
+    }
+
     const nextHeight = Math.min(maxHeight, Math.max(minHeight, dragStartHeight + deltaY));
     bottomPanel.style.height = `${nextHeight}px`;
     e.preventDefault();
 }
 
 function onPanelTouchEnd(e) {
-    if (!isDraggingPanel || !bottomPanel) return;
+    if (!bottomPanel) return;
+    if (!isDraggingPanel) {
+        dragFromHandle = false;
+        return;
+    }
     isDraggingPanel = false;
+    dragFromHandle = false;
     const endY = e.changedTouches[0].clientY;
     const deltaY = dragStartY - endY;
     const isExpanded = bottomPanel.classList.contains('expanded');
