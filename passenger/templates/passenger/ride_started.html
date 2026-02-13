@@ -1341,6 +1341,12 @@
           return;
         }
 
+        if (data && (data.status === 'CancelledByDriver' || data.status === 'CancelledByPassenger' || data.status === 'Cancelled')) {
+          alert('This ride was cancelled.');
+          window.location.href = "{% url 'homepage' %}";
+          return;
+        }
+
         const liveDriver = extractDriverLocation(data);
         if (liveDriver) {
           hasLiveDriverFeed = true;

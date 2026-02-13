@@ -1084,9 +1084,16 @@ def cancel_ride_request(request, ride_request_id):
     ride_request.save(update_fields=['status'])
 
     if ride_request.booking:
-        ride_request.booking.status = 'Cancelled'
+        ride_request.booking.status = 'CancelledByPassenger'
+        ride_request.booking.cancelled_by = 'passenger'
+        ride_request.booking.cancellation_reason = 'Passenger cancelled the ride'
+        ride_request.booking.cancellation_stage = 'cancelled_by_passenger'
+        ride_request.booking.cancelled_at = timezone.now()
         ride_request.booking.driver = None
-        ride_request.booking.save(update_fields=['status', 'driver'])
+        ride_request.booking.save(update_fields=[
+            'status', 'cancelled_by', 'cancellation_reason',
+            'cancellation_stage', 'cancelled_at', 'driver'
+        ])
 
         ride_pin = RidePin.objects.filter(booking=ride_request.booking).first()
         if ride_pin:
@@ -1139,9 +1146,16 @@ def cancel_booking(request):
     try:
         # Ensure the booking belongs to the current user
         booking = Booking.objects.get(booking_id=booking_id, user=request.user)
-        booking.status = 'Cancelled'
+        booking.status = 'CancelledByPassenger'
+        booking.cancelled_by = 'passenger'
+        booking.cancellation_reason = 'Passenger cancelled the ride'
+        booking.cancellation_stage = 'cancelled_by_passenger'
+        booking.cancelled_at = timezone.now()
         booking.driver = None  # Unassign driver from the cancelled booking
-        booking.save()
+        booking.save(update_fields=[
+            'status', 'cancelled_by', 'cancellation_reason',
+            'cancellation_stage', 'cancelled_at', 'driver'
+        ])
 
         # Invalidate ride PIN if present
         ride_pin = getattr(booking, 'ride_pin', None)

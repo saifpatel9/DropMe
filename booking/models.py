@@ -14,6 +14,8 @@ class Booking(models.Model):
         ('Ongoing', 'Ongoing'),
         ('Completed', 'Completed'),
         ('Cancelled', 'Cancelled'),
+        ('CancelledByDriver', 'Cancelled by Driver'),
+        ('CancelledByPassenger', 'Cancelled by Passenger'),
     ]
     
     booking_id = models.AutoField(primary_key=True)
@@ -33,6 +35,10 @@ class Booking(models.Model):
     service_type = models.ForeignKey(ServiceType, models.DO_NOTHING, blank=True, null=True)
     payment_mode = models.CharField(max_length=50, null=True, blank=True)
     is_immediate = models.BooleanField(default=False)
+    cancelled_by = models.CharField(max_length=20, null=True, blank=True)
+    cancellation_reason = models.TextField(null=True, blank=True)
+    cancellation_stage = models.CharField(max_length=50, null=True, blank=True)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
     
     def __str__(self):
         return f"Booking #{self.booking_id} - {self.status}"

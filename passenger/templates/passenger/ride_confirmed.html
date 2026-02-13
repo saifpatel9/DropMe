@@ -1042,6 +1042,9 @@ function startPolling() {
                 setTimeout(() => {
                     window.location.href = "{% url 'ride_started' booking_id=booking_id %}";
                 }, 300);
+            } else if (data.status === "CancelledByDriver" || data.status === "CancelledByPassenger" || data.status === "Cancelled") {
+                alert('Your ride was cancelled. Please book again.');
+                window.location.href = "{% url 'homepage' %}";
             }
         } catch (err) {
             console.error('Polling error:', err);

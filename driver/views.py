@@ -22,6 +22,16 @@ from datetime import timedelta
 
 logger = logging.getLogger(__name__)
 
+DRIVER_CANCELLATION_REASONS = {
+    "vehicle_malfunction": "Vehicle malfunction",
+    "low_fuel": "Low fuel",
+    "personal_emergency": "Personal emergency",
+    "traffic_issue": "Traffic issue",
+    "unable_to_reach_pickup": "Unable to reach pickup location",
+    "passenger_not_responding": "Passenger not responding",
+    "other": "Other",
+}
+
 def admin_driver_list(request):
     drivers = Driver.objects.all()
     return render(request, 'adminpanel/drivers.html', {'drivers': drivers})
@@ -42,7 +52,10 @@ def driver_homepage_cab_view(request):
 
     total_rides = Booking.objects.filter(driver=driver).count()
     completed_rides = Booking.objects.filter(driver=driver, status='Completed').count()
-    cancelled_rides = Booking.objects.filter(driver=driver, status='Cancelled').count()
+    cancelled_rides = Booking.objects.filter(
+        driver=driver,
+        status__in=['Cancelled', 'CancelledByDriver', 'CancelledByPassenger']
+    ).count()
     scheduled_rides = Booking.objects.filter(driver=driver, status='Confirmed').count()
 
     active_booking = Booking.objects.filter(
@@ -552,6 +565,138 @@ def end_ride_view(request, booking_id):
             return JsonResponse({'success': False, 'error': error_msg}, status=400)
         messages.error(request, error_msg)
     return redirect('driver_rides')
+
+
+@require_POST
+@driver_login_required
+def cancel_ride_view(request, booking_id):
+    """
+    Cancel an accepted/arrived/ongoing ride with mandatory reason capture.
+    Before ride start: attempt reassignment to next driver from cached queue.
+    Mid ride: mark cancelled and compute a simple partial fare.
+    """
+    driver_id = request.session.get('driver_id')
+    if not driver_id:
+        return JsonResponse({'success': False, 'error': 'Not authenticated'}, status=401)
+
+    try:
+        driver = Driver.objects.get(driver_id=driver_id)
+    except Driver.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Driver not found'}, status=404)
+
+    booking = get_object_or_404(Booking, booking_id=booking_id, driver=driver)
+    if booking.status in ['Completed', 'Cancelled', 'CancelledByDriver', 'CancelledByPassenger']:
+        return JsonResponse({'success': False, 'error': 'This ride cannot be cancelled.'}, status=400)
+
+    reason_code = (request.POST.get('reason_code') or '').strip()
+    stage = (request.POST.get('cancellation_stage') or '').strip()
+    other_reason = (request.POST.get('other_reason') or '').strip()
+
+    if reason_code not in DRIVER_CANCELLATION_REASONS:
+        return JsonResponse({'success': False, 'error': 'Select a valid cancellation reason.'}, status=400)
+
+    if reason_code == 'other' and not other_reason:
+        return JsonResponse({'success': False, 'error': 'Please provide a custom cancellation reason.'}, status=400)
+
+    inferred_stage = {
+        'Confirmed': 'cancelled_after_accept',
+        'Arrived': 'cancelled_at_pickup',
+        'Ongoing': 'cancelled_mid_ride',
+    }.get(booking.status)
+    if not inferred_stage:
+        return JsonResponse({'success': False, 'error': 'Ride cannot be cancelled at current stage.'}, status=400)
+    if stage not in ['cancelled_after_accept', 'cancelled_at_pickup', 'cancelled_mid_ride']:
+        stage = inferred_stage
+
+    reason_text = other_reason if reason_code == 'other' else DRIVER_CANCELLATION_REASONS[reason_code]
+    partial_fare = None
+    reassigned = False
+    next_driver_id = None
+
+    with transaction.atomic():
+        prior_status = booking.status
+        booking.status = 'CancelledByDriver'
+        booking.cancelled_by = 'driver'
+        booking.cancellation_reason = reason_text
+        booking.cancellation_stage = stage
+        booking.cancelled_at = timezone.now()
+
+        if prior_status == 'Ongoing' and booking.fare:
+            partial_fare = (Decimal(booking.fare) * Decimal('0.50')).quantize(Decimal('0.01'))
+            booking.fare = partial_fare
+
+        booking.save()
+
+        # Invalidate PIN on cancellation
+        ride_pin = getattr(booking, 'ride_pin', None)
+        if ride_pin:
+            ride_pin.is_active = False
+            ride_pin.pin_plain = ''
+            ride_pin.save(update_fields=['is_active', 'pin_plain'])
+
+        # If cancelled before trip start, requeue for next driver assignment.
+        if prior_status in ['Confirmed', 'Arrived']:
+            ride_request = (
+                RideRequest.objects
+                .select_related('user', 'service_type')
+                .filter(booking=booking)
+                .first()
+            )
+            if ride_request:
+                queue_key = f"ride_request:{ride_request.id}:driver_queue"
+                candidate_ids = cache.get(queue_key) or []
+                candidate_ids = [cid for cid in candidate_ids if cid != driver.driver_id]
+
+                next_driver = None
+                while candidate_ids:
+                    candidate_id = candidate_ids.pop(0)
+                    try:
+                        d = Driver.objects.get(
+                            driver_id=candidate_id,
+                            availability=True,
+                            status='Active',
+                            is_deleted=False
+                        )
+                    except Driver.DoesNotExist:
+                        continue
+                    next_driver = d
+                    break
+
+                ride_request.booking = None
+                ride_request.status = 'Requested' if next_driver else 'Expired'
+                ride_request.driver = next_driver
+                ride_request.save(update_fields=['booking', 'status', 'driver'])
+
+                if next_driver:
+                    reassigned = True
+                    next_driver_id = next_driver.driver_id
+                    cache.set(queue_key, candidate_ids, timeout=60 * 10)
+                else:
+                    cache.delete(queue_key)
+
+    logger.info(
+        "[RIDE CANCELLED] booking=%s driver=%s stage=%s reason=%s reassigned=%s next_driver=%s",
+        booking.booking_id,
+        driver.driver_id,
+        stage,
+        reason_text,
+        reassigned,
+        next_driver_id,
+    )
+
+    response = {
+        'success': True,
+        'message': 'Ride cancelled successfully.',
+        'status': booking.status,
+        'booking_id': booking.booking_id,
+        'cancellation_stage': stage,
+        'cancellation_reason': reason_text,
+        'reassigned': reassigned,
+        'next_driver_id': next_driver_id,
+    }
+    if partial_fare is not None:
+        response['partial_fare'] = str(partial_fare)
+    return JsonResponse(response)
 
 
 @require_POST

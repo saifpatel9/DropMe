@@ -12,6 +12,7 @@ urlpatterns = [
     path('rides/', views.driver_rides_view, name='driver_rides'),
     path("driver/profile/", views.driver_profile_view, name="driver_profile"),
     path('rides/end/<int:booking_id>/', views.end_ride_view, name='end_ride'),
+    path('rides/cancel/<int:booking_id>/', views.cancel_ride_view, name='cancel_ride'),
     path('rides/start/<int:booking_id>/', views.start_ride_view, name='start_ride'),
     path('rides/arrived/<int:booking_id>/', views.arrived_ride_view, name='arrived_ride'),
     path('driver/earnings/', views.driver_earnings_view, name='driver_earnings'),
