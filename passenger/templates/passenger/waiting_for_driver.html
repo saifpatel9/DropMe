@@ -1,97 +1,970 @@
 {% load static %}
 
-{% block extra_css %}
-<!-- Tailwind CSS -->
-<script src="https://cdn.tailwindcss.com"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Finding Driver</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ============================================
+           CRITICAL RESET - MATCH APP FOUNDATION
+           ============================================ */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-<!-- Fonts and Icons -->
-<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
-<link rel="stylesheet" href="{% static 'css/responsive.css' %}">
-<link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
-<link rel="stylesheet" href="{% static 'css/passenger-mobile.css' %}">
-{% endblock %}
+        html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
 
-{% block content %}
-<div class="app-screen passenger-app">
-  <header class="mobile-header">
-    <div>
-      <div class="brand">Finding Driver</div>
-      <div class="tagline">Connecting you to a nearby driver</div>
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            margin: 0 !important;
+            padding: 0 !important;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f5f5;
+        }
+
+        :root {
+            --primary: #00A59E;
+            --primary-dark: #008580;
+            --secondary: #0EB9D3;
+            --text-dark: #1a1a1a;
+            --text-gray: #6b7280;
+            --text-light: #9ca3af;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        /* ============================================
+           ANIMATED BACKGROUND LAYER
+           ============================================ */
+        
+        .screen-base {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            z-index: 1;
+            background: linear-gradient(180deg, #e0f2f1 0%, #f9fafb 100%);
+            overflow: hidden;
+        }
+
+        /* Animated circles in background */
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 165, 158, 0.08), transparent);
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .bg-circle:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: -100px;
+            left: -100px;
+            animation-delay: 0s;
+        }
+
+        .bg-circle:nth-child(2) {
+            width: 250px;
+            height: 250px;
+            bottom: -80px;
+            right: -80px;
+            animation-delay: 7s;
+        }
+
+        .bg-circle:nth-child(3) {
+            width: 200px;
+            height: 200px;
+            top: 50%;
+            right: -50px;
+            animation-delay: 14s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+            33% {
+                transform: translate(30px, -30px) scale(1.05);
+            }
+            66% {
+                transform: translate(-20px, 20px) scale(0.95);
+            }
+        }
+
+        /* ============================================
+           TOP STATUS BAR
+           ============================================ */
+        
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: max(env(safe-area-inset-top), 12px) 20px 20px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, rgba(0, 165, 158, 0.1), rgba(14, 185, 211, 0.1));
+            border: 1.5px solid rgba(0, 165, 158, 0.2);
+            border-radius: 24px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .status-badge .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(1.3);
+            }
+        }
+
+        .time-display {
+            margin-top: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-light);
+            text-align: left;
+        }
+
+        /* ============================================
+           CENTER HERO - ANIMATED DRIVER SEARCH
+           ============================================ */
+        
+        .hero-section {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            text-align: center;
+            width: 90%;
+            max-width: 360px;
+        }
+
+        .search-animation {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 32px;
+        }
+
+        .search-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            border: 3px solid transparent;
+        }
+
+        .search-ring-1 {
+            width: 100%;
+            height: 100%;
+            border-top-color: var(--primary);
+            border-right-color: var(--primary);
+            animation: spin 3s linear infinite;
+        }
+
+        .search-ring-2 {
+            width: 80%;
+            height: 80%;
+            border-bottom-color: var(--secondary);
+            border-left-color: var(--secondary);
+            animation: spin 2s linear infinite reverse;
+        }
+
+        .search-ring-3 {
+            width: 60%;
+            height: 60%;
+            border-top-color: rgba(0, 165, 158, 0.3);
+            border-right-color: rgba(0, 165, 158, 0.3);
+            animation: spin 4s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .search-icon-core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(0, 165, 158, 0.3);
+            animation: breathe 3s infinite ease-in-out;
+        }
+
+        @keyframes breathe {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+                box-shadow: 0 8px 24px rgba(0, 165, 158, 0.3);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.05);
+                box-shadow: 0 12px 32px rgba(0, 165, 158, 0.4);
+            }
+        }
+
+        .search-icon-core i {
+            font-size: 28px;
+            color: white;
+        }
+
+        .hero-title {
+            font-size: 26px;
+            font-weight: 900;
+            color: var(--text-dark);
+            margin-bottom: 12px;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-subtitle {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-gray);
+            line-height: 1.5;
+            max-width: 280px;
+            margin: 0 auto;
+        }
+
+        /* Typing dots animation */
+        .typing-dots {
+            display: inline-flex;
+            gap: 4px;
+            margin-left: 4px;
+        }
+
+        .typing-dots span {
+            width: 4px;
+            height: 4px;
+            background: var(--text-gray);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                opacity: 0.3;
+                transform: translateY(0);
+            }
+            30% {
+                opacity: 1;
+                transform: translateY(-6px);
+            }
+        }
+
+        /* ============================================
+           BOTTOM PANEL - RIDE DETAILS
+           ============================================ */
+        
+        .bottom-panel {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 900;
+            background: white;
+            border-radius: 28px 28px 0 0;
+            box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.12);
+            padding: 20px 20px calc(env(safe-area-inset-bottom) + 20px);
+            max-height: 45vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .panel-handle {
+            width: 36px;
+            height: 4px;
+            background: #d1d5db;
+            border-radius: 2px;
+            margin: 0 auto 20px;
+        }
+
+        .bottom-panel::-webkit-scrollbar {
+            width: 0;
+            display: none;
+        }
+
+        /* Ride Info Card */
+        .ride-info-card {
+            background: linear-gradient(135deg, #f9fafb, #ffffff);
+            border: 1px solid #f1f5f9;
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 16px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-gray);
+        }
+
+        .info-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-dark);
+            text-align: right;
+        }
+
+        .info-value.highlight {
+            font-size: 20px;
+            color: var(--primary);
+        }
+
+        /* Route Display */
+        .route-mini {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px;
+            background: white;
+            border: 1px solid #f1f5f9;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .route-icon {
+            width: 32px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .route-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+        }
+
+        .route-dot.drop {
+            background: var(--danger);
+            border-radius: 2px;
+            width: 7px;
+            height: 7px;
+        }
+
+        .route-dash {
+            width: 2px;
+            height: 20px;
+            background: repeating-linear-gradient(
+                to bottom,
+                #e5e7eb 0px,
+                #e5e7eb 4px,
+                transparent 4px,
+                transparent 8px
+            );
+        }
+
+        .route-text {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .route-location {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* Progress Steps */
+        .progress-steps {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 0 8px;
+        }
+
+        .progress-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+
+        .progress-step::before {
+            content: '';
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            right: -50%;
+            height: 2px;
+            background: #e5e7eb;
+            z-index: 0;
+        }
+
+        .progress-step:last-child::before {
+            display: none;
+        }
+
+        .progress-step.active::before {
+            background: var(--primary);
+        }
+
+        .step-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            border: 2px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+            position: relative;
+            z-index: 2;
+            font-size: 12px;
+            color: var(--text-light);
+            font-weight: 700;
+        }
+
+        .progress-step.active .step-circle {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 165, 158, 0.3);
+        }
+
+        .progress-step.completed .step-circle {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .step-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-step.active .step-label {
+            color: var(--primary);
+        }
+
+        /* Cancel Button */
+        .cancel-btn {
+            width: 100%;
+            padding: 14px;
+            background: white;
+            border: 2px solid #fee2e2;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--danger);
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 12px;
+        }
+
+        .cancel-btn:active {
+            transform: scale(0.98);
+            background: #fef2f2;
+        }
+
+        /* ============================================
+           STATUS VARIATIONS
+           ============================================ */
+        
+        .status-rejected .hero-title,
+        .status-expired .hero-title,
+        .status-cancelled .hero-title {
+            color: var(--danger);
+        }
+
+        .status-rejected .search-icon-core,
+        .status-expired .search-icon-core,
+        .status-cancelled .search-icon-core {
+            background: linear-gradient(135deg, var(--danger), #f87171);
+        }
+
+        .status-rejected .status-badge,
+        .status-expired .status-badge,
+        .status-cancelled .status-badge {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        /* ============================================
+           DESKTOP RESPONSIVE
+           ============================================ */
+        
+        @media (min-width: 768px) {
+            .bottom-panel {
+                left: 50%;
+                transform: translateX(-50%);
+                max-width: 480px;
+                border-radius: 28px;
+                bottom: 24px;
+                max-height: none;
+            }
+
+            .hero-section {
+                top: 45%;
+            }
+        }
+
+        /* ============================================
+           LOADING STATE
+           ============================================ */
+        
+        .shimmer {
+            animation: shimmer 2s infinite;
+            background: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.4) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            background-size: 200% 100%;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        /* ============================================
+           UTILITY
+           ============================================ */
+        
+        .hidden {
+            display: none !important;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Animated Background -->
+<div class="screen-base">
+    <div class="bg-circle"></div>
+    <div class="bg-circle"></div>
+    <div class="bg-circle"></div>
+</div>
+
+<!-- Top Status Bar -->
+<div class="top-bar">
+    <div class="status-badge" id="status-badge">
+        <span class="pulse-dot"></span>
+        <span id="status-text">Finding Driver</span>
     </div>
-  </header>
-<div class="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-center px-4">
-  <div class="bg-white shadow-md rounded-xl p-6 max-w-md w-full">
-    <div id="status-container">
-      <h2 id="status-message" class="text-2xl font-semibold mb-4 text-gray-800">Searching for a Driver...</h2>
-      <p id="ride-details" class="text-gray-600 mb-6">We’re looking for a driver for your ride from
-        <strong>{{ pickup }}</strong> to <strong>{{ dropoff }}</strong> using a <strong>{{ selected_service }}</strong>.</p>
-
-      <div class="flex items-center justify-center space-x-2 mb-4">
-        <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-        <p class="text-sm text-gray-500">Waiting for a driver to accept your request...</p>
-      </div>
-
-      <p class="text-sm text-gray-400">Ride Fare: ₹{{ fare }}</p>
+    <div class="time-display" id="time-display">
+        Searching since <span id="elapsed-time">0s</span>
     </div>
-  </div>
+</div>
+
+<!-- Center Hero - Animated Search -->
+<div class="hero-section" id="hero-section">
+    <div class="search-animation">
+        <div class="search-ring search-ring-1"></div>
+        <div class="search-ring search-ring-2"></div>
+        <div class="search-ring search-ring-3"></div>
+        <div class="search-icon-core">
+            <i class="fas fa-car" id="hero-icon"></i>
+        </div>
+    </div>
+    
+    <h1 class="hero-title" id="hero-title">Finding Your Driver</h1>
+    <p class="hero-subtitle" id="hero-subtitle">
+        Connecting you to the nearest available driver<span class="typing-dots"><span></span><span></span><span></span></span>
+    </p>
+</div>
+
+<!-- Bottom Panel - Ride Details -->
+<div class="bottom-panel">
+    <div class="panel-handle"></div>
+
+    <!-- Progress Steps -->
+    <div class="progress-steps">
+        <div class="progress-step completed">
+            <div class="step-circle">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="step-label">Booked</div>
+        </div>
+        <div class="progress-step active">
+            <div class="step-circle">2</div>
+            <div class="step-label">Finding</div>
+        </div>
+        <div class="progress-step">
+            <div class="step-circle">3</div>
+            <div class="step-label">Confirmed</div>
+        </div>
+        <div class="progress-step">
+            <div class="step-circle">4</div>
+            <div class="step-label">Pickup</div>
+        </div>
+    </div>
+
+    <!-- Route Display -->
+    <div class="route-mini">
+        <div class="route-icon">
+            <div class="route-dot"></div>
+            <div class="route-dash"></div>
+            <div class="route-dot drop"></div>
+        </div>
+        <div class="route-text">
+            <div class="route-location">{{ pickup }}</div>
+            <div class="route-location">{{ dropoff }}</div>
+        </div>
+    </div>
+
+    <!-- Ride Info Card -->
+    <div class="ride-info-card">
+        <div class="info-row">
+            <span class="info-label">Vehicle Type</span>
+            <span class="info-value">{{ selected_service }}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Fare</span>
+            <span class="info-value highlight">₹{{ fare }}</span>
+        </div>
+        <div class="info-row" id="distance-row" {% if not distance_km %}style="display:none;"{% endif %}>
+            <span class="info-label">Distance</span>
+            <span class="info-value">{{ distance_km|default:"—" }} km</span>
+        </div>
+    </div>
+
+    <!-- Cancel Button -->
+    <button class="cancel-btn" id="cancel-btn" onclick="cancelRide()">
+        <i class="fas fa-times-circle"></i>&nbsp;&nbsp;Cancel Ride Request
+    </button>
 </div>
 
 <script>
-  const rideRequestId = "{{ ride_request_id }}";
-  let reassignedOnce = false; // avoid spamming; only trigger after first 2 minutes if still pending
+    /* ============================================
+       GLOBAL STATE
+       ============================================ */
+    const rideRequestId = "{{ ride_request_id }}";
+    const startTime = Date.now();
+    let reassignedOnce = false;
+    let currentStatus = 'Pending';
 
-  function checkRideStatus() {
-    console.log(`Polling for ride request ID: ${rideRequestId}`);
-    fetch("{% url 'check_ride_status' ride_request_id %}")
-      .then(response => response.json())
-      .then(data => {
-        console.log("Ride status response:", data);
-        if (data.status === 'Confirmed' && data.booking_id) {
-          window.location.href = "{% url 'booking_confirmed' 0 %}".replace('/0/', '/' + data.booking_id + '/');
-        } else if (["Rejected", "Expired", "Cancelled"].includes(data.status)) {
-          alert(`Your ride request was ${data.status.toLowerCase()}. Redirecting to homepage.`);
-          window.location.href = "/";
-        } else if (data.status === 'Not Found') {
-          console.error('Ride request not found on the server.');
-          document.getElementById('status-message').innerText = "Ride request not found.";
-          document.getElementById('status-message').classList.remove('text-gray-800');
-          document.getElementById('status-message').classList.add('text-red-500');
+    /* ============================================
+       ELAPSED TIME TRACKER
+       ============================================ */
+    function updateElapsedTime() {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        const minutes = Math.floor(elapsed / 60);
+        const seconds = elapsed % 60;
+        
+        const elapsedEl = document.getElementById('elapsed-time');
+        if (elapsedEl) {
+            if (minutes > 0) {
+                elapsedEl.textContent = `${minutes}m ${seconds}s`;
+            } else {
+                elapsedEl.textContent = `${seconds}s`;
+            }
         }
-      })
-      .catch(error => {
-        console.error('Error fetching ride status:', error);
-      });
-  }
+    }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    if (rideRequestId && rideRequestId !== 'None') {
-      setInterval(checkRideStatus, 3000); // poll every 3 seconds
-      // Trigger reassignment if still not accepted after 2 minutes
-      setTimeout(() => {
-        if (reassignedOnce) return;
+    /* ============================================
+       RIDE STATUS POLLING
+       ============================================ */
+    function checkRideStatus() {
+        console.log(`[Status Check] Polling for ride request ID: ${rideRequestId}`);
+        
+        fetch("{% url 'check_ride_status' ride_request_id %}")
+            .then(response => response.json())
+            .then(data => {
+                console.log('[Status Check] Response:', data);
+                currentStatus = data.status;
+
+                // Update UI based on status
+                if (data.status === 'Confirmed' && data.booking_id) {
+                    updateUI('confirmed');
+                    setTimeout(() => {
+                        window.location.href = "{% url 'booking_confirmed' 0 %}".replace('/0/', '/' + data.booking_id + '/');
+                    }, 1000);
+                } else if (data.status === 'Rejected') {
+                    updateUI('rejected');
+                    setTimeout(() => {
+                        alert('Your ride request was rejected. Redirecting to homepage.');
+                        window.location.href = "/";
+                    }, 2000);
+                } else if (data.status === 'Expired') {
+                    updateUI('expired');
+                    setTimeout(() => {
+                        alert('Your ride request expired. Redirecting to homepage.');
+                        window.location.href = "/";
+                    }, 2000);
+                } else if (data.status === 'Cancelled') {
+                    updateUI('cancelled');
+                    setTimeout(() => {
+                        window.location.href = "/";
+                    }, 1500);
+                } else if (data.status === 'Not Found') {
+                    console.error('[Status Check] Ride request not found on server');
+                    updateUI('not-found');
+                }
+            })
+            .catch(error => {
+                console.error('[Status Check] Error fetching ride status:', error);
+            });
+    }
+
+    /* ============================================
+       UI STATE UPDATES
+       ============================================ */
+    function updateUI(state) {
+        const heroTitle = document.getElementById('hero-title');
+        const heroSubtitle = document.getElementById('hero-subtitle');
+        const heroIcon = document.getElementById('hero-icon');
+        const statusText = document.getElementById('status-text');
+        const heroSection = document.getElementById('hero-section');
+        const body = document.body;
+
+        // Remove previous status classes
+        body.className = body.className.replace(/status-\w+/g, '');
+
+        switch(state) {
+            case 'confirmed':
+                body.classList.add('status-confirmed');
+                heroTitle.textContent = 'Driver Found!';
+                heroSubtitle.innerHTML = 'Your ride has been confirmed. Redirecting...';
+                heroIcon.className = 'fas fa-check';
+                statusText.textContent = 'Confirmed';
+                break;
+
+            case 'rejected':
+                body.classList.add('status-rejected');
+                heroTitle.textContent = 'Request Declined';
+                heroSubtitle.innerHTML = 'The driver declined your request. We\'ll find another one.';
+                heroIcon.className = 'fas fa-times';
+                statusText.textContent = 'Declined';
+                break;
+
+            case 'expired':
+                body.classList.add('status-expired');
+                heroTitle.textContent = 'Request Expired';
+                heroSubtitle.innerHTML = 'No drivers accepted in time. Please try again.';
+                heroIcon.className = 'fas fa-clock';
+                statusText.textContent = 'Expired';
+                break;
+
+            case 'cancelled':
+                body.classList.add('status-cancelled');
+                heroTitle.textContent = 'Ride Cancelled';
+                heroSubtitle.innerHTML = 'Your ride request has been cancelled.';
+                heroIcon.className = 'fas fa-ban';
+                statusText.textContent = 'Cancelled';
+                break;
+
+            case 'not-found':
+                body.classList.add('status-rejected');
+                heroTitle.textContent = 'Error';
+                heroSubtitle.innerHTML = 'Ride request not found. Please try again.';
+                heroIcon.className = 'fas fa-exclamation-triangle';
+                statusText.textContent = 'Error';
+                break;
+        }
+    }
+
+    /* ============================================
+       AUTO-REASSIGNMENT
+       ============================================ */
+    function triggerReassignment() {
+        if (reassignedOnce || currentStatus !== 'Pending') return;
+
+        console.log('[Reassignment] Triggering automatic reassignment after 2 minutes');
+        
         fetch("{% url 'reassign_next_driver' ride_request_id %}", {
-          method: 'POST',
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': (document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)')||[])[2] || ''
-          }
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
         })
         .then(res => res.json())
         .then(data => {
-          console.log('Reassign response:', data);
-          reassignedOnce = true;
+            console.log('[Reassignment] Response:', data);
+            reassignedOnce = true;
+            
+            // Update UI to show we're trying another driver
+            const heroSubtitle = document.getElementById('hero-subtitle');
+            if (heroSubtitle && currentStatus === 'Pending') {
+                heroSubtitle.innerHTML = 'Searching for another driver<span class="typing-dots"><span></span><span></span><span></span></span>';
+            }
         })
-        .catch(err => console.error('Error triggering reassignment:', err));
-      }, 120000); // 120,000 ms = 2 minutes
-    } else {
-      console.error('Ride request ID not found.');
-      document.getElementById('status-message').innerText = "Error: Ride request ID is missing.";
-      document.getElementById('status-message').classList.remove('text-gray-800');
-      document.getElementById('status-message').classList.add('text-red-500');
+        .catch(err => console.error('[Reassignment] Error:', err));
     }
-  });
+
+    /* ============================================
+       CANCEL RIDE
+       ============================================ */
+    function cancelRide() {
+        if (!confirm('Are you sure you want to cancel this ride request?')) {
+            return;
+        }
+
+        console.log('[Cancel] User cancelled ride request');
+        
+        fetch("{% url 'cancel_ride_request' ride_request_id %}", {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            console.log('[Cancel] Response:', data);
+            updateUI('cancelled');
+            const redirectUrl = data.redirect_url || "{% url 'homepage' %}";
+            setTimeout(() => {
+                window.location.href = redirectUrl;
+            }, 1000);
+        })
+        .catch(err => {
+            console.error('[Cancel] Error:', err);
+            alert('Failed to cancel ride. Please try again.');
+        });
+    }
+
+    /* ============================================
+       UTILITY: GET CSRF TOKEN
+       ============================================ */
+    function getCookie(name) {
+        const match = document.cookie.match(new RegExp('(^|;\\s*)' + name + '\\s*=\\s*([^;]+)'));
+        return match ? match[2] : '';
+    }
+
+    /* ============================================
+       INITIALIZATION
+       ============================================ */
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('[Init] Waiting for driver page loaded');
+        console.log('[Init] Ride Request ID:', rideRequestId);
+
+        if (!rideRequestId || rideRequestId === 'None') {
+            console.error('[Init] Invalid ride request ID');
+            updateUI('not-found');
+            return;
+        }
+
+        // Start status polling (every 3 seconds)
+        setInterval(checkRideStatus, 3000);
+        checkRideStatus(); // Initial check
+
+        // Update elapsed time (every second)
+        setInterval(updateElapsedTime, 1000);
+        updateElapsedTime(); // Initial update
+
+        // Trigger reassignment after 2 minutes
+        setTimeout(triggerReassignment, 120000);
+
+        console.log('[Init] All systems started');
+    });
 </script>
-</div>
-{% endblock %}
+
+</body>
+</html>

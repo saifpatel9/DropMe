@@ -1627,6 +1627,10 @@ bookBtn.addEventListener('click', () => {
     const dropCity = document.getElementById('drop_city')?.value || '';
     const dropDistrict = document.getElementById('drop_district')?.value || '';
     const dropState = document.getElementById('drop_state')?.value || '';
+    const pickupLat = document.getElementById('pickup_lat')?.value || '';
+    const pickupLng = document.getElementById('pickup_lng')?.value || '';
+    const dropLat = document.getElementById('drop_lat')?.value || '';
+    const dropLng = document.getElementById('drop_lng')?.value || '';
     
     if (userSelectedDatetime && (!date || !time)) {
         alert('Please select both date and time');
@@ -1652,6 +1656,10 @@ bookBtn.addEventListener('click', () => {
     if (dropCity) url += `&drop_city=${encodeURIComponent(dropCity)}`;
     if (dropDistrict) url += `&drop_district=${encodeURIComponent(dropDistrict)}`;
     if (dropState) url += `&drop_state=${encodeURIComponent(dropState)}`;
+    if (pickupLat) url += `&pickup_lat=${encodeURIComponent(pickupLat)}`;
+    if (pickupLng) url += `&pickup_lng=${encodeURIComponent(pickupLng)}`;
+    if (dropLat) url += `&drop_lat=${encodeURIComponent(dropLat)}`;
+    if (dropLng) url += `&drop_lng=${encodeURIComponent(dropLng)}`;
     if (rideType === 'rental' && rentalDuration) url += `&rental_duration=${rentalDuration}`;
     
     window.location.href = url;

@@ -21,6 +21,7 @@ urlpatterns = [
     path('confirm-booking/', views.confirm_booking, name='confirm_booking'),
     path('cancel-booking/', views.cancel_booking, name='cancel_booking'),
     path('waiting-for-driver/<int:ride_request_id>/', views.waiting_for_driver_view, name='waiting_for_driver'),
+    path('cancel-ride-request/<int:ride_request_id>/', views.cancel_ride_request, name='cancel_ride_request'),
     path('check-ride-status/<int:ride_request_id>/', views.check_ride_status, name='check_ride_status'),
     path('reassign-next-driver/<int:ride_request_id>/', views.reassign_next_driver, name='reassign_next_driver'),
     path('booking-confirmed/<int:booking_id>/', views.booking_confirmed_view, name='booking_confirmed'),

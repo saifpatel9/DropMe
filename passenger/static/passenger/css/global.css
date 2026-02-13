@@ -554,6 +554,7 @@ input:focus, textarea:focus, select:focus {
 .text-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -561,6 +562,7 @@ input:focus, textarea:focus, select:focus {
 .text-clamp-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -607,9 +609,6 @@ input:focus, textarea:focus, select:focus {
    MOBILE APP REDESIGN - CHOOSE RIDE ENHANCEMENTS
    Extends global.css with screen-specific styles
    ============================================ */
-
-/* Import base global styles */
-@import url('global.css');
 
 /* ============================================
    MOBILE APP SCREEN ARCHITECTURE

@@ -1,1033 +1,1101 @@
 {% load static %}
 {% load custom_filters %}
 
-{% block extra_css %}
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500;600;700;800;900&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/responsive.css' %}">
-<link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
-<link rel="stylesheet" href="{% static 'css/passenger-mobile.css' %}">
-<style>
-/* =====================================================
-   DESIGN TOKENS — inherit from global.css root vars
-   ===================================================== */
-:root {
-  --p: #00A59E;
-  --p2: #0EB9D3;
-  --p-grad: linear-gradient(135deg, #00A59E 0%, #0EB9D3 100%);
-  --p-glow: rgba(0, 165, 158, 0.28);
-  --surface: #ffffff;
-  --bg: #f4f7f9;
-  --ink: #1e293b;
-  --ink2: #64748b;
-  --ink3: #94a3b8;
-  --border: #e2e8f0;
-  --red: #ef4444;
-  --green: #10b981;
-  --r-sm: 10px;
-  --r-md: 14px;
-  --r-lg: 20px;
-  --r-xl: 26px;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Confirm Booking</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ============================================
+           CRITICAL RESET - MATCH CHOOSE_RIDE FOUNDATION
+           ============================================ */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-*, *::before, *::after {
-  margin: 0; padding: 0;
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-}
+        html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
 
-html, body {
-  width: 100%;
-  overflow-x: hidden;
-  background: var(--bg);
-  font-family: 'Raleway', -apple-system, BlinkMacSystemFont, sans-serif;
-  color: var(--ink);
-  -webkit-font-smoothing: antialiased;
-}
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            margin: 0 !important;
+            padding: 0 !important;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f5f5f5;
+        }
 
-/* =====================================================
-   SCREEN WRAPPER
-   ===================================================== */
-.screen {
-  width: 100%;
-  min-height: 100vh;
-  background: var(--bg);
-  padding-bottom: 130px; /* space for fixed bottom bar */
-}
+        :root {
+            --primary: #00A59E;
+            --primary-dark: #008580;
+            --secondary: #0EB9D3;
+            --text-dark: #1a1a1a;
+            --text-gray: #6b7280;
+            --text-light: #9ca3af;
+            --success: #10b981;
+            --danger: #ef4444;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
 
-/* =====================================================
-   TOP APP BAR  — immersive gradient, no card feel
-   ===================================================== */
-.app-bar {
-  width: 100%;
-  background: var(--p-grad);
-  padding: 0;
-  position: relative;
-  overflow: hidden;
-}
+        /* ============================================
+           FULL-SCREEN BASE LAYER
+           ============================================ */
+        
+        .screen-base {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            z-index: 1;
+            background: linear-gradient(180deg, #e5e7eb 0%, #f9fafb 100%);
+        }
 
-/* subtle noise texture layered on header */
-.app-bar::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  pointer-events: none;
-}
+        /* ============================================
+           TOP BAR WITH GRADIENT (MATCHING CHOOSE_RIDE)
+           ============================================ */
+        
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: max(env(safe-area-inset-top), 12px) 16px 60px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            pointer-events: none;
+        }
 
-/* decorative circle accent, top-right */
-.app-bar::after {
-  content: '';
-  position: absolute;
-  top: -60px;
-  right: -60px;
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.07);
-  pointer-events: none;
-}
+        .top-bar::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+        }
 
-.app-bar-inner {
-  position: relative;
-  z-index: 1;
-  padding: 52px 20px 56px; /* extra bottom so route card overlaps */
-}
+        .top-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            pointer-events: auto;
+            max-width: 100%;
+        }
 
-.nav-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 22px;
-}
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
 
-.back-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--r-sm);
-  background: rgba(255,255,255,0.18);
-  border: none;
-  color: white;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  flex-shrink: 0;
-  transition: background 0.18s;
-  backdrop-filter: blur(4px);
-}
-.back-btn:active { background: rgba(255,255,255,0.3); }
+        .back-btn:active {
+            transform: scale(0.94);
+            background: rgba(255, 255, 255, 0.3);
+        }
 
-.app-bar-title {
-  font-size: 1.0625rem;
-  font-weight: 700;
-  color: rgba(255,255,255,0.92);
-  letter-spacing: 0.01em;
-}
+        .top-title {
+            flex: 1;
+            font-size: 17px;
+            font-weight: 700;
+            color: white;
+            text-align: center;
+            letter-spacing: -0.02em;
+        }
 
-/* Step indicator — "Step 3 of 3" */
-.step-pill {
-  margin-left: auto;
-  background: rgba(255,255,255,0.18);
-  border-radius: 20px;
-  padding: 5px 12px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: rgba(255,255,255,0.9);
-  letter-spacing: 0.02em;
-  backdrop-filter: blur(4px);
-}
+        .step-badge {
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
-/* =====================================================
-   HERO FARE — large number, center of attention
-   ===================================================== */
-.fare-hero {
-  text-align: center;
-  padding-bottom: 8px;
-}
+        /* Price Hero in Header */
+        .price-hero {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 20px 20px 0;
+            pointer-events: auto;
+        }
 
-.fare-hero-label {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  color: rgba(255,255,255,0.7);
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  margin-bottom: 4px;
-}
+        .price-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
 
-.fare-hero-amount {
-  font-size: 3.25rem;
-  font-weight: 900;
-  color: #ffffff;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  font-family: 'Open Sans', sans-serif;
-  position: relative;
-  display: inline-block;
-}
+        .price-amount {
+            font-size: 48px;
+            font-weight: 900;
+            color: white;
+            line-height: 1;
+            letter-spacing: -0.03em;
+        }
 
-.fare-hero-amount .currency {
-  font-size: 1.75rem;
-  font-weight: 700;
-  vertical-align: top;
-  margin-top: 8px;
-  margin-right: 2px;
-}
+        .price-amount .currency {
+            font-size: 28px;
+            font-weight: 800;
+            vertical-align: top;
+            margin-right: 2px;
+        }
 
-.fare-original-hero {
-  font-size: 0.9375rem;
-  color: rgba(255,255,255,0.55);
-  text-decoration: line-through;
-  margin-top: 4px;
-  display: none;
-  font-weight: 600;
-}
-.fare-original-hero.visible { display: block; }
+        .price-original {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: line-through;
+            margin-top: 6px;
+            display: none;
+        }
 
-.fare-sub {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  margin-top: 10px;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: rgba(255,255,255,0.72);
-}
+        .price-original.visible {
+            display: block;
+        }
 
-.fare-sub-dot {
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.5);
-}
+        .price-meta {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+        }
 
-/* =====================================================
-   CONTENT LAYER — slides up over the gradient
-   ===================================================== */
-.content-layer {
-  width: 100%;
-  background: var(--bg);
-  border-radius: var(--r-xl) var(--r-xl) 0 0;
-  margin-top: -28px;
-  position: relative;
-  z-index: 2;
-  padding: 8px 0 0;
-}
+        .price-meta-dot {
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+        }
 
-/* =====================================================
-   ROUTE CARD — app drawer card, not a form row
-   ===================================================== */
-.section-card {
-  background: var(--surface);
-  margin: 12px 16px;
-  border-radius: var(--r-lg);
-  overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
-}
+        /* ============================================
+           BOTTOM PANEL CONTAINER (MATCHING CHOOSE_RIDE)
+           ============================================ */
+        
+        .bottom-panel {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: 180px;
+            z-index: 900;
+            background: white;
+            border-radius: 28px 28px 0 0;
+            box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.12);
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
 
-.section-label {
-  font-size: 0.6875rem;
-  font-weight: 800;
-  color: var(--ink3);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 14px 16px 0;
-}
+        .panel-handle {
+            width: 36px;
+            height: 4px;
+            background: #d1d5db;
+            border-radius: 2px;
+            margin: 12px auto 8px;
+            flex-shrink: 0;
+        }
 
-/* Route timeline inside card */
-.route-timeline {
-  padding: 14px 16px 18px;
-  position: relative;
-}
+        .panel-content {
+            padding: 12px 0 calc(env(safe-area-inset-bottom) + 120px);
+        }
 
-.route-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  position: relative;
-}
+        .bottom-panel::-webkit-scrollbar {
+            width: 0;
+            display: none;
+        }
 
-.route-row + .route-row {
-  margin-top: 0;
-}
+        /* ============================================
+           SECTION SYSTEM (MATCHING CHOOSE_RIDE CARDS)
+           ============================================ */
+        
+        .section-label {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 20px 20px 12px;
+        }
 
-/* The vertical connector between dots */
-.route-track {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 18px;
-  flex-shrink: 0;
-  padding-top: 2px;
-}
+        .section-card {
+            background: white;
+            margin: 0 16px 16px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #f1f5f9;
+            box-shadow: var(--shadow-sm);
+        }
 
-.r-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.r-dot.pickup  { background: var(--p); box-shadow: 0 0 0 3px rgba(0,165,158,0.2); }
-.r-dot.dropoff { background: var(--red); box-shadow: 0 0 0 3px rgba(239,68,68,0.18); }
+        /* ============================================
+           ROUTE DISPLAY (PICKUP → DROP)
+           ============================================ */
+        
+        .route-display {
+            padding: 20px 18px;
+        }
 
-.r-line {
-  width: 2px;
-  height: 36px;
-  background: repeating-linear-gradient(
-    to bottom,
-    var(--border) 0px,
-    var(--border) 5px,
-    transparent 5px,
-    transparent 9px
-  );
-  flex-shrink: 0;
-  margin: 4px 0;
-}
+        .route-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            position: relative;
+        }
 
-.route-text-wrap {
-  flex: 1;
-  padding-bottom: 18px;
-}
-.route-row:last-child .route-text-wrap { padding-bottom: 0; }
+        .route-row + .route-row {
+            margin-top: 0;
+        }
 
-.route-tag {
-  font-size: 0.625rem;
-  font-weight: 800;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  margin-bottom: 3px;
-}
-.route-tag.pickup  { color: var(--p); }
-.route-tag.dropoff { color: var(--red); }
+        .route-track {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 20px;
+            flex-shrink: 0;
+            padding-top: 2px;
+        }
 
-.route-addr {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--ink);
-  line-height: 1.45;
-}
+        .route-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 2;
+        }
 
-/* =====================================================
-   RIDE DETAILS ROW — icon + name/distance + badge
-   ===================================================== */
-.ride-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 16px;
-}
+        .route-dot.pickup {
+            background: var(--success);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+        }
 
-.ride-icon-box {
-  width: 52px;
-  height: 52px;
-  border-radius: var(--r-md);
-  background: linear-gradient(135deg, rgba(0,165,158,0.1), rgba(14,185,211,0.1));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border: 1.5px solid rgba(0,165,158,0.15);
-}
-.ride-icon-box i {
-  font-size: 1.375rem;
-  background: var(--p-grad);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
+        .route-dot.drop {
+            background: var(--danger);
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+        }
 
-.ride-meta { flex: 1; }
-.ride-meta-name {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--ink);
-  margin-bottom: 3px;
-}
-.ride-meta-sub {
-  font-size: 0.8125rem;
-  color: var(--ink2);
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-.ride-meta-sub i { font-size: 0.6875rem; color: var(--ink3); }
+        .route-line {
+            width: 2px;
+            height: 40px;
+            background: repeating-linear-gradient(
+                to bottom,
+                #e5e7eb 0px,
+                #e5e7eb 6px,
+                transparent 6px,
+                transparent 10px
+            );
+            margin: 6px 0;
+        }
 
-.eta-badge {
-  background: linear-gradient(135deg, rgba(0,165,158,0.1), rgba(14,185,211,0.1));
-  border: 1.5px solid rgba(0,165,158,0.2);
-  border-radius: 20px;
-  padding: 5px 12px;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--p);
-  white-space: nowrap;
-}
+        .route-text-wrap {
+            flex: 1;
+            padding-bottom: 20px;
+        }
 
-/* =====================================================
-   DIVIDER
-   ===================================================== */
-.inset-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 0 16px;
-}
+        .route-row:last-child .route-text-wrap {
+            padding-bottom: 0;
+        }
 
-/* =====================================================
-   SELECTION ROWS — Pill tap style (not dropdowns)
-   ===================================================== */
-.select-row {
-  display: flex;
-  align-items: center;
-  padding: 15px 16px;
-  gap: 14px;
-  cursor: pointer;
-  transition: background 0.15s;
-  -webkit-user-select: none;
-  user-select: none;
-}
-.select-row:active { background: var(--bg); }
+        .route-tag {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
 
-.select-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--r-sm);
-  background: var(--bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 1.125rem;
-  color: var(--ink2);
-}
+        .route-tag.pickup {
+            color: var(--success);
+        }
 
-.select-content { flex: 1; }
-.select-title {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--ink3);
-  text-transform: uppercase;
-  letter-spacing: 0.7px;
-  margin-bottom: 2px;
-}
-.select-value {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--ink);
-}
+        .route-tag.drop {
+            color: var(--danger);
+        }
 
-.select-chevron {
-  color: var(--ink3);
-  font-size: 0.875rem;
-}
+        .route-address {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-dark);
+            line-height: 1.4;
+        }
 
-/* Payment method bottom sheet trigger */
-.payment-options-sheet {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 0 16px 14px;
-}
-.pay-chip {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: 20px;
-  border: 2px solid var(--border);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--ink2);
-  background: var(--surface);
-  cursor: pointer;
-  transition: all 0.18s;
-  -webkit-user-select: none;
-  user-select: none;
-}
-.pay-chip:active { transform: scale(0.95); }
-.pay-chip.active {
-  border-color: var(--p);
-  color: var(--p);
-  background: rgba(0,165,158,0.06);
-}
-.pay-chip .chip-emoji {
-  font-size: 0.9375rem;
-  line-height: 1;
-}
+        /* ============================================
+           VEHICLE DETAILS ROW
+           ============================================ */
+        
+        .divider {
+            height: 1px;
+            background: #f1f5f9;
+            margin: 0 18px;
+        }
 
-/* Hidden real select for form submission */
-.hidden-select {
-  display: none;
-}
+        .vehicle-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 18px;
+        }
 
-/* =====================================================
-   PROMO SECTION — inline, not a traditional field
-   ===================================================== */
-.promo-section {
-  padding: 14px 16px;
-}
+        .vehicle-icon-box {
+            width: 56px;
+            height: 56px;
+            min-width: 56px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(0, 165, 158, 0.08), rgba(14, 185, 211, 0.08));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1.5px solid rgba(0, 165, 158, 0.15);
+        }
 
-.promo-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+        .vehicle-icon-box i {
+            font-size: 26px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
-.promo-field {
-  flex: 1;
-  position: relative;
-}
-.promo-field .promo-icon {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.9rem;
-  color: var(--ink3);
-  pointer-events: none;
-}
+        .vehicle-details {
+            flex: 1;
+        }
 
-.promo-input-styled {
-  width: 100%;
-  background: var(--bg);
-  border: 2px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 12px 14px 12px 38px;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--ink);
-  font-family: inherit;
-  transition: border 0.18s, background 0.18s;
-}
-.promo-input-styled:focus {
-  outline: none;
-  border-color: var(--p);
-  background: var(--surface);
-}
-.promo-input-styled::placeholder {
-  color: var(--ink3);
-  font-weight: 400;
-}
-.promo-input-styled:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
+        .vehicle-name {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
 
-.promo-apply-btn {
-  padding: 12px 20px;
-  border-radius: var(--r-md);
-  border: none;
-  background: var(--p-grad);
-  color: white;
-  font-size: 0.9375rem;
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: opacity 0.18s, transform 0.15s;
-  box-shadow: 0 3px 10px var(--p-glow);
-}
-.promo-apply-btn:active { transform: scale(0.96); }
-.promo-apply-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  box-shadow: none;
-}
+        .vehicle-meta {
+            font-size: 13px;
+            color: var(--text-gray);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-.promo-status {
-  display: none;
-  align-items: center;
-  gap: 7px;
-  margin-top: 9px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  padding: 9px 12px;
-  border-radius: var(--r-sm);
-}
-.promo-status.visible { display: flex; }
-.promo-status.success { background: rgba(16,185,129,0.1); color: #059669; }
-.promo-status.error   { background: rgba(239,68,68,0.08); color: #dc2626; }
+        .vehicle-meta i {
+            font-size: 11px;
+            color: var(--text-light);
+        }
 
-/* =====================================================
-   PRICE BREAKDOWN — accordion summary
-   ===================================================== */
-.breakdown-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 16px;
-}
-.breakdown-label {
-  font-size: 0.875rem;
-  color: var(--ink2);
-  font-weight: 500;
-}
-.breakdown-value {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--ink);
-}
-.breakdown-row.total {
-  padding: 13px 16px;
-  background: linear-gradient(135deg, rgba(0,165,158,0.04), rgba(14,185,211,0.04));
-  border-top: 1.5px solid var(--border);
-}
-.breakdown-row.total .breakdown-label {
-  font-size: 0.9375rem;
-  font-weight: 800;
-  color: var(--ink);
-}
-.breakdown-row.total .breakdown-value {
-  font-size: 1.125rem;
-  font-weight: 900;
-  color: var(--p);
-}
-.breakdown-row.discount .breakdown-value {
-  color: var(--green);
-}
+        .vehicle-badge {
+            background: linear-gradient(135deg, rgba(0, 165, 158, 0.08), rgba(14, 185, 211, 0.08));
+            border: 1.5px solid rgba(0, 165, 158, 0.2);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary);
+            white-space: nowrap;
+        }
 
-/* =====================================================
-   STICKY BOTTOM ACTION BAR
-   ===================================================== */
-.bottom-action {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  background: var(--surface);
-  padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px));
-  box-shadow: 0 -8px 24px rgba(0,0,0,0.09);
-  border-top: 1px solid rgba(0,0,0,0.05);
-  z-index: 200;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
+        /* ============================================
+           PAYMENT METHOD CHIPS
+           ============================================ */
+        
+        .payment-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 18px;
+        }
 
-.confirm-btn {
-  width: 100%;
-  padding: 17px 24px;
-  background: var(--p-grad);
-  color: white;
-  border: none;
-  border-radius: var(--r-md);
-  font-size: 1.0625rem;
-  font-weight: 800;
-  font-family: inherit;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 6px 20px var(--p-glow);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  position: relative;
-  overflow: hidden;
-}
+        .pay-chip {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            padding: 10px 16px;
+            border-radius: 24px;
+            border: 2px solid #e5e7eb;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-gray);
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
 
-/* ripple layer */
-.confirm-btn::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(255,255,255,0);
-  transition: background 0.3s;
-}
-.confirm-btn:active::after { background: rgba(255,255,255,0.12); }
-.confirm-btn:active { transform: translateY(1px); box-shadow: 0 3px 10px var(--p-glow); }
-.confirm-btn:disabled { opacity: 0.6; cursor: not-allowed; box-shadow: none; }
+        .pay-chip:active {
+            transform: scale(0.96);
+        }
 
-.confirm-btn-icon {
-  width: 28px;
-  height: 28px;
-  background: rgba(255,255,255,0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.875rem;
-  flex-shrink: 0;
-}
+        .pay-chip.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: linear-gradient(135deg, rgba(0, 165, 158, 0.06), rgba(14, 185, 211, 0.06));
+        }
 
-.terms-line {
-  text-align: center;
-  font-size: 0.6875rem;
-  color: var(--ink3);
-  margin-top: 9px;
-  line-height: 1.5;
-}
-.terms-link {
-  color: var(--p);
-  font-weight: 700;
-  text-decoration: none;
-}
+        .pay-chip .chip-emoji {
+            font-size: 18px;
+            line-height: 1;
+        }
 
-/* =====================================================
-   SECTION SPACER HEADER
-   ===================================================== */
-.section-group-label {
-  font-size: 0.6875rem;
-  font-weight: 800;
-  color: var(--ink3);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 18px 20px 6px;
-}
+        .hidden-select {
+            display: none;
+        }
 
-/* =====================================================
-   PAGE ENTER ANIMATION (staggered cards)
-   ===================================================== */
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(18px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+        /* ============================================
+           PROMO CODE SECTION
+           ============================================ */
+        
+        .promo-section {
+            padding: 18px;
+        }
 
-.section-card { animation: slideUp 0.35s ease both; }
-.section-card:nth-child(1) { animation-delay: 0.05s; }
-.section-card:nth-child(2) { animation-delay: 0.12s; }
-.section-card:nth-child(3) { animation-delay: 0.19s; }
-.section-card:nth-child(4) { animation-delay: 0.26s; }
-.section-card:nth-child(5) { animation-delay: 0.33s; }
+        .promo-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-/* =====================================================
-   LOADING OVERLAY
-   ===================================================== */
-.booking-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(30, 41, 59, 0.5);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s;
-}
-.booking-overlay.active {
-  opacity: 1;
-  pointer-events: auto;
-}
-.overlay-card {
-  background: white;
-  border-radius: var(--r-xl);
-  padding: 32px 28px;
-  text-align: center;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-  min-width: 220px;
-  animation: slideUp 0.35s ease;
-}
-.overlay-spinner {
-  width: 44px;
-  height: 44px;
-  border: 4px solid rgba(0,165,158,0.15);
-  border-top-color: var(--p);
-  border-radius: 50%;
-  animation: spin 0.75s linear infinite;
-  margin: 0 auto 14px;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.overlay-text {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--ink);
-  margin-bottom: 4px;
-}
-.overlay-sub {
-  font-size: 0.8125rem;
-  color: var(--ink2);
-}
+        .promo-field {
+            flex: 1;
+            position: relative;
+        }
 
-/* =====================================================
-   SMALL SCREEN ADJUSTMENTS
-   ===================================================== */
-@media (max-width: 360px) {
-  .fare-hero-amount { font-size: 2.75rem; }
-  .pay-chip { font-size: 0.75rem; padding: 6px 11px; }
-}
-</style>
-{% endblock %}
+        .promo-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: var(--text-light);
+            pointer-events: none;
+        }
 
-{% block content %}
-<!-- Loading overlay -->
+        .promo-input {
+            width: 100%;
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 14px 16px 14px 44px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-dark);
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .promo-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+        }
+
+        .promo-input::placeholder {
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .promo-input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .promo-apply-btn {
+            padding: 14px 22px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 165, 158, 0.25);
+        }
+
+        .promo-apply-btn:active {
+            transform: scale(0.96);
+        }
+
+        .promo-apply-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .promo-status {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px 14px;
+            border-radius: 10px;
+        }
+
+        .promo-status.visible {
+            display: flex;
+        }
+
+        .promo-status.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+        }
+
+        .promo-status.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        /* ============================================
+           STICKY BOTTOM ACTION BAR
+           ============================================ */
+        
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1100;
+            background: white;
+            padding: 16px 20px calc(env(safe-area-inset-bottom) + 16px);
+            border-top: 1px solid #f1f5f9;
+            box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.08);
+            backdrop-filter: blur(12px);
+        }
+
+        .confirm-btn {
+            width: 100%;
+            padding: 18px 24px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 800;
+            font-family: inherit;
+            letter-spacing: -0.01em;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 8px 24px rgba(0, 165, 158, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .confirm-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0);
+            transition: background 0.3s;
+        }
+
+        .confirm-btn:active::after {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .confirm-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 4px 16px rgba(0, 165, 158, 0.3);
+        }
+
+        .confirm-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .confirm-btn-icon {
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .terms-text {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-light);
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+
+        .terms-link {
+            color: var(--primary);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        /* ============================================
+           LOADING OVERLAY
+           ============================================ */
+        
+        .booking-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .booking-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .overlay-card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px 32px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+            min-width: 240px;
+            animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .overlay-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(0, 165, 158, 0.15);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 18px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .overlay-text {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+        }
+
+        .overlay-sub {
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        /* ============================================
+           DESKTOP RESPONSIVE
+           ============================================ */
+        
+        @media (min-width: 768px) {
+            .top-bar {
+                padding-bottom: 80px;
+            }
+
+            .bottom-panel {
+                top: 220px;
+                left: 50%;
+                transform: translateX(-50%);
+                max-width: 480px;
+                border-radius: 28px;
+            }
+
+            .action-bar {
+                left: 50%;
+                transform: translateX(-50%);
+                max-width: 480px;
+                border-radius: 20px 20px 0 0;
+            }
+        }
+
+        /* ============================================
+           SMALL SCREEN ADJUSTMENTS
+           ============================================ */
+        
+        @media (max-width: 360px) {
+            .price-amount {
+                font-size: 40px;
+            }
+
+            .pay-chip {
+                font-size: 13px;
+                padding: 8px 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Loading Overlay -->
 <div class="booking-overlay" id="bookingOverlay">
-  <div class="overlay-card">
-    <div class="overlay-spinner"></div>
-    <div class="overlay-text">Booking your ride…</div>
-    <div class="overlay-sub">This will just take a moment</div>
-  </div>
+    <div class="overlay-card">
+        <div class="overlay-spinner"></div>
+        <div class="overlay-text">Booking your ride…</div>
+        <div class="overlay-sub">This will just take a moment</div>
+    </div>
 </div>
 
-<div class="screen">
+<!-- Base Layer -->
+<div class="screen-base"></div>
 
-  <!-- ═══════════════════════════════════════════
-       APP BAR — gradient with fare as hero
-  ══════════════════════════════════════════════ -->
-  <header class="app-bar">
-    <div class="app-bar-inner">
-
-      <!-- nav row -->
-      <div class="nav-row">
+<!-- Top Bar with Gradient + Price Hero -->
+<div class="top-bar">
+    <div class="top-content">
         <a href="{% url 'choose_ride' %}" class="back-btn" aria-label="Go back">
-          <i class="fas fa-chevron-left"></i>
+            <i class="fas fa-chevron-left"></i>
         </a>
-        <span class="app-bar-title">Confirm Booking</span>
-        <span class="step-pill">Step 3 of 3</span>
-      </div>
-
-      <!-- FARE HERO -->
-      <div class="fare-hero">
-        <div class="fare-hero-label">Total Fare</div>
-        <div class="fare-hero-amount" id="fare_display">
-          <span class="currency">₹</span><span id="fare_number">{{ fare|default_if_none:'0' }}</span>
-        </div>
-        <div class="fare-original-hero" id="original_fare_hero"></div>
-        <div class="fare-sub">
-          {% if distance_km %}<span>{{ distance_km }} km</span>{% endif %}
-          {% if distance_km and duration_min %}<span class="fare-sub-dot"></span>{% endif %}
-          {% if duration_min %}<span>{{ duration_min }} min</span>{% endif %}
-          {% if selected_service %}
-            {% if distance_km or duration_min %}<span class="fare-sub-dot"></span>{% endif %}
-            <span>{{ selected_service }}</span>
-          {% endif %}
-        </div>
-      </div>
-
+        <div class="top-title">Confirm Booking</div>
+        <div class="step-badge">Step 3/3</div>
     </div>
-  </header>
 
-  <!-- ═══════════════════════════════════════════
-       CONTENT LAYER — slides over gradient
-  ══════════════════════════════════════════════ -->
-  <div class="content-layer">
-
-    <!-- ── BOOKING FORM ──────────────────────── -->
-    <form method="post" action="{% url 'confirm_booking' %}" id="booking_form">
-      {% csrf_token %}
-      <input type="hidden" name="vehicle_type"     value="{{ selected_service }}">
-      <input type="hidden" name="fare"              value="{{ fare }}" id="fare_input">
-      <input type="hidden" name="pickup"            value="{{ pickup }}">
-      <input type="hidden" name="dropoff"           value="{{ dropoff }}">
-      <input type="hidden" name="ride_date"         value="{{ ride_date }}">
-      <input type="hidden" name="ride_time"         value="{{ ride_time }}">
-      <input type="hidden" name="ride_type"         value="{{ ride_type }}">
-      <input type="hidden" name="pickup_city"       value="{{ pickup_city }}">
-      <input type="hidden" name="pickup_district"   value="{{ pickup_district }}">
-      <input type="hidden" name="pickup_state"      value="{{ pickup_state }}">
-      <input type="hidden" name="drop_city"         value="{{ drop_city }}">
-      <input type="hidden" name="drop_district"     value="{{ drop_district }}">
-      <input type="hidden" name="drop_state"        value="{{ drop_state }}">
-      <input type="hidden" name="distance_km"       value="{{ distance_km }}">
-      <input type="hidden" name="duration_min"      value="{{ duration_min }}">
-      {% if ride_type == 'rental' %}
-      <input type="hidden" name="rental_duration"   value="{{ rental_duration }}">
-      {% endif %}
-      <!-- payment hidden — populated by JS -->
-      <select id="payment_mode" name="payment_mode" class="hidden-select">
-        <option value="Cash">Cash</option>
-        <option value="UPI">UPI</option>
-        <option value="Credit Card">Credit Card</option>
-        <option value="Debit Card">Debit Card</option>
-        <option value="Wallet">Wallet</option>
-        <option value="Netbanking">Netbanking</option>
-      </select>
-      <input type="hidden" name="promo_code" id="promo_code_hidden">
-
-      <!-- ── 1. ROUTE SUMMARY ─────────────────── -->
-      <p class="section-group-label">Your Route</p>
-      <div class="section-card">
-        <div class="route-timeline">
-          <!-- pickup -->
-          <div class="route-row">
-            <div class="route-track">
-              <div class="r-dot pickup"></div>
-              <div class="r-line"></div>
-            </div>
-            <div class="route-text-wrap">
-              <div class="route-tag pickup">Pickup</div>
-              <div class="route-addr">{{ pickup|default_if_none:'Not specified' }}</div>
-            </div>
-          </div>
-          <!-- dropoff -->
-          <div class="route-row">
-            <div class="route-track">
-              <div class="r-dot dropoff"></div>
-            </div>
-            <div class="route-text-wrap">
-              <div class="route-tag dropoff">Drop-off</div>
-              <div class="route-addr">{{ dropoff|default_if_none:'Not specified' }}</div>
-            </div>
-          </div>
+    <!-- Price Hero (in header gradient) -->
+    <div class="price-hero">
+        <div class="price-label">Total Fare</div>
+        <div class="price-amount" id="fare_display">
+            <span class="currency">₹</span><span id="fare_number">{{ fare|default_if_none:'0' }}</span>
         </div>
+        <div class="price-original" id="original_fare_hero"></div>
+        <div class="price-meta">
+            {% if distance_km %}<span>{{ distance_km }} km</span>{% endif %}
+            {% if distance_km and duration_min %}<span class="price-meta-dot"></span>{% endif %}
+            {% if duration_min %}<span>{{ duration_min }} min</span>{% endif %}
+            {% if selected_service %}
+                {% if distance_km or duration_min %}<span class="price-meta-dot"></span>{% endif %}
+                <span>{{ selected_service }}</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
 
-        <!-- ride detail strip -->
-        <div class="inset-divider"></div>
-        <div class="ride-row">
-          <div class="ride-icon-box">
-            <i class="fas fa-car"></i>
-          </div>
-          <div class="ride-meta">
-            <div class="ride-meta-name">{{ selected_service|default:'Standard' }}</div>
-            <div class="ride-meta-sub">
-              {% if distance_km %}<i class="fas fa-road"></i> {{ distance_km }} km{% endif %}
-              {% if duration_min %}&nbsp;&bull;&nbsp;<i class="fas fa-clock"></i> {{ duration_min }} min{% endif %}
+<!-- Bottom Panel Container -->
+<div class="bottom-panel">
+    <div class="panel-handle" aria-label="Panel handle"></div>
+
+    <div class="panel-content">
+        <!-- Booking Form -->
+        <form method="post" action="{% url 'confirm_booking' %}" id="booking_form">
+            {% csrf_token %}
+            
+            <!-- Hidden Fields -->
+            <input type="hidden" name="vehicle_type" value="{{ selected_service }}">
+            <input type="hidden" name="fare" value="{{ fare }}" id="fare_input">
+            <input type="hidden" name="pickup" value="{{ pickup }}">
+            <input type="hidden" name="dropoff" value="{{ dropoff }}">
+            <input type="hidden" name="ride_date" value="{{ ride_date }}">
+            <input type="hidden" name="ride_time" value="{{ ride_time }}">
+            <input type="hidden" name="ride_type" value="{{ ride_type }}">
+            <input type="hidden" name="pickup_city" value="{{ pickup_city }}">
+            <input type="hidden" name="pickup_district" value="{{ pickup_district }}">
+            <input type="hidden" name="pickup_state" value="{{ pickup_state }}">
+            <input type="hidden" name="drop_city" value="{{ drop_city }}">
+            <input type="hidden" name="drop_district" value="{{ drop_district }}">
+            <input type="hidden" name="drop_state" value="{{ drop_state }}">
+            <input type="hidden" name="distance_km" value="{{ distance_km }}">
+            <input type="hidden" name="duration_min" value="{{ duration_min }}">
+            <input type="hidden" name="pickup_lat" value="{{ pickup_lat }}">
+            <input type="hidden" name="pickup_lng" value="{{ pickup_lng }}">
+            <input type="hidden" name="drop_lat" value="{{ drop_lat }}">
+            <input type="hidden" name="drop_lng" value="{{ drop_lng }}">
+            {% if ride_type == 'rental' %}
+            <input type="hidden" name="rental_duration" value="{{ rental_duration }}">
+            {% endif %}
+            
+            <!-- Payment Method (Hidden Select) -->
+            <select id="payment_mode" name="payment_mode" class="hidden-select">
+                <option value="Cash">Cash</option>
+                <option value="UPI">UPI</option>
+                <option value="Credit Card">Credit Card</option>
+                <option value="Debit Card">Debit Card</option>
+                <option value="Wallet">Wallet</option>
+                <option value="Netbanking">Netbanking</option>
+            </select>
+            <input type="hidden" name="promo_code" id="promo_code_hidden">
+
+            <!-- Section 1: Route Summary -->
+            <div class="section-label">Your Route</div>
+            <div class="section-card">
+                <div class="route-display">
+                    <!-- Pickup -->
+                    <div class="route-row">
+                        <div class="route-track">
+                            <div class="route-dot pickup"></div>
+                            <div class="route-line"></div>
+                        </div>
+                        <div class="route-text-wrap">
+                            <div class="route-tag pickup">Pickup</div>
+                            <div class="route-address">{{ pickup|default_if_none:'Not specified' }}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dropoff -->
+                    <div class="route-row">
+                        <div class="route-track">
+                            <div class="route-dot drop"></div>
+                        </div>
+                        <div class="route-text-wrap">
+                            <div class="route-tag drop">Drop-off</div>
+                            <div class="route-address">{{ dropoff|default_if_none:'Not specified' }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vehicle Details -->
+                <div class="divider"></div>
+                <div class="vehicle-row">
+                    <div class="vehicle-icon-box">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <div class="vehicle-details">
+                        <div class="vehicle-name">{{ selected_service|default:'Standard' }}</div>
+                        <div class="vehicle-meta">
+                            {% if distance_km %}<i class="fas fa-road"></i> {{ distance_km }} km{% endif %}
+                            {% if duration_min %}&nbsp;&bull;&nbsp;<i class="fas fa-clock"></i> {{ duration_min }} min{% endif %}
+                        </div>
+                    </div>
+                    <div class="vehicle-badge">
+                        <i class="fas fa-bolt"></i>&nbsp;Instant
+                    </div>
+                </div>
             </div>
-          </div>
-          <div class="eta-badge">
-            <i class="fas fa-bolt"></i>&nbsp;Instant
-          </div>
-        </div>
-      </div>
 
-      <!-- ── 3. PAYMENT METHOD ─────────────────── -->
-      <p class="section-group-label">Payment</p>
-      <div class="section-card">
-        <div class="payment-options-sheet" id="pay_chips">
-          <div class="pay-chip active" data-value="Cash">     <span class="chip-emoji">💵</span> Cash</div>
-          <div class="pay-chip"        data-value="UPI">      <span class="chip-emoji">📱</span> UPI</div>
-          <div class="pay-chip"        data-value="Credit Card"><span class="chip-emoji">💳</span> Credit</div>
-          <div class="pay-chip"        data-value="Debit Card"><span class="chip-emoji">💳</span> Debit</div>
-          <div class="pay-chip"        data-value="Wallet">   <span class="chip-emoji">👛</span> Wallet</div>
-          <div class="pay-chip"        data-value="Netbanking"><span class="chip-emoji">🏦</span> Netbank</div>
-        </div>
-      </div>
-
-      <!-- ── 4. PROMO CODE ─────────────────────── -->
-      <p class="section-group-label">Promo Code</p>
-      <div class="section-card">
-        <div class="promo-section">
-          <div class="promo-row">
-            <div class="promo-field">
-              <i class="fas fa-tag promo-icon"></i>
-              <input
-                type="text"
-                id="promo_code_input"
-                placeholder="Enter promo code"
-                class="promo-input-styled"
-                autocomplete="off"
-                autocapitalize="characters"
-              >
+            <!-- Section 2: Payment Method -->
+            <div class="section-label">Payment</div>
+            <div class="section-card">
+                <div class="payment-chips" id="pay_chips">
+                    <div class="pay-chip active" data-value="Cash">
+                        <span class="chip-emoji">💵</span> Cash
+                    </div>
+                    <div class="pay-chip" data-value="UPI">
+                        <span class="chip-emoji">📱</span> UPI
+                    </div>
+                    <div class="pay-chip" data-value="Credit Card">
+                        <span class="chip-emoji">💳</span> Credit
+                    </div>
+                    <div class="pay-chip" data-value="Debit Card">
+                        <span class="chip-emoji">💳</span> Debit
+                    </div>
+                    <div class="pay-chip" data-value="Wallet">
+                        <span class="chip-emoji">👛</span> Wallet
+                    </div>
+                    <div class="pay-chip" data-value="Netbanking">
+                        <span class="chip-emoji">🏦</span> Netbank
+                    </div>
+                </div>
             </div>
-            <button type="button" id="apply_promo" class="promo-apply-btn">Apply</button>
-          </div>
-          <div class="promo-status" id="promo_message">
-            <i class="fas fa-check-circle" id="promo_icon"></i>
-            <span id="promo_text"></span>
-          </div>
-        </div>
-      </div>
 
-      <!-- ── BOTTOM CTA ────────────────────────── -->
-      <div class="bottom-action">
-        <button type="submit" class="confirm-btn ripple" id="confirm_btn">
-          <span class="confirm-btn-icon"><i class="fas fa-check"></i></span>
-          Confirm &amp; Book Ride
-        </button>
-        <p class="terms-line">
-          By booking you agree to our <a href="#" class="terms-link">Terms &amp; Conditions</a> and <a href="#" class="terms-link">Privacy Policy</a>
-        </p>
-      </div>
+            <!-- Section 3: Promo Code -->
+            <div class="section-label">Promo Code</div>
+            <div class="section-card">
+                <div class="promo-section">
+                    <div class="promo-row">
+                        <div class="promo-field">
+                            <i class="fas fa-tag promo-icon"></i>
+                            <input
+                                type="text"
+                                id="promo_code_input"
+                                placeholder="Enter promo code"
+                                class="promo-input"
+                                autocomplete="off"
+                                autocapitalize="characters"
+                            >
+                        </div>
+                        <button type="button" id="apply_promo" class="promo-apply-btn">Apply</button>
+                    </div>
+                    <div class="promo-status" id="promo_message">
+                        <i class="fas fa-check-circle" id="promo_icon"></i>
+                        <span id="promo_text"></span>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
-    </form>
-  </div><!-- /content-layer -->
-</div><!-- /screen -->
+<!-- Sticky Bottom Action Bar -->
+<div class="action-bar">
+    <button type="submit" form="booking_form" class="confirm-btn" id="confirm_btn">
+        <span class="confirm-btn-icon"><i class="fas fa-check"></i></span>
+        Confirm &amp; Book Ride
+    </button>
+    <p class="terms-text">
+        By booking you agree to our <a href="#" class="terms-link">Terms &amp; Conditions</a> and <a href="#" class="terms-link">Privacy Policy</a>
+    </p>
+</div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  /* ── State ─────────────────────────────────── */
-  const fareInput       = document.getElementById('fare_input');
-  const fareNumber      = document.getElementById('fare_number');
-  const fareOrigHero    = document.getElementById('original_fare_hero');
-  const bdBase          = document.getElementById('bd_base');
-  const bdDiscountRow   = document.getElementById('bd_discount_row');
-  const bdDiscount      = document.getElementById('bd_discount');
-  const bdTotal         = document.getElementById('bd_total');
-  const promoInput      = document.getElementById('promo_code_input');
-  const promoHidden     = document.getElementById('promo_code_hidden');
-  const applyBtn        = document.getElementById('apply_promo');
-  const promoMsg        = document.getElementById('promo_message');
-  const promoIcon       = document.getElementById('promo_icon');
-  const promoText       = document.getElementById('promo_text');
-  const paySelect       = document.getElementById('payment_mode');
-  const confirmBtn      = document.getElementById('confirm_btn');
-  const form            = document.getElementById('booking_form');
-  const overlay         = document.getElementById('bookingOverlay');
-  const csrfToken       = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
-  const originalFare    = parseFloat(fareInput.value) || 0;
+document.addEventListener('DOMContentLoaded', function() {
+    /* ============================================
+       STATE MANAGEMENT
+       ============================================ */
+    const fareInput = document.getElementById('fare_input');
+    const fareNumber = document.getElementById('fare_number');
+    const fareOrigHero = document.getElementById('original_fare_hero');
+    const promoInput = document.getElementById('promo_code_input');
+    const promoHidden = document.getElementById('promo_code_hidden');
+    const applyBtn = document.getElementById('apply_promo');
+    const promoMsg = document.getElementById('promo_message');
+    const promoIcon = document.getElementById('promo_icon');
+    const promoText = document.getElementById('promo_text');
+    const paySelect = document.getElementById('payment_mode');
+    const confirmBtn = document.getElementById('confirm_btn');
+    const form = document.getElementById('booking_form');
+    const overlay = document.getElementById('bookingOverlay');
+    const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    const originalFare = parseFloat(fareInput.value) || 0;
 
-  /* ── Payment Chips ─────────────────────────── */
-  document.querySelectorAll('#pay_chips .pay-chip').forEach(chip => {
-    chip.addEventListener('click', function () {
-      document.querySelectorAll('#pay_chips .pay-chip').forEach(c => c.classList.remove('active'));
-      this.classList.add('active');
-      paySelect.value = this.dataset.value;
+    /* ============================================
+       PAYMENT CHIP SELECTION
+       ============================================ */
+    document.querySelectorAll('#pay_chips .pay-chip').forEach(chip => {
+        chip.addEventListener('click', function() {
+            document.querySelectorAll('#pay_chips .pay-chip').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            paySelect.value = this.dataset.value;
+        });
     });
-  });
 
-  /* ── Promo Code ────────────────────────────── */
-  applyBtn.addEventListener('click', function () {
-    const code = promoInput.value.trim();
-    if (!code) {
-      showPromoMsg('error', 'fas fa-exclamation-circle', 'Please enter a promo code');
-      return;
+    /* ============================================
+       PROMO CODE APPLICATION
+       ============================================ */
+    applyBtn.addEventListener('click', function() {
+        const code = promoInput.value.trim();
+        if (!code) {
+            showPromoMsg('error', 'fas fa-exclamation-circle', 'Please enter a promo code');
+            return;
+        }
+
+        applyBtn.disabled = true;
+        applyBtn.textContent = 'Checking…';
+
+        fetch("{% url 'apply_promo' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                promo_code: code,
+                fare: fareInput.value
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const disc = originalFare - parseFloat(data.discounted_fare);
+                fareInput.value = data.discounted_fare;
+                fareNumber.textContent = data.discounted_fare;
+                fareOrigHero.textContent = '₹' + originalFare;
+                fareOrigHero.classList.add('visible');
+                promoHidden.value = code;
+                promoInput.disabled = true;
+                applyBtn.textContent = '✓ Applied';
+                showPromoMsg('success', 'fas fa-check-circle', data.message || 'Promo applied successfully!');
+            } else {
+                applyBtn.disabled = false;
+                applyBtn.textContent = 'Apply';
+                showPromoMsg('error', 'fas fa-times-circle', data.message || 'Invalid promo code');
+            }
+        })
+        .catch(() => {
+            applyBtn.disabled = false;
+            applyBtn.textContent = 'Apply';
+            showPromoMsg('error', 'fas fa-exclamation-circle', 'Something went wrong. Try again.');
+        });
+    });
+
+    function showPromoMsg(type, icon, text) {
+        promoMsg.className = 'promo-status visible ' + type;
+        promoIcon.className = icon;
+        promoText.textContent = text;
     }
-    applyBtn.disabled = true;
-    applyBtn.textContent = 'Checking…';
 
-    fetch("{% url 'apply_promo' %}", {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-      body: JSON.stringify({ promo_code: code, fare: fareInput.value })
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) {
-        const disc = originalFare - parseFloat(data.discounted_fare);
-        fareInput.value = data.discounted_fare;
-        fareNumber.textContent = data.discounted_fare;
-        fareOrigHero.textContent = '₹' + originalFare;
-        fareOrigHero.classList.add('visible');
-        bdBase.textContent = '₹' + originalFare;
-        bdDiscountRow.style.display = 'flex';
-        bdDiscount.textContent = '–₹' + disc.toFixed(0);
-        bdTotal.textContent = '₹' + data.discounted_fare;
-        promoHidden.value = code;
-        promoInput.disabled = true;
-        applyBtn.textContent = '✓ Applied';
-        showPromoMsg('success', 'fas fa-check-circle', data.message || 'Promo applied successfully!');
-      } else {
-        applyBtn.disabled = false;
-        applyBtn.textContent = 'Apply';
-        showPromoMsg('error', 'fas fa-times-circle', data.message || 'Invalid promo code');
-      }
-    })
-    .catch(() => {
-      applyBtn.disabled = false;
-      applyBtn.textContent = 'Apply';
-      showPromoMsg('error', 'fas fa-exclamation-circle', 'Something went wrong. Try again.');
+    /* ============================================
+       FORM SUBMISSION
+       ============================================ */
+    form.addEventListener('submit', function(e) {
+        if (!promoHidden.value) {
+            promoHidden.value = promoInput.value.trim();
+        }
+        
+        confirmBtn.innerHTML = '<div style="width:20px;height:20px;border:3px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;"></div>&nbsp;Processing…';
+        confirmBtn.disabled = true;
+        overlay.classList.add('active');
     });
-  });
-
-  function showPromoMsg(type, icon, text) {
-    promoMsg.className = 'promo-status visible ' + type;
-    promoIcon.className = icon;
-    promoText.textContent = text;
-  }
-
-  /* ── Form Submit ───────────────────────────── */
-  form.addEventListener('submit', function (e) {
-    // sync promo code to hidden field before submit
-    if (!promoHidden.value) promoHidden.value = promoInput.value.trim();
-    confirmBtn.innerHTML = '<div style="width:20px;height:20px;border:3px solid rgba(255,255,255,0.4);border-top-color:white;border-radius:50%;animation:spin .75s linear infinite;flex-shrink:0;"></div>&nbsp;Processing…';
-    confirmBtn.disabled = true;
-    overlay.classList.add('active');
-  });
 });
 </script>
-{% endblock %}
+
+</body>
+</html>

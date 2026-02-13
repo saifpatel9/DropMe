@@ -654,6 +654,10 @@ def book_ride_view(request):
     drop_state = request.GET.get('drop_state')
     distance_km = request.GET.get('distance_km')
     duration_min = request.GET.get('duration_min')
+    pickup_lat = request.GET.get('pickup_lat') or request.session.get('pickup_lat')
+    pickup_lng = request.GET.get('pickup_lng') or request.session.get('pickup_lng')
+    drop_lat = request.GET.get('drop_lat') or request.session.get('drop_lat')
+    drop_lng = request.GET.get('drop_lng') or request.session.get('drop_lng')
     distance_value = parse_decimal(distance_km)
     duration_value = parse_decimal(duration_min)
     if distance_value is None or distance_value <= 0 or duration_value is None or duration_value <= 0:
@@ -687,6 +691,10 @@ def book_ride_view(request):
     request.session['drop_state'] = drop_state
     request.session['distance_km'] = distance_km
     request.session['duration_min'] = duration_min
+    request.session['pickup_lat'] = pickup_lat
+    request.session['pickup_lng'] = pickup_lng
+    request.session['drop_lat'] = drop_lat
+    request.session['drop_lng'] = drop_lng
 
     context = {
         'pickup': pickup,
@@ -705,6 +713,10 @@ def book_ride_view(request):
         'drop_state': drop_state,
         'distance_km': distance_km,
         'duration_min': duration_min,
+        'pickup_lat': pickup_lat,
+        'pickup_lng': pickup_lng,
+        'drop_lat': drop_lat,
+        'drop_lng': drop_lng,
         'payment_modes': ['Cash', 'Credit Card', 'Debit Card', 'UPI', 'Wallet', 'Netbanking']
     }
     print(f"[DEBUG] Booking View - Pickup: {pickup}, Dropoff: {dropoff}, Service: {service}, Fare: {fare}")
@@ -729,6 +741,20 @@ def confirm_booking(request):
         drop_state = request.POST.get('drop_state')
         distance_km = request.POST.get('distance_km')
         duration_min = request.POST.get('duration_min')
+        pickup_lat_raw = request.POST.get('pickup_lat')
+        pickup_lng_raw = request.POST.get('pickup_lng')
+        drop_lat_raw = request.POST.get('drop_lat')
+        drop_lng_raw = request.POST.get('drop_lng')
+
+        # Backward-compatible fallback: if form didn't include coords, use session values.
+        if not pickup_lat_raw:
+            pickup_lat_raw = request.session.get('pickup_lat')
+        if not pickup_lng_raw:
+            pickup_lng_raw = request.session.get('pickup_lng')
+        if not drop_lat_raw:
+            drop_lat_raw = request.session.get('drop_lat')
+        if not drop_lng_raw:
+            drop_lng_raw = request.session.get('drop_lng')
 
         # ✅ Capture payment mode
         payment_mode = request.POST.get('payment_mode')
@@ -857,10 +883,27 @@ def confirm_booking(request):
                     scheduled_time_value = timezone.now()
 
             try:
-                pickup_latitude = Decimal('0.0')
-                pickup_longitude = Decimal('0.0')
-                drop_latitude = Decimal('0.0')
-                drop_longitude = Decimal('0.0')
+                pickup_latitude = parse_decimal(pickup_lat_raw)
+                pickup_longitude = parse_decimal(pickup_lng_raw)
+                drop_latitude = parse_decimal(drop_lat_raw)
+                drop_longitude = parse_decimal(drop_lng_raw)
+
+                if None in (pickup_latitude, pickup_longitude, drop_latitude, drop_longitude):
+                    return render(request, 'passenger/ride_confirmed.html', {
+                        'error': 'Accurate route coordinates are missing. Please reselect pickup and drop locations.',
+                        'ride_type': ride_type
+                    })
+
+                if not (
+                    Decimal('-90') <= pickup_latitude <= Decimal('90') and
+                    Decimal('-180') <= pickup_longitude <= Decimal('180') and
+                    Decimal('-90') <= drop_latitude <= Decimal('90') and
+                    Decimal('-180') <= drop_longitude <= Decimal('180')
+                ):
+                    return render(request, 'passenger/ride_confirmed.html', {
+                        'error': 'Invalid route coordinates detected. Please reselect pickup and drop locations.',
+                        'ride_type': ride_type
+                    })
 
                 # ✅ Include payment_mode in RideRequest for tracking
                 ride_request = RideRequest.objects.create(
@@ -1019,6 +1062,38 @@ def waiting_for_driver_view(request, ride_request_id):
         'scheduled_time': scheduled_time,
         'selected_service': service_type_name,
         'ride_type': ride_type,
+    })
+
+
+@login_required
+@require_POST
+def cancel_ride_request(request, ride_request_id):
+    try:
+        ride_request = RideRequest.objects.select_related('booking').get(
+            id=ride_request_id,
+            user=request.user,
+        )
+    except RideRequest.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Ride request not found'}, status=404)
+
+    ride_request.status = 'Cancelled'
+    ride_request.save(update_fields=['status'])
+
+    if ride_request.booking:
+        ride_request.booking.status = 'Cancelled'
+        ride_request.booking.driver = None
+        ride_request.booking.save(update_fields=['status', 'driver'])
+
+        ride_pin = RidePin.objects.filter(booking=ride_request.booking).first()
+        if ride_pin:
+            ride_pin.is_active = False
+            ride_pin.pin_plain = ''
+            ride_pin.save(update_fields=['is_active', 'pin_plain'])
+
+    return JsonResponse({
+        'success': True,
+        'message': 'Ride request cancelled',
+        'redirect_url': reverse('homepage'),
     })
 
 
