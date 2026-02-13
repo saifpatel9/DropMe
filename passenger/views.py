@@ -56,7 +56,8 @@ def passenger_dashboard(request):
         if active_booking.status == 'Confirmed':
             current_state = 'confirmed'
         elif active_booking.status == 'Arrived':
-            current_state = 'driver_arrived'
+            # Keep passenger on the confirmed screen and surface "Arrived" inline.
+            current_state = 'confirmed'
         elif active_booking.status == 'Ongoing':
             current_state = 'ride_started'
     
@@ -542,7 +543,8 @@ def update_safety_preferences(request):
 def submit_rating(request, booking_id):
     passenger = request.user
     rating_raw = request.POST.get("rating")
-    feedback_text = request.POST.get("comments", "")
+    # Accept both current ("comments") and legacy ("feedback") field names.
+    feedback_text = request.POST.get("comments", request.POST.get("feedback", ""))
 
     if not rating_raw:
         messages.error(request, "Rating is required.")
@@ -915,6 +917,8 @@ def confirm_booking(request):
                     drop_latitude=drop_latitude,
                     drop_longitude=drop_longitude,
                     fare=fare,
+                    distance_km=distance_value,
+                    duration_min=int(duration_value),
                     service_type=service_type_obj,
                     scheduled_time=scheduled_time_value,
                     status='Requested',
@@ -1423,16 +1427,6 @@ def booking_details_api(request, booking_id):
         return JsonResponse({'success': False, 'error': 'Booking not found'}, status=404)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
-def driver_arrived_view(request, booking_id):
-    booking = get_object_or_404(Booking, booking_id=booking_id, user=request.user)
-    ride_pin_obj = RidePin.objects.filter(booking=booking, is_active=True).first()
-    context = {
-        'booking': booking,
-        'driver': booking.driver,
-        'ride_pin': ride_pin_obj.pin_plain if ride_pin_obj else None,
-    }
-    return render(request, 'passenger/driver_arrived.html', context)
 
 @login_required
 def ride_completed_view(request, booking_id):

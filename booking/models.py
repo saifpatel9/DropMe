@@ -76,6 +76,8 @@ class RideRequest(models.Model):
     drop_longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=False, null=False)
     scheduled_time = models.DateTimeField(default=timezone.now)
     fare = models.DecimalField(max_digits=10, decimal_places=2, blank=False, null=False)
+    distance_km = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    duration_min = models.IntegerField(blank=True, null=True)
     service_type = models.ForeignKey(ServiceType, on_delete=models.CASCADE)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Requested')
     payment_mode = models.CharField(max_length=50, null=True, blank=True)

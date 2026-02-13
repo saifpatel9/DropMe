@@ -586,7 +586,7 @@ html {
     bottom: 0;
     left: 0;
     right: 0;
-    height: 120px;
+    height: 150px;
     background: white;
     border-top-left-radius: 25px;
     border-top-right-radius: 25px;
@@ -627,6 +627,47 @@ html {
     color: #6b7280;
     text-align: center;
     margin-top: 5px;
+}
+
+.route-metrics {
+    display: none;
+    width: 100%;
+    margin-top: 10px;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 10px;
+    justify-content: center;
+    align-items: center;
+    gap: 18px;
+}
+
+.route-metrics.show {
+    display: flex;
+}
+
+.route-metric {
+    text-align: center;
+    min-width: 90px;
+}
+
+.route-metric-label {
+    font-size: 11px;
+    color: #6b7280;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.route-metric-value {
+    font-size: 18px;
+    color: #00A59E;
+    font-weight: 700;
+    margin-top: 2px;
+}
+
+.route-metric-sep {
+    width: 1px;
+    height: 26px;
+    background: #e5e7eb;
 }
 
 .status-unavailable {
@@ -674,7 +715,7 @@ html {
     }
     
     .bottom-status-card {
-        height: 100px;
+        height: 128px;
         padding: 15px;
     }
     
@@ -684,6 +725,16 @@ html {
     
     .status-submessage {
         font-size: 12px;
+    }
+
+    .route-metrics {
+        margin-top: 8px;
+        padding-top: 8px;
+        gap: 12px;
+    }
+
+    .route-metric-value {
+        font-size: 16px;
     }
 }
 
@@ -888,6 +939,17 @@ html {
                 Turn on availability to start receiving rides
             {% endif %}
     </div>
+        <div class="route-metrics" id="route-metrics">
+            <div class="route-metric">
+                <div class="route-metric-label" id="route-context-label">Route</div>
+                <div class="route-metric-value" id="route-distance-value">-</div>
+            </div>
+            <div class="route-metric-sep"></div>
+            <div class="route-metric">
+                <div class="route-metric-label">ETA</div>
+                <div class="route-metric-value" id="route-eta-value">-</div>
+            </div>
+        </div>
     </div>
 
     <!-- Driver Arrived Button (shown after ride acceptance) -->
@@ -1668,6 +1730,9 @@ html {
 
         // Close popup immediately for better UX
         closeRideRequest();
+        // Do not depend on GPS/proximity or network response; show action immediately on accept.
+        showDriverArrivedButton();
+        updateStatusCard('Ride Accepted', 'Heading to pickup location');
 
         // Function to get passenger coordinates with fallback to geocoding
         async function getPassengerCoordinates() {
@@ -1792,8 +1857,6 @@ html {
                         }
                         console.log('Ride accepted successfully');
                         showToast('Ride accepted successfully!', 'success');
-                        showDriverArrivedButton();
-                        updateStatusCard('Ride Accepted', 'Heading to pickup location');
                     }).catch(() => {
                         // If JSON parsing fails, treat as redirect
                         handleAcceptSuccess(rideData.id);
@@ -2041,18 +2104,66 @@ html {
         // Add popup to passenger marker
         passengerMarker.bindPopup(`<b>Pickup Location</b><br>${pickupAddress || 'Passenger Location'}`).openPopup();
 
-        // Draw route polyline with smooth animation (using validated coordinates)
-        const routePoints = [[driverLat, driverLng], [passengerLat, passengerLng]];
-        routePolyline = L.polyline(routePoints, {
-            color: '#00A59E',
-            weight: 5,
-            opacity: 0.7,
-            dashArray: '10, 10'
-        }).addTo(map);
+        // Fallback straight-line values if routing API fails.
+        const fallbackDistance = calculateDistance(driverLat, driverLng, passengerLat, passengerLng);
+        const fallbackEta = Math.ceil(fallbackDistance / 0.5); // ~30 km/h fallback
 
-        // Calculate distance and ETA
-        const distance = calculateDistance(driverLat, driverLng, passengerLat, passengerLng);
-        const eta = Math.ceil(distance / 0.5); // Assuming average speed of 30 km/h (0.5 km/min)
+        const driverLatLng = L.latLng(driverLat, driverLng);
+        const passengerLatLng = L.latLng(passengerLat, passengerLng);
+
+        try {
+            routeControl = L.Routing.control({
+                waypoints: [driverLatLng, passengerLatLng],
+                router: L.Routing.osrmv1({
+                    serviceUrl: 'https://router.project-osrm.org/route/v1'
+                }),
+                addWaypoints: false,
+                draggableWaypoints: false,
+                fitSelectedRoutes: false,
+                show: false,
+                lineOptions: {
+                    styles: [
+                        { color: '#00A59E', opacity: 0.9, weight: 6 },
+                        { color: '#0EB9D3', opacity: 0.7, weight: 2 }
+                    ]
+                },
+                createMarker: function() { return null; }
+            }).addTo(map);
+
+            routeControl.on('routesfound', function(e) {
+                const routes = e.routes;
+                if (routes && routes.length > 0) {
+                    const route = routes[0];
+                    const routeDistance = (route.summary.totalDistance || 0) / 1000;
+                    const routeDuration = Math.ceil((route.summary.totalTime || 0) / 60);
+                    updateRouteMetrics(routeDistance, routeDuration, 'To Pickup');
+                    // Keep old map overlay behavior, now with route-based values.
+                    showRouteInfo(routeDistance, routeDuration);
+                }
+            });
+
+            routeControl.on('routingerror', function(e) {
+                console.warn('Routing API error for driver-to-pickup route, using fallback:', e);
+                routePolyline = L.polyline([[driverLat, driverLng], [passengerLat, passengerLng]], {
+                    color: '#00A59E',
+                    weight: 5,
+                    opacity: 0.7,
+                    dashArray: '10, 10'
+                }).addTo(map);
+                updateRouteMetrics(fallbackDistance, fallbackEta, 'To Pickup (Approx)');
+                showRouteInfo(fallbackDistance, fallbackEta);
+            });
+        } catch (error) {
+            console.error('Error creating driver-to-pickup route control, using fallback:', error);
+            routePolyline = L.polyline([[driverLat, driverLng], [passengerLat, passengerLng]], {
+                color: '#00A59E',
+                weight: 5,
+                opacity: 0.7,
+                dashArray: '10, 10'
+            }).addTo(map);
+            updateRouteMetrics(fallbackDistance, fallbackEta, 'To Pickup (Approx)');
+            showRouteInfo(fallbackDistance, fallbackEta);
+        }
 
         // Fit map to show both locations with padding
         if (driverMarker && passengerMarker) {
@@ -2063,14 +2174,11 @@ html {
             });
         }
 
-        // Show route info card
-        showRouteInfo(distance, eta);
-
         console.log('Route drawn successfully:', {
             driver: [driverLat, driverLng],
             passenger: [passengerLat, passengerLng],
-            distance: distance.toFixed(2) + ' km',
-            eta: eta + ' min'
+            fallbackDistance: fallbackDistance.toFixed(2) + ' km',
+            fallbackEta: fallbackEta + ' min'
         });
     }
 
@@ -2124,6 +2232,7 @@ html {
             map.removeControl(routeInfoCard);
             routeInfoCard = null;
         }
+        clearRouteMetrics();
     }
 
     // Helper function to replace Start Ride button with End Ride button
@@ -2245,6 +2354,7 @@ html {
 
                     // Update or show route info card with actual route data
                     showRideRouteInfo(parseFloat(routeDistance), routeDuration);
+                    updateRouteMetrics(parseFloat(routeDistance), routeDuration, 'Trip Route');
                 }
             });
 
@@ -2252,6 +2362,7 @@ html {
             routeControl.on('routingerror', function(e) {
                 console.warn('Routing API error, using fallback distance/ETA:', e);
                 showRideRouteInfo(distance, estimatedETA);
+                updateRouteMetrics(distance, estimatedETA, 'Trip Route (Approx)');
             });
         } catch (error) {
             console.error('Error creating route control, using fallback:', error);
@@ -2263,6 +2374,7 @@ html {
                 dashArray: '10, 10'
             }).addTo(map);
             showRideRouteInfo(distance, estimatedETA);
+            updateRouteMetrics(distance, estimatedETA, 'Trip Route (Approx)');
         }
 
         // Fit map to show all markers (pickup, dropoff, and driver if available)
@@ -2455,10 +2567,31 @@ html {
             });
     }
 
+    function ensureDriverArrivedButton() {
+        const container = document.getElementById('driver-arrived-button-container');
+        if (!container) return;
+
+        let driverArrivedBtn = container.querySelector('#driver-arrived-btn');
+        if (!driverArrivedBtn) {
+            container.innerHTML = `
+                <button id="driver-arrived-btn" class="driver-arrived-btn">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Driver Arrived</span>
+                </button>
+            `;
+            driverArrivedBtn = container.querySelector('#driver-arrived-btn');
+        }
+
+        if (driverArrivedBtn) {
+            driverArrivedBtn.onclick = handleDriverArrived;
+        }
+    }
+
     // Show Driver Arrived button
     function showDriverArrivedButton() {
         const container = document.getElementById('driver-arrived-button-container');
         if (container) {
+            ensureDriverArrivedButton();
             container.style.display = 'block';
         }
     }
@@ -2521,6 +2654,34 @@ html {
         if (statusSubmessage) {
             statusSubmessage.textContent = subMessage;
         }
+    }
+
+    function updateRouteMetrics(distanceKm, etaMin, contextLabel) {
+        const metricsRow = document.getElementById('route-metrics');
+        const distanceEl = document.getElementById('route-distance-value');
+        const etaEl = document.getElementById('route-eta-value');
+        const contextEl = document.getElementById('route-context-label');
+        if (!metricsRow || !distanceEl || !etaEl || !contextEl) {
+            return;
+        }
+
+        const safeDistance = Number.isFinite(distanceKm) ? distanceKm : null;
+        const safeEta = Number.isFinite(etaMin) ? etaMin : null;
+        distanceEl.textContent = safeDistance !== null ? `${safeDistance.toFixed(1)} km` : '-';
+        etaEl.textContent = safeEta !== null ? `${Math.max(1, Math.ceil(safeEta))} min` : '-';
+        contextEl.textContent = contextLabel || 'Route';
+        metricsRow.classList.add('show');
+    }
+
+    function clearRouteMetrics() {
+        const metricsRow = document.getElementById('route-metrics');
+        const distanceEl = document.getElementById('route-distance-value');
+        const etaEl = document.getElementById('route-eta-value');
+        const contextEl = document.getElementById('route-context-label');
+        if (distanceEl) distanceEl.textContent = '-';
+        if (etaEl) etaEl.textContent = '-';
+        if (contextEl) contextEl.textContent = 'Route';
+        if (metricsRow) metricsRow.classList.remove('show');
     }
 
     // Handle successful ride acceptance

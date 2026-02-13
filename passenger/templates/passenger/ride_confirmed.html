@@ -138,6 +138,11 @@
         }
 
         .status-badge i { font-size: 14px; flex-shrink: 0; }
+        .status-badge.arrived {
+            background: #ecfdf5;
+            color: #065f46;
+            border: 1px solid rgba(16, 185, 129, 0.28);
+        }
 
         .live-dot {
             width: 7px;
@@ -553,6 +558,56 @@
             font-weight: 400;
         }
 
+        .arrived-banner {
+            display: none;
+            margin-bottom: 14px;
+            padding: 12px 14px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(5, 150, 105, 0.10));
+            border: 1px solid rgba(16, 185, 129, 0.30);
+            border-radius: 12px;
+            color: #065f46;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .arrived-banner.show {
+            display: flex;
+            animation: fadeInUp 0.25s ease;
+        }
+
+        .arrived-pulse {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #10b981;
+            margin-top: 4px;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.55);
+            animation: arrivedPulse 1.6s infinite;
+            flex-shrink: 0;
+        }
+
+        .arrived-title {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .arrived-text {
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        @keyframes arrivedPulse {
+            0%   { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.55); }
+            70%  { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* ============================================
            ACTION BAR + BUTTONS
            Mirrors .action-bar and .book-btn exactly
@@ -696,7 +751,7 @@
             <i class="fas fa-home"></i>
         </a>
 
-        <div class="status-badge">
+        <div class="status-badge {% if booking.status == 'Arrived' %}arrived{% endif %}" id="status-badge">
             {% if no_driver %}
                 <i class="fas fa-car-side" style="color: #9ca3af;"></i>
                 <span>No Drivers Available</span>
@@ -704,8 +759,8 @@
                 <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
                 <span>Booking Failed</span>
             {% else %}
-                <span class="live-dot"></span>
-                <span>Ride Confirmed</span>
+                <span class="live-dot" id="status-dot"></span>
+                <span id="status-text">{% if booking.status == 'Arrived' %}Driver Arrived{% else %}Ride Confirmed{% endif %}</span>
             {% endif %}
         </div>
     </div>
@@ -774,6 +829,13 @@
     </div>
 
     <div class="panel-content">
+        <div class="arrived-banner {% if booking.status == 'Arrived' %}show{% endif %}" id="arrived-banner">
+            <div class="arrived-pulse"></div>
+            <div>
+                <div class="arrived-title">Driver Has Arrived</div>
+                <div class="arrived-text">Your driver is at the pickup point. Please share the PIN to start your ride.</div>
+            </div>
+        </div>
 
         <!-- PIN Block -->
         {% if ride_pin %}
@@ -884,8 +946,8 @@
         <div class="eta-notice">
             <i class="fas fa-clock"></i>
             <div>
-                <div>{{ eta_message }}</div>
-                <div class="eta-sub">Please be ready at your pickup location</div>
+                <div id="eta-text">{% if booking.status == 'Arrived' %}Your driver has reached pickup{% else %}{{ eta_message }}{% endif %}</div>
+                <div class="eta-sub" id="eta-subtext">{% if booking.status == 'Arrived' %}Please meet your driver and share the ride PIN{% else %}Please be ready at your pickup location{% endif %}</div>
             </div>
         </div>
 
@@ -946,6 +1008,22 @@ window.addEventListener('resize', () => setPanelHeight(panelExpanded));
 // ── Polling — identical logic to original ───────────
 {% if not no_driver and not error %}
 let pollInterval;
+const statusBadge = document.getElementById('status-badge');
+const statusText = document.getElementById('status-text');
+const arrivedBanner = document.getElementById('arrived-banner');
+const etaText = document.getElementById('eta-text');
+const etaSubtext = document.getElementById('eta-subtext');
+
+function setArrivedUi(isArrived) {
+    if (!statusBadge || !statusText || !arrivedBanner || !etaText || !etaSubtext) return;
+    statusBadge.classList.toggle('arrived', !!isArrived);
+    statusText.textContent = isArrived ? 'Driver Arrived' : 'Ride Confirmed';
+    arrivedBanner.classList.toggle('show', !!isArrived);
+    etaText.textContent = isArrived ? 'Your driver has reached pickup' : '{{ eta_message|escapejs }}';
+    etaSubtext.textContent = isArrived
+        ? 'Please meet your driver and share the ride PIN'
+        : 'Please be ready at your pickup location';
+}
 
 function startPolling() {
     pollInterval = setInterval(async () => {
@@ -953,15 +1031,13 @@ function startPolling() {
             const response = await fetch("{% url 'booking_status_api' booking_id=booking_id %}");
             const data = await response.json();
 
-            if (
+            const isArrived = (
                 (data.status === "Arrived") ||
                 (data.arrived === true && data.status !== "Ongoing" && data.status !== "Completed")
-            ) {
-                document.body.classList.add('redirecting');
-                setTimeout(() => {
-                    window.location.href = "{% url 'driver_arrived' booking_id=booking_id %}";
-                }, 200);
-            } else if (data.status === "Ongoing") {
+            );
+            setArrivedUi(isArrived);
+
+            if (data.status === "Ongoing") {
                 document.body.classList.add('redirecting');
                 setTimeout(() => {
                     window.location.href = "{% url 'ride_started' booking_id=booking_id %}";
@@ -973,7 +1049,10 @@ function startPolling() {
     }, 5000);
 }
 
-document.addEventListener('DOMContentLoaded', startPolling);
+document.addEventListener('DOMContentLoaded', () => {
+    setArrivedUi({% if booking.status == 'Arrived' %}true{% else %}false{% endif %});
+    startPolling();
+});
 
 window.addEventListener('beforeunload', () => {
     if (pollInterval) clearInterval(pollInterval);

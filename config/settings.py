@@ -97,7 +97,7 @@ else:
             "ENGINE": "django.db.backends.mysql",
             "NAME": "cabdb",        # your local DB name
             "USER": "cabuser",          # change if different
-            "PASSWORD": "root1234",  # your MySQL password
+            "PASSWORD": "CabUser@1234",  # your MySQL password
             "HOST": "127.0.0.1",
             "PORT": "3306",
             "OPTIONS": {

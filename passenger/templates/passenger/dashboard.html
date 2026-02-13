@@ -170,22 +170,7 @@
             </div>
         </div>
 
-        <!-- SECTION 5: DRIVER ARRIVED -->
-        <div id="driverArrivedSection" class="section-transition {% if current_state != 'driver_arrived' %}section-hidden{% else %}section-visible{% endif %}">
-            <div class="info-card rounded-2xl shadow-lg p-8 text-center">
-                <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center">
-                    <i class="fas fa-map-marker-alt text-emerald-600 text-3xl"></i>
-                </div>
-                <h2 class="text-3xl font-bold text-gradient mb-2">Driver Has Arrived</h2>
-                <p class="text-gray-600 mb-6">Your driver has arrived at the pickup location.</p>
-                
-                <div id="arrivedDriverInfo" class="bg-white rounded-xl p-6 mb-4">
-                    <!-- Driver info will be populated here -->
-                </div>
-            </div>
-        </div>
-
-        <!-- SECTION 6: RIDE STARTED -->
+        <!-- SECTION 5: RIDE STARTED -->
         <div id="rideStartedSection" class="section-transition {% if current_state != 'ride_started' %}section-hidden{% else %}section-visible{% endif %}">
             <div class="info-card rounded-2xl shadow-lg p-8">
                 <div class="text-center mb-6">
@@ -205,7 +190,7 @@
             </div>
         </div>
 
-        <!-- SECTION 7: RIDE COMPLETED -->
+        <!-- SECTION 6: RIDE COMPLETED -->
         <div id="rideCompletedSection" class="section-transition section-hidden">
             <div class="info-card rounded-2xl shadow-lg p-8 text-center">
                 <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-green-100 flex items-center justify-center">
@@ -290,8 +275,6 @@
             // Load initial data if needed
             if (currentRideState === 'confirmed' && activeBookingId) {
                 loadBookingDetails(activeBookingId);
-            } else if (currentRideState === 'driver_arrived' && activeBookingId) {
-                loadBookingDetails(activeBookingId);
             } else if (currentRideState === 'ride_started' && activeBookingId) {
                 loadBookingDetails(activeBookingId);
             }
@@ -330,10 +313,10 @@
                 fetch(url)
                     .then(r => r.json())
                     .then(data => {
-                        if (data.status === 'Arrived' && currentRideState !== 'driver_arrived') {
-                            currentRideState = 'driver_arrived';
+                        if (data.status === 'Arrived' && currentRideState !== 'confirmed') {
+                            currentRideState = 'confirmed';
                             loadBookingDetails(activeBookingId);
-                            showSection('driverArrivedSection');
+                            showSection('rideConfirmedSection');
                         } else if (data.status === 'Ongoing' && currentRideState !== 'ride_started') {
                             currentRideState = 'ride_started';
                             loadBookingDetails(activeBookingId);
@@ -368,7 +351,6 @@
             if (data.driver) {
                 const driverInitials = (data.driver.first_name[0] || '') + (data.driver.last_name[0] || '');
                 const confirmedDriverInfo = document.getElementById('confirmedDriverInfo');
-                const arrivedDriverInfo = document.getElementById('arrivedDriverInfo');
                 
                 const driverHtml = `
                     <div class="flex items-center">
@@ -384,7 +366,6 @@
                 `;
                 
                 if (confirmedDriverInfo) confirmedDriverInfo.innerHTML = driverHtml;
-                if (arrivedDriverInfo) arrivedDriverInfo.innerHTML = driverHtml;
             }
             
             if (data.pickup) {
@@ -452,4 +433,3 @@
     </div>
 </body>
 </html>
-

@@ -165,6 +165,8 @@ def accept_ride(request, ride_request_id):
             drop_latitude=ride_request.drop_latitude,
             drop_longitude=ride_request.drop_longitude,
             fare=ride_request.fare,
+            distance_km=ride_request.distance_km,
+            duration_min=ride_request.duration_min,
             scheduled_time=ride_request.scheduled_time,
             payment_mode=ride_request.payment_mode,
             service_type=ride_request.service_type,

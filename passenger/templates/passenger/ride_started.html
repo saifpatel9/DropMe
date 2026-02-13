@@ -1,298 +1,1419 @@
 {% load static %}
-{% block extra_css %}
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link rel="stylesheet" href="{% static 'css/global.css' %}">
-<link rel="stylesheet" href="{% static 'css/responsive.css' %}">
-<link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
-<link rel="stylesheet" href="{% static 'css/passenger-mobile.css' %}">
-<style>
-  .pulse-ring {
-    animation: pulse-ring 2s infinite;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Ride Started</title>
+    
+    <!-- External Dependencies -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+  /* ============================================
+     CRITICAL RESET - OVERRIDE ALL EXTERNAL CSS
+     ============================================ */
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
   }
-  @keyframes pulse-ring {
-    0% { transform: scale(0.8); opacity: 1; }
-    100% { transform: scale(2.4); opacity: 0; }
+
+  html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: fixed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  .ride-status-indicator {
-    position: relative;
-    display: inline-block;
+
+  body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: fixed;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f5f5f5;
   }
-  .ride-status-indicator::before {
-    content: '';
+
+  /* Force remove any container constraints */
+  .container,
+  .app-container,
+  .screen-content {
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  :root {
+    --primary: #00A59E;
+    --primary-dark: #008580;
+    --secondary: #0EB9D3;
+    --success: #10b981;
+    --danger: #ef4444;
+    --text-dark: #1a1a1a;
+    --text-gray: #6b7280;
+    --text-light: #9ca3af;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  /* ============================================
+     FULL-SCREEN MAP LAYER (BASE)
+     ============================================ */
+  
+  .map-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    z-index: 1;
+    background: #e5e7eb;
+  }
+
+  #ride-map {
+    width: 100%;
+    height: 100%;
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 20px;
-    height: 20px;
-    background: #10b981;
+    top: 0;
+    left: 0;
+  }
+
+  /* Force Leaflet to fill container */
+  .leaflet-container {
+    width: 100% !important;
+    height: 100% !important;
+    font-family: inherit !important;
+    background: #e5e7eb !important;
+  }
+
+  .leaflet-pane {
+    z-index: auto !important;
+  }
+
+  .leaflet-routing-container {
+    display: none !important;
+  }
+
+  .leaflet-control-zoom {
+    border: none !important;
+    box-shadow: var(--shadow-md) !important;
+    border-radius: 10px !important;
+    overflow: hidden;
+    margin-top: 60px !important;
+  }
+
+  .leaflet-control-zoom a {
+    width: 36px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+    border: none !important;
+    background: white !important;
+    color: var(--text-dark) !important;
+  }
+
+  .leaflet-top {
+    top: 0 !important;
+  }
+
+  .leaflet-left {
+    left: 0 !important;
+  }
+
+  /* ============================================
+     TOP BAR - BACK BUTTON & STATUS
+     ============================================ */
+  
+  .top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: max(env(safe-area-inset-top), 12px) 16px 12px;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .top-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    pointer-events: auto;
+    max-width: 100%;
+  }
+
+  .back-btn {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
     border-radius: 50%;
-    animation: pulse-ring 2s infinite;
-  }
-  .info-card {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(249, 250, 251, 0.95));
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-  }
-  .driver-avatar {
-    background: linear-gradient(135deg, #00A59E, #0EB9D3);
+    background: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
-    font-weight: bold;
-    font-size: 1.25rem;
+    box-shadow: var(--shadow-md);
+    border: none;
+    color: var(--text-dark);
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
   }
-  .route-line {
-    position: relative;
+
+  .back-btn:active {
+    transform: scale(0.94);
   }
-  .route-line::before {
-    content: '';
-    position: absolute;
-    left: 15px;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: linear-gradient(180deg, #00A59E, #0EB9D3);
-  }
-  .location-dot {
+
+  .route-badge {
+    flex: 1;
+    min-width: 0;
     background: white;
-    border: 3px solid #00A59E;
+    padding: 10px 16px;
+    border-radius: 24px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-dark);
+    white-space: nowrap;
+    overflow: hidden;
   }
-  .location-dot.destination {
-    border-color: #0EB9D3;
+
+  .route-badge i {
+    color: var(--primary);
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .route-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+    flex-shrink: 0;
+    animation: pulse-dot 1.6s infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.45; transform: scale(0.75); }
+  }
+
+  /* ============================================
+     BOTTOM SHEET - RIDE DETAILS PANEL
+     ============================================ */
+  
+  .bottom-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+    background: white;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.15);
+    height: 32vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    transition: height 0.25s ease;
+  }
+
+  .bottom-panel.expanded {
+    height: 75vh;
+  }
+
+  .bottom-panel.collapsed {
+    height: 32vh;
+  }
+
+  .bottom-panel::-webkit-scrollbar {
+    width: 0;
+    display: none;
+  }
+
+  .panel-handle {
+    width: 36px;
+    height: 4px;
+    background: #d1d5db;
+    border-radius: 2px;
+    margin: 12px auto 8px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .panel-content {
+    padding: 0 20px calc(env(safe-area-inset-bottom) + 24px);
+  }
+
+  /* ============================================
+     BOOKING ID BADGE
+     ============================================ */
+  
+  .booking-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #f9fafb;
+    border-radius: 12px;
+    margin-bottom: 16px;
+  }
+
+  .booking-badge-label {
+    font-size: 11px;
+    color: var(--text-gray);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .booking-badge-value {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-dark);
+    font-family: 'Courier New', monospace;
+  }
+
+  /* ============================================
+     DRIVER CARD - UNIFIED WITH CHOOSE_RIDE STYLE
+     ============================================ */
+  
+  .driver-card {
+    background: white;
+    border: 2px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: all 0.15s;
+  }
+
+  .driver-avatar {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #e6f7f6, #e0f7fa);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .driver-avatar i {
+    font-size: 24px;
+    color: var(--primary);
+  }
+
+  .driver-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .driver-status {
+    font-size: 11px;
+    color: #047857;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 2px;
+  }
+
+  .driver-status i {
+    font-size: 8px;
+  }
+
+  .driver-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 2px;
+  }
+
+  .driver-vehicle {
+    font-size: 12px;
+    color: var(--text-gray);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .driver-eta {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .eta-value {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-dark);
+  }
+
+  .eta-label {
+    font-size: 10px;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  /* ============================================
+     LOCATIONS DISPLAY
+     ============================================ */
+  
+  .locations {
+    margin-bottom: 16px;
+  }
+
+  .loc-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #f9fafb;
+    border-radius: 12px;
+    margin-bottom: 8px;
+  }
+
+  .loc-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .loc-dot.pickup {
+    background: #10b981;
+  }
+
+  .loc-dot.drop {
+    background: #ef4444;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+
+  .loc-text {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text-dark);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ============================================
+     COLLAPSIBLE SECTIONS
+     ============================================ */
+  
+  .section {
+    border-top: 1px solid #f3f4f6;
+    padding-top: 16px;
+    margin-top: 16px;
+  }
+
+  .section:first-of-type {
+    border-top: none;
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    padding: 8px 0;
+    user-select: none;
+  }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-gray);
+  }
+
+  .section-toggle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .section-toggle i {
+    font-size: 10px;
+    color: var(--text-gray);
+    transition: transform 0.2s;
+  }
+
+  .section.expanded .section-toggle i {
+    transform: rotate(180deg);
+  }
+
+  .section-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.25s ease;
+  }
+
+  .section.expanded .section-body {
+    max-height: 500px;
+  }
+
+  .meta-grid {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    background: #f9fafb;
+    border-radius: 8px;
+  }
+
+  .meta-label {
+    font-size: 12px;
+    color: var(--text-gray);
+    font-weight: 500;
+  }
+
+  .meta-value {
+    font-size: 13px;
+    color: var(--text-dark);
+    font-weight: 700;
+    text-align: right;
+  }
+
+  /* ============================================
+     ACTION BUTTONS
+     ============================================ */
+  
+  .action-bar {
+    position: static;
+    background: white;
+    padding: 12px 0 0;
+    margin-top: 16px;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0, 165, 158, 0.3);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+    text-decoration: none;
+    margin-bottom: 10px;
+  }
+
+  .btn:active {
+    transform: scale(0.98);
+  }
+
+  .btn-share {
+    background: linear-gradient(135deg, #25D366, #128C7E);
+    box-shadow: 0 4px 16px rgba(18, 140, 126, 0.25);
+  }
+
+  .btn-cancel {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1.5px solid #fecaca;
+    box-shadow: none;
+  }
+
+  .safety {
+    margin-top: 12px;
+    background: #fff7ed;
+    border-left: 3px solid #f59e0b;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 11px;
+    color: #9a3412;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.4;
+  }
+
+  .safety i {
+    margin-top: 1px;
+    flex-shrink: 0;
+    font-size: 12px;
+  }
+
+  /* ============================================
+     DESKTOP RESPONSIVE
+     ============================================ */
+  
+  @media (min-width: 1024px) {
+    body {
+      background: #e2e8f0;
+    }
+
+    .map-screen {
+      top: 24px;
+      bottom: 24px;
+      left: 24px;
+      right: 448px;
+      width: auto;
+      height: auto;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
+    }
+
+    .top-bar {
+      top: 24px;
+      left: 24px;
+      right: 448px;
+      border-radius: 18px;
+    }
+
+    .bottom-panel {
+      top: 24px;
+      bottom: 24px;
+      right: 24px;
+      left: auto;
+      width: 400px;
+      height: auto;
+      max-height: calc(100vh - 48px);
+      border-radius: 22px;
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
+    }
+
+    .panel-handle {
+      display: none;
+    }
+  }
+
+  /* ============================================
+     UTILITY
+     ============================================ */
+  
+  .hidden {
+    display: none !important;
   }
 </style>
-{% endblock %}
+</head>
+<body>
 
-{% block content %}
-<div class="app-screen passenger-app">
-  <header class="mobile-header">
-    <div>
-      <div class="brand">Ride in Progress</div>
-      <div class="tagline">Track your trip</div>
+<!-- Base Layer: Full-Screen Map -->
+<div class="map-screen">
+  <div id="ride-map"></div>
+</div>
+
+<!-- Top Bar: Back Button + Live Status -->
+<div class="top-bar">
+  <div class="top-content">
+    <a href="{% url 'homepage' %}" class="back-btn" aria-label="Back">
+      <i class="fas fa-arrow-left"></i>
+    </a>
+    <div class="route-badge">
+      <span class="live-dot"></span>
+      <span class="route-text" id="route-info">Ride in progress</span>
     </div>
-  </header>
-<div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8 px-4">
-  <!-- Main Container -->
-  <div class="max-w-lg mx-auto">
-    
-    <!-- Header Card with Status -->
-    <div class="info-card rounded-2xl shadow-lg p-6 mb-6 card-hover animate-fade-in-up">
-      <div class="text-center">
-        <div class="ride-status-indicator mb-4">
-          <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-            <i class="fas fa-car text-green-600 text-2xl"></i>
-          </div>
-        </div>
-        <h1 class="text-3xl font-heading font-bold text-gradient mb-2">🚖 Ride Started</h1>
-        <div class="inline-flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-medium">
-          <div class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-          {{ booking.status|title }}
-        </div>
-      </div>
-      
-      <div class="mt-6 grid grid-cols-2 gap-4">
-        <div class="text-center">
-          <div class="text-sm text-gray-500 font-body">Booking ID</div>
-          <div class="text-lg font-heading font-semibold text-gray-800">{{ booking.booking_id }}</div>
-        </div>
-        <div class="text-center">
-          <div class="text-sm text-gray-500 font-body">Started At</div>
-          <div class="text-lg font-heading font-semibold text-gray-800">{{ start_time }}</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Route Information -->
-    <div class="info-card rounded-2xl shadow-lg p-6 mb-6 card-hover animate-fade-in-up" style="animation-delay: 0.2s;">
-      <h3 class="text-xl font-heading font-bold text-gray-800 mb-6 flex items-center">
-        <i class="fas fa-route text-gradient mr-3"></i>
-        Trip Route
-      </h3>
-      
-      <div class="route-line pl-8 space-y-6">
-        <!-- Pickup Location -->
-        <div class="relative flex items-start">
-          <div class="location-dot w-4 h-4 rounded-full absolute -left-6 top-2"></div>
-          <div>
-            <div class="text-sm text-gray-500 font-body">Pickup Location</div>
-            <div class="text-gray-800 font-medium">{{ booking.pickup_location }}</div>
-          </div>
-        </div>
-        
-        <!-- Dropoff Location -->
-        <div class="relative flex items-start">
-          <div class="location-dot destination w-4 h-4 rounded-full absolute -left-6 top-2"></div>
-          <div>
-            <div class="text-sm text-gray-500 font-body">Destination</div>
-            <div class="text-gray-800 font-medium">{{ booking.dropoff_location }}</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-6 grid grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-        <div>
-          <div class="text-sm text-gray-500 font-body">Service Type</div>
-          <div class="text-lg font-heading font-semibold text-gray-800">{{ booking.service_type.name }}</div>
-        </div>
-        <div>
-          <div class="text-sm text-gray-500 font-body">Fare</div>
-          <div class="text-xl font-heading font-bold text-gradient">₹{{ booking.fare }}</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Driver Information -->
-    <div class="info-card rounded-2xl shadow-lg p-6 mb-6 card-hover animate-fade-in-up" style="animation-delay: 0.4s;">
-      <h3 class="text-xl font-heading font-bold text-gray-800 mb-6 flex items-center">
-        <i class="fas fa-user-tie text-gradient mr-3"></i>
-        Your Driver
-      </h3>
-      
-      <div class="flex items-center space-x-4">
-        <div class="driver-avatar w-16 h-16 rounded-full">
-          {{ booking.driver.first_name|slice:":1" }}{{ booking.driver.last_name|slice:":1" }}
-        </div>
-        
-        <div class="flex-1">
-          <div class="text-lg font-heading font-bold text-gray-800">
-            {{ booking.driver.first_name }} {{ booking.driver.last_name }}
-          </div>
-          <div class="text-gray-600 font-body flex items-center mt-1">
-            <i class="fas fa-car text-gray-400 mr-2"></i>
-            {{ booking.driver.vehicle_number }}
-          </div>
-        </div>
-      </div>
-
-      
-    </div>
-
-    <!-- Share Ride via WhatsApp -->
-    <div class="info-card rounded-2xl shadow-lg p-6 mb-6 card-hover animate-fade-in-up" style="animation-delay: 0.5s;">
-      <div class="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h3 class="text-lg font-heading font-bold text-gray-800">Share Ride Details</h3>
-          <p class="text-sm text-gray-500">Let friends or family track your ride for safety.</p>
-        </div>
-        <button
-          id="share-ride-btn"
-          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white font-semibold shadow-sm transition transform hover:translate-y-[-1px]"
-          style="background: linear-gradient(135deg, #25D366, #128C7E);"
-          data-passenger="{{ request.user.first_name }} {{ request.user.last_name }}"
-          data-driver="{{ driver_vehicle.name }}"
-          data-vehicle="{{ driver_vehicle.model }}{% if driver_vehicle.color %}, {{ driver_vehicle.color }}{% endif %}{% if driver_vehicle.plate %} • {{ driver_vehicle.plate }}{% endif %}"
-          data-pickup="{{ booking.pickup_location }}"
-          data-dropoff="{{ booking.dropoff_location }}"
-          data-start="{{ start_time }}"
-          data-tracking="{{ tracking_url }}"
-          data-support="{{ support_phone|default:'' }}"
-        >
-          <i class="fab fa-whatsapp text-lg"></i>
-          <span>Share Ride Details via WhatsApp</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="animate-fade-in-up" style="animation-delay: 0.6s;">
-      <form action="{% url 'cancel_booking' %}" method="post">
-        {% csrf_token %}
-        <input type="hidden" name="booking_id" value="{{ booking.booking_id }}">
-        <button type="submit" 
-                class="w-full bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-medium card-hover transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg"
-                onclick="return confirm('Are you sure you want to cancel this ride?')">
-          <i class="fas fa-times mr-3"></i>
-          Cancel Ride
-        </button>
-      </form>
-    </div>
-
-    <!-- Additional Info Footer -->
-    <div class="mt-8 text-center">
-      <p class="text-gray-500 text-sm font-body">
-        <i class="fas fa-shield-alt mr-2"></i>
-        Your ride is being tracked for safety
-      </p>
-    </div>
-
   </div>
 </div>
 
-<script>
-// Add smooth scrolling behavior
-document.addEventListener('DOMContentLoaded', function() {
-    // Add confirmation to cancel button
-    const cancelButton = document.querySelector('button[type="submit"]');
-    if (cancelButton) {
-        cancelButton.addEventListener('click', function(e) {
-            if (!confirm('Are you sure you want to cancel this ride? This action cannot be undone.')) {
-                e.preventDefault();
-            }
-        });
-    }
+<!-- Bottom Panel: Ride Details -->
+<div class="bottom-panel" id="bottom-panel">
+  <div class="panel-handle" id="panel-handle" role="button" tabindex="0" aria-label="Expand or collapse panel"></div>
+  
+  <div class="panel-content">
+    <!-- Booking ID Badge -->
+    <div class="booking-badge">
+      <span class="booking-badge-label">
+        <i class="fas fa-ticket-alt"></i>
+        Booking
+      </span>
+      <span class="booking-badge-value">{{ booking.booking_id }}</span>
+    </div>
 
-    // Poll booking status and redirect to ride completed when done
-    const pollIntervalMs = 3000;
-    const statusUrl = "{% url 'booking_status_api' booking.booking_id %}";
-    const completedRedirectUrl = "{% url 'ride_completed' booking.booking_id %}";
+    <!-- Driver Card - Unified Style -->
+    <div class="driver-card">
+      <div class="driver-avatar">
+        <i class="fas fa-user-circle"></i>
+      </div>
+      <div class="driver-info">
+        <div class="driver-status">
+          <i class="fas fa-circle"></i>
+          <span id="status-value">{{ booking.status|title }}</span>
+        </div>
+        <div class="driver-name">{{ booking.driver.first_name }} {{ booking.driver.last_name }}</div>
+        <div class="driver-vehicle">
+          <i class="fas fa-car"></i>
+          {{ booking.driver.vehicle_number }}
+        </div>
+      </div>
+      <div class="driver-eta">
+        <div class="eta-value" id="summary-eta">--</div>
+        <div class="eta-label">ETA</div>
+      </div>
+    </div>
 
-    function checkStatusAndRedirect() {
-        fetch(statusUrl, { cache: 'no-store' })
-            .then(function(resp) { return resp.json(); })
-            .then(function(data) {
-                if (data && (data.status === 'Completed')) {
-                    window.location.href = completedRedirectUrl;
-                }
-            })
-            .catch(function(_) { /* ignore transient errors */ });
-    }
+    <!-- Locations -->
+    <div class="locations">
+      <div class="loc-row">
+        <div class="loc-dot pickup"></div>
+        <div class="loc-text" id="pickup-location" title="{{ booking.pickup_location }}">{{ booking.pickup_location }}</div>
+      </div>
+      <div class="loc-row">
+        <div class="loc-dot drop"></div>
+        <div class="loc-text" id="drop-location" title="{{ booking.dropoff_location }}">{{ booking.dropoff_location }}</div>
+      </div>
+    </div>
 
-    // Initial check and then interval polling
-    checkStatusAndRedirect();
-    const intervalId = setInterval(checkStatusAndRedirect, pollIntervalMs);
-    // Optional: clear interval on unload
-    window.addEventListener('beforeunload', function() { clearInterval(intervalId); });
-});
+    <!-- Trip Details - Collapsible -->
+    <div class="section" id="trip-details-section">
+      <div class="section-header" onclick="toggleSection('trip-details-section')">
+        <div class="section-title">Trip Details</div>
+        <div class="section-toggle">
+          <i class="fas fa-chevron-down"></i>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="meta-grid">
+          <div class="meta-row">
+            <div class="meta-label">Service Type</div>
+            <div class="meta-value">{{ booking.service_type.name }}</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-label">Fare</div>
+            <div class="meta-value">₹{{ booking.fare }}</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-label">Started At</div>
+            <div class="meta-value">{{ start_time }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-// Share ride details via WhatsApp
-document.addEventListener('DOMContentLoaded', function() {
-    const shareBtn = document.getElementById('share-ride-btn');
-    if (!shareBtn) return;
+    <!-- Driver Info - Collapsible -->
+    <div class="section" id="driver-info-section">
+      <div class="section-header" onclick="toggleSection('driver-info-section')">
+        <div class="section-title">Driver Information</div>
+        <div class="section-toggle">
+          <i class="fas fa-chevron-down"></i>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="meta-grid">
+          <div class="meta-row">
+            <div class="meta-label">Vehicle Model</div>
+            <div class="meta-value">{{ driver_vehicle.model }}</div>
+          </div>
+          {% if driver_vehicle.color %}
+          <div class="meta-row">
+            <div class="meta-label">Color</div>
+            <div class="meta-value">{{ driver_vehicle.color }}</div>
+          </div>
+          {% endif %}
+          {% if driver_vehicle.plate %}
+          <div class="meta-row">
+            <div class="meta-label">License Plate</div>
+            <div class="meta-value">{{ driver_vehicle.plate }}</div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
 
-    shareBtn.addEventListener('click', function() {
-        const passenger = (shareBtn.dataset.passenger || '').trim();
-        const driver = (shareBtn.dataset.driver || '').trim();
-        const vehicle = (shareBtn.dataset.vehicle || '').trim();
-        const pickup = (shareBtn.dataset.pickup || '').trim();
-        const dropoff = (shareBtn.dataset.dropoff || '').trim();
-        const started = (shareBtn.dataset.start || '').trim();
-        const tracking = (shareBtn.dataset.tracking || '').trim();
-        const support = (shareBtn.dataset.support || '').trim();
+    <!-- Actions -->
+    <div class="action-bar">
+      <button
+        id="share-ride-btn"
+        class="btn btn-share"
+        data-passenger="{{ request.user.first_name }} {{ request.user.last_name }}"
+        data-driver="{{ driver_vehicle.name }}"
+        data-vehicle="{{ driver_vehicle.model }}{% if driver_vehicle.color %}, {{ driver_vehicle.color }}{% endif %}{% if driver_vehicle.plate %} • {{ driver_vehicle.plate }}{% endif %}"
+        data-pickup="{{ booking.pickup_location }}"
+        data-dropoff="{{ booking.dropoff_location }}"
+        data-start="{{ start_time }}"
+        data-tracking="{{ tracking_url }}"
+        data-support="{{ support_phone|default:'' }}"
+      >
+        <i class="fab fa-whatsapp"></i>
+        Share Ride via WhatsApp
+      </button>
 
-        const lines = [
-            "I've started a cab ride. Here are my ride details:",
-            passenger ? `Passenger: ${passenger}` : null,
-            driver ? `Driver: ${driver}` : null,
-            vehicle ? `Vehicle: ${vehicle}` : null,
-            pickup ? `From: ${pickup}` : null,
-            dropoff ? `To: ${dropoff}` : null,
-            started ? `Ride started at: ${started}` : null,
-            tracking ? `Track my ride here: ${tracking}` : null,
-            support ? `Support: ${support}` : null,
-        ].filter(Boolean);
+      <form action="{% url 'cancel_booking' %}" method="post" id="cancel-form">
+        {% csrf_token %}
+        <input type="hidden" name="booking_id" value="{{ booking.booking_id }}">
+        <button type="submit" class="btn btn-cancel" id="cancel-btn">
+          <i class="fas fa-times"></i>
+          Cancel Ride
+        </button>
+      </form>
 
-        const message = lines.join('\\n');
-        const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-
-        const opened = window.open(waUrl, '_blank');
-        if (!opened) {
-            alert('WhatsApp is not installed or popups are blocked. Please install WhatsApp to share ride details.');
-        }
-    });
-});
-</script>
+      <div class="safety">
+        <i class="fas fa-shield-alt"></i>
+        <div>
+          Live tracking is active. Share ride details with a trusted contact for safety.
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-{% endblock %}
+
+<!-- Hidden Data Fields -->
+<div class="hidden">
+  <input type="hidden" id="pickup-lat" value="{{ booking.pickup_latitude|default:'' }}">
+  <input type="hidden" id="pickup-lng" value="{{ booking.pickup_longitude|default:'' }}">
+  <input type="hidden" id="drop-lat" value="{{ booking.drop_latitude|default:'' }}">
+  <input type="hidden" id="drop-lng" value="{{ booking.drop_longitude|default:'' }}">
+  <input type="hidden" id="booking-distance-km" value="{{ booking.distance_km|default_if_none:'' }}">
+  <input type="hidden" id="booking-duration-min" value="{{ booking.duration_min|default_if_none:'' }}">
+</div>
+
+<!-- Scripts -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+<script>
+(function() {
+  'use strict';
+
+  // ============================================
+  // CONFIGURATION
+  // ============================================
+  const statusUrl = "{% url 'booking_status_api' booking.booking_id %}";
+  const completedRedirectUrl = "{% url 'ride_completed' booking.booking_id %}";
+
+  const routeInfoEl = document.getElementById('route-info');
+  const statusValueEl = document.getElementById('status-value');
+  const summaryEtaEl = document.getElementById('summary-eta');
+  const bottomPanel = document.getElementById('bottom-panel');
+  const panelHandle = document.getElementById('panel-handle');
+  const isDesktopLayout = window.matchMedia('(min-width: 1024px)').matches;
+
+  const COLLAPSED_VH = 0.32;
+  const EXPANDED_VH = 0.75;
+  const DRAG_THRESHOLD_PX = 40;
+
+  let dragStartY = 0;
+  let dragStartHeight = 0;
+  let isDraggingPanel = false;
+  let map = null;
+  let routingControl = null;
+  let pickupMarker = null;
+  let dropMarker = null;
+  let driverMarker = null;
+  let simulatedRoute = [];
+  let simIndex = 0;
+  let simIntervalId = null;
+  let statusPollId = null;
+  let hasLiveDriverFeed = false;
+  let latestLiveDriverPoint = null;
+  let routeTotalKm = parseFloatSafe(document.getElementById('booking-distance-km')?.value);
+  let routeTotalDurationMin = parseFloatSafe(document.getElementById('booking-duration-min')?.value);
+  let routeDistancePrefixKm = [];
+  const geocodeCache = {};
+
+  // ============================================
+  // ADDRESS TRUNCATION
+  // ============================================
+  function truncateAddress(fullAddress) {
+    if (!fullAddress) return '';
+    const firstCommaIndex = fullAddress.indexOf(',');
+    if (firstCommaIndex === -1) return fullAddress;
+    return fullAddress.substring(0, firstCommaIndex).trim();
+  }
+
+  function applyAddressTruncation() {
+    const pickupEl = document.getElementById('pickup-location');
+    const dropEl = document.getElementById('drop-location');
+    
+    if (pickupEl) {
+      const fullPickup = pickupEl.textContent.trim();
+      pickupEl.textContent = truncateAddress(fullPickup);
+    }
+    
+    if (dropEl) {
+      const fullDrop = dropEl.textContent.trim();
+      dropEl.textContent = truncateAddress(fullDrop);
+    }
+  }
+
+  // ============================================
+  // COLLAPSIBLE SECTIONS
+  // ============================================
+  window.toggleSection = function(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (!section) return;
+    section.classList.toggle('expanded');
+  };
+
+  // ============================================
+  // PANEL COLLAPSE/EXPAND
+  // ============================================
+  function setPanelState(expanded) {
+    if (!bottomPanel) return;
+    bottomPanel.style.transition = 'height 0.25s ease';
+    if (isDesktopLayout) {
+      bottomPanel.classList.remove('collapsed', 'expanded');
+      bottomPanel.style.height = 'calc(100vh - 48px)';
+      return;
+    }
+    if (expanded) {
+      bottomPanel.classList.add('expanded');
+      bottomPanel.classList.remove('collapsed');
+      bottomPanel.style.height = `${Math.round(window.innerHeight * EXPANDED_VH)}px`;
+    } else {
+      bottomPanel.classList.add('collapsed');
+      bottomPanel.classList.remove('expanded');
+      bottomPanel.style.height = `${Math.round(window.innerHeight * COLLAPSED_VH)}px`;
+      bottomPanel.scrollTop = 0;
+    }
+  }
+
+  setPanelState(!isDesktopLayout ? false : true);
+
+  if (panelHandle) {
+    panelHandle.addEventListener('click', () => {
+      const isExpanded = bottomPanel?.classList.contains('expanded');
+      setPanelState(!isExpanded);
+    });
+    panelHandle.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        const isExpanded = bottomPanel?.classList.contains('expanded');
+        setPanelState(!isExpanded);
+      }
+    });
+  }
+
+  if (bottomPanel && !isDesktopLayout) {
+    bottomPanel.addEventListener('scroll', () => {
+      if (bottomPanel.classList.contains('collapsed') && bottomPanel.scrollTop > 8) {
+        setPanelState(true);
+      }
+    });
+  }
+
+  function canStartDrag(target) {
+    if (!bottomPanel) return false;
+    if (target === panelHandle || panelHandle?.contains(target)) return true;
+    return bottomPanel.scrollTop === 0;
+  }
+
+  function onPanelTouchStart(e) {
+    if (isDesktopLayout) return;
+    if (!bottomPanel || e.touches.length !== 1) return;
+    if (!canStartDrag(e.target)) return;
+    isDraggingPanel = false;
+    dragStartY = e.touches[0].clientY;
+    dragStartHeight = bottomPanel.getBoundingClientRect().height;
+    bottomPanel.style.transition = 'none';
+  }
+
+  function onPanelTouchMove(e) {
+    if (isDesktopLayout) return;
+    if (!bottomPanel || e.touches.length !== 1) return;
+    const currentY = e.touches[0].clientY;
+    const deltaY = dragStartY - currentY;
+    const minHeight = window.innerHeight * COLLAPSED_VH;
+    const maxHeight = window.innerHeight * EXPANDED_VH;
+    const isExpanded = bottomPanel.classList.contains('expanded');
+    const atTop = bottomPanel.scrollTop <= 0;
+    const scrollingDown = deltaY < 0;
+
+    if (!isDraggingPanel) {
+      if (e.target === panelHandle || panelHandle?.contains(e.target)) {
+        isDraggingPanel = true;
+      } else if (isExpanded && atTop && scrollingDown) {
+        isDraggingPanel = true;
+      } else {
+        return;
+      }
+    }
+
+    const nextHeight = Math.min(maxHeight, Math.max(minHeight, dragStartHeight + deltaY));
+    bottomPanel.style.height = `${nextHeight}px`;
+    e.preventDefault();
+  }
+
+  function onPanelTouchEnd(e) {
+    if (isDesktopLayout) return;
+    if (!bottomPanel) return;
+    if (!isDraggingPanel) return;
+    isDraggingPanel = false;
+    const endY = e.changedTouches[0].clientY;
+    const deltaY = dragStartY - endY;
+    const isExpanded = bottomPanel.classList.contains('expanded');
+    if (deltaY > DRAG_THRESHOLD_PX) {
+      setPanelState(true);
+    } else if (deltaY < -DRAG_THRESHOLD_PX) {
+      setPanelState(false);
+    } else {
+      setPanelState(isExpanded);
+    }
+  }
+
+  if (bottomPanel && !isDesktopLayout) {
+    bottomPanel.addEventListener('touchstart', onPanelTouchStart, { passive: true });
+    bottomPanel.addEventListener('touchmove', onPanelTouchMove, { passive: false });
+    bottomPanel.addEventListener('touchend', onPanelTouchEnd);
+    bottomPanel.addEventListener('touchcancel', onPanelTouchEnd);
+  }
+
+  window.addEventListener('resize', () => {
+    const desktopNow = window.matchMedia('(min-width: 1024px)').matches;
+    const isExpanded = bottomPanel?.classList.contains('expanded');
+    if (desktopNow) {
+      bottomPanel.classList.remove('collapsed', 'expanded');
+      bottomPanel.style.height = 'calc(100vh - 48px)';
+      return;
+    }
+    setPanelState(isExpanded);
+  });
+
+  // ============================================
+  // MAP & ROUTING LOGIC
+  // ============================================
+  function parseFloatSafe(v) {
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function getCoordsFromDom() {
+    return {
+      pickupLat: parseFloatSafe(document.getElementById('pickup-lat')?.value),
+      pickupLng: parseFloatSafe(document.getElementById('pickup-lng')?.value),
+      dropLat: parseFloatSafe(document.getElementById('drop-lat')?.value),
+      dropLng: parseFloatSafe(document.getElementById('drop-lng')?.value)
+    };
+  }
+
+  function haversineKm(a, b) {
+    const R = 6371;
+    const dLat = (b.lat - a.lat) * Math.PI / 180;
+    const dLng = (b.lng - a.lng) * Math.PI / 180;
+    const lat1 = a.lat * Math.PI / 180;
+    const lat2 = b.lat * Math.PI / 180;
+    const s1 = Math.sin(dLat / 2);
+    const s2 = Math.sin(dLng / 2);
+    const x = s1 * s1 + s2 * s2 * Math.cos(lat1) * Math.cos(lat2);
+    const c = 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+    return R * c;
+  }
+
+  function formatEtaFromKm(distanceKm) {
+    if (!Number.isFinite(distanceKm) || distanceKm <= 0.05) return 'Arriving';
+    let mins = null;
+    if (
+      Number.isFinite(routeTotalKm) &&
+      routeTotalKm > 0 &&
+      Number.isFinite(routeTotalDurationMin) &&
+      routeTotalDurationMin > 0
+    ) {
+      mins = Math.max(1, Math.round((distanceKm / routeTotalKm) * routeTotalDurationMin));
+    } else {
+      const avgKmph = 28;
+      mins = Math.max(1, Math.round((distanceKm / avgKmph) * 60));
+    }
+    return mins + ' min';
+  }
+
+  function buildRouteDistancePrefix(coords) {
+    routeDistancePrefixKm = [];
+    if (!Array.isArray(coords) || coords.length === 0) return;
+    let cumulative = 0;
+    routeDistancePrefixKm.push(0);
+    for (let i = 1; i < coords.length; i += 1) {
+      const prev = coords[i - 1];
+      const curr = coords[i];
+      cumulative += haversineKm(prev, curr);
+      routeDistancePrefixKm.push(cumulative);
+    }
+  }
+
+  function getNearestRouteIndex(point) {
+    if (!Array.isArray(simulatedRoute) || !simulatedRoute.length || !point) return null;
+    let nearestIdx = 0;
+    let nearestDistance = Number.POSITIVE_INFINITY;
+    for (let i = 0; i < simulatedRoute.length; i += 1) {
+      const routePoint = simulatedRoute[i];
+      const d = haversineKm(point, routePoint);
+      if (d < nearestDistance) {
+        nearestDistance = d;
+        nearestIdx = i;
+      }
+    }
+    return nearestIdx;
+  }
+
+  function calculateRemainingKm(driverLatLng) {
+    const drop = dropMarker ? dropMarker.getLatLng() : null;
+    if (!driverLatLng || !drop) return null;
+
+    if (
+      simulatedRoute.length > 1 &&
+      routeDistancePrefixKm.length === simulatedRoute.length &&
+      Number.isFinite(routeTotalKm)
+    ) {
+      const idx = getNearestRouteIndex({ lat: driverLatLng.lat, lng: driverLatLng.lng });
+      if (idx !== null) {
+        const traveledKm = routeDistancePrefixKm[idx];
+        const remaining = Math.max(0, routeTotalKm - traveledKm);
+        return remaining;
+      }
+    }
+
+    return haversineKm(
+      { lat: driverLatLng.lat, lng: driverLatLng.lng },
+      { lat: drop.lat, lng: drop.lng }
+    );
+  }
+
+  function setTripProgress(driverLatLng) {
+    const remainingKm = calculateRemainingKm(driverLatLng);
+    if (!Number.isFinite(remainingKm)) return;
+    const etaText = formatEtaFromKm(remainingKm);
+    const totalKmText = Number.isFinite(routeTotalKm) && routeTotalKm > 0 ? ` • ${routeTotalKm.toFixed(1)} km total` : '';
+    summaryEtaEl.textContent = etaText;
+    routeInfoEl.textContent = `${etaText} • ${remainingKm.toFixed(1)} km left${totalKmText}`;
+  }
+
+  function buildDriverIcon() {
+    return L.divIcon({
+      className: 'driver-pin',
+      html: '<div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#00A59E,#0EB9D3);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,0.25);border:2px solid #fff;"><i class="fas fa-car" style="font-size:13px;color:#fff;"></i></div>',
+      iconSize: [34, 34],
+      iconAnchor: [17, 17]
+    });
+  }
+
+  function buildPickupIcon() {
+    return L.divIcon({
+      className: 'pickup-pin',
+      html: '<div style="width:14px;height:14px;border-radius:50%;background:#10b981;border:2px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,0.2);"></div>',
+      iconSize: [14, 14],
+      iconAnchor: [7, 7]
+    });
+  }
+
+  function buildDropIcon() {
+    return L.divIcon({
+      className: 'drop-pin',
+      html: '<div style="width:14px;height:14px;border-radius:3px;background:#ef4444;border:2px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,0.2);"></div>',
+      iconSize: [14, 14],
+      iconAnchor: [7, 7]
+    });
+  }
+
+  async function geocodeLabel(label) {
+    if (!label) return null;
+    if (Object.prototype.hasOwnProperty.call(geocodeCache, label)) return geocodeCache[label];
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(label)}&limit=1`;
+      const resp = await fetch(url, { headers: { 'Accept': 'application/json' }});
+      const data = await resp.json();
+      if (Array.isArray(data) && data.length > 0) {
+        const point = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+        geocodeCache[label] = point;
+        return point;
+      }
+    } catch (_) {}
+    geocodeCache[label] = null;
+    return null;
+  }
+
+  async function ensureCoords() {
+    const raw = getCoordsFromDom();
+    let pickup = (raw.pickupLat !== null && raw.pickupLng !== null) ? { lat: raw.pickupLat, lng: raw.pickupLng } : null;
+    let drop = (raw.dropLat !== null && raw.dropLng !== null) ? { lat: raw.dropLat, lng: raw.dropLng } : null;
+
+    if (!pickup) {
+      pickup = await geocodeLabel("{{ booking.pickup_location|escapejs }}");
+    }
+    if (!drop) {
+      drop = await geocodeLabel("{{ booking.dropoff_location|escapejs }}");
+    }
+
+    return { pickup, drop };
+  }
+
+  function fitMapToMarkers() {
+    if (!map || !pickupMarker || !dropMarker) return;
+    const group = L.featureGroup([pickupMarker, dropMarker]);
+    map.fitBounds(group.getBounds(), { paddingTopLeft: [20, 110], paddingBottomRight: [20, Math.round(window.innerHeight * 0.35)] });
+  }
+
+  function setDriverPosition(lat, lng) {
+    if (lat === null || lng === null) return;
+    latestLiveDriverPoint = { lat: lat, lng: lng };
+    if (!driverMarker) return;
+    const point = L.latLng(lat, lng);
+    driverMarker.setLatLng(point);
+    setTripProgress(point);
+  }
+
+  function startSimulatedMovement() {
+    if (!simulatedRoute.length || !driverMarker || simIntervalId) return;
+    simIntervalId = window.setInterval(function() {
+      if (hasLiveDriverFeed) return;
+      const drop = dropMarker ? dropMarker.getLatLng() : null;
+      const current = driverMarker.getLatLng();
+      if (drop && haversineKm({ lat: current.lat, lng: current.lng }, { lat: drop.lat, lng: drop.lng }) <= 0.07) {
+        summaryEtaEl.textContent = 'Arriving';
+        routeInfoEl.textContent = 'Arriving • 0.0 km left';
+        return;
+      }
+
+      simIndex = Math.min(simIndex + 1, simulatedRoute.length - 1);
+      const next = simulatedRoute[simIndex];
+      setDriverPosition(next.lat, next.lng);
+    }, 3500);
+  }
+
+  function stopSimulatedMovement() {
+    if (simIntervalId) {
+      clearInterval(simIntervalId);
+      simIntervalId = null;
+    }
+  }
+
+  function setupRoute(pickup, drop) {
+    if (!map || !pickup || !drop) return;
+
+    pickupMarker = L.marker([pickup.lat, pickup.lng], { icon: buildPickupIcon() }).addTo(map);
+    dropMarker = L.marker([drop.lat, drop.lng], { icon: buildDropIcon() }).addTo(map);
+    const initialDriverPoint = latestLiveDriverPoint || pickup;
+    driverMarker = L.marker([initialDriverPoint.lat, initialDriverPoint.lng], { icon: buildDriverIcon(), zIndexOffset: 1000 }).addTo(map);
+
+    routingControl = L.Routing.control({
+      waypoints: [L.latLng(pickup.lat, pickup.lng), L.latLng(drop.lat, drop.lng)],
+      routeWhileDragging: false,
+      addWaypoints: false,
+      fitSelectedRoutes: false,
+      createMarker: function() { return null; },
+      lineOptions: {
+        styles: [
+          { color: 'rgba(0, 165, 158, 0.2)', weight: 10 },
+          { color: '#00A59E', weight: 5 }
+        ]
+      }
+    }).addTo(map);
+
+    routingControl.on('routesfound', function(e) {
+      const route = e.routes && e.routes[0];
+      if (!route) {
+        fitMapToMarkers();
+        return;
+      }
+
+      if (route.summary) {
+        const summaryDistanceKm = (route.summary.totalDistance || 0) / 1000;
+        const summaryDurationMin = (route.summary.totalTime || 0) / 60;
+        if (summaryDistanceKm > 0) {
+          routeTotalKm = summaryDistanceKm;
+        }
+        if (summaryDurationMin > 0) {
+          routeTotalDurationMin = summaryDurationMin;
+        }
+      }
+
+      if (Array.isArray(route.coordinates) && route.coordinates.length) {
+        simulatedRoute = route.coordinates.map(function(c) { return { lat: c.lat, lng: c.lng }; });
+        buildRouteDistancePrefix(simulatedRoute);
+        if (!Number.isFinite(routeTotalKm) || routeTotalKm <= 0) {
+          routeTotalKm = routeDistancePrefixKm.length ? routeDistancePrefixKm[routeDistancePrefixKm.length - 1] : null;
+        }
+      }
+      fitMapToMarkers();
+      setTripProgress(driverMarker.getLatLng());
+    });
+  }
+
+  async function initializeMap() {
+    map = L.map('ride-map', { zoomControl: true, preferCanvas: true });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const coords = await ensureCoords();
+    if (!coords.pickup || !coords.drop) {
+      map.setView([20.5937, 78.9629], 5);
+      routeInfoEl.textContent = 'Ride in progress';
+      summaryEtaEl.textContent = '--';
+      return;
+    }
+
+    setupRoute(coords.pickup, coords.drop);
+    setTimeout(function() {
+      map.invalidateSize();
+      fitMapToMarkers();
+      startSimulatedMovement();
+    }, 220);
+  }
+
+  // ============================================
+  // STATUS POLLING
+  // ============================================
+  function extractDriverLocation(data) {
+    if (!data || typeof data !== 'object') return null;
+
+    const lat = parseFloatSafe(
+      data.driver_latitude ?? data.driver_lat ?? data.driverLatitude ?? data.lat
+    );
+    const lng = parseFloatSafe(
+      data.driver_longitude ?? data.driver_lng ?? data.driverLongitude ?? data.lng
+    );
+
+    if (lat === null || lng === null) return null;
+    return { lat: lat, lng: lng };
+  }
+
+  function startStatusPolling() {
+    if (statusPollId) return;
+    statusPollId = setInterval(checkStatusAndRedirect, 3000);
+  }
+
+  function stopStatusPolling() {
+    if (statusPollId) {
+      clearInterval(statusPollId);
+      statusPollId = null;
+    }
+  }
+
+  function checkStatusAndRedirect() {
+    fetch(statusUrl, { cache: 'no-store' })
+      .then(function(resp) { return resp.json(); })
+      .then(function(data) {
+        if (data && data.status) {
+          statusValueEl.textContent = data.status;
+        }
+
+        if (data && data.status === 'Completed') {
+          window.location.href = completedRedirectUrl;
+          return;
+        }
+
+        const liveDriver = extractDriverLocation(data);
+        if (liveDriver) {
+          hasLiveDriverFeed = true;
+          stopSimulatedMovement();
+          setDriverPosition(liveDriver.lat, liveDriver.lng);
+        }
+      })
+      .catch(function() {
+        // Keep current state on transient failures
+      });
+  }
+
+  // ============================================
+  // WHATSAPP SHARE
+  // ============================================
+  const shareBtn = document.getElementById('share-ride-btn');
+  if (shareBtn) {
+    shareBtn.addEventListener('click', function() {
+      const passenger = (shareBtn.dataset.passenger || '').trim();
+      const driver = (shareBtn.dataset.driver || '').trim();
+      const vehicle = (shareBtn.dataset.vehicle || '').trim();
+      const pickup = (shareBtn.dataset.pickup || '').trim();
+      const dropoff = (shareBtn.dataset.dropoff || '').trim();
+      const started = (shareBtn.dataset.start || '').trim();
+      const tracking = (shareBtn.dataset.tracking || '').trim();
+      const support = (shareBtn.dataset.support || '').trim();
+
+      const lines = [
+        "I've started a cab ride. Here are my ride details:",
+        passenger ? `Passenger: ${passenger}` : null,
+        driver ? `Driver: ${driver}` : null,
+        vehicle ? `Vehicle: ${vehicle}` : null,
+        pickup ? `From: ${pickup}` : null,
+        dropoff ? `To: ${dropoff}` : null,
+        started ? `Ride started at: ${started}` : null,
+        tracking ? `Track my ride here: ${tracking}` : null,
+        support ? `Support: ${support}` : null
+      ].filter(Boolean);
+
+      const message = lines.join('\n');
+      const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      window.open(waUrl, '_blank');
+    });
+  }
+
+  // ============================================
+  // CANCEL CONFIRMATION
+  // ============================================
+  const cancelBtn = document.getElementById('cancel-btn');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', function(e) {
+      if (!confirm('Are you sure you want to cancel this ride? This action cannot be undone.')) {
+        e.preventDefault();
+      }
+    });
+  }
+
+  // ============================================
+  // INITIALIZE
+  // ============================================
+  document.addEventListener('DOMContentLoaded', function() {
+    applyAddressTruncation();
+    initializeMap();
+    checkStatusAndRedirect();
+    startStatusPolling();
+
+    window.addEventListener('beforeunload', function() {
+      stopStatusPolling();
+      stopSimulatedMovement();
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

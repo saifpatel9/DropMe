@@ -1,64 +1,962 @@
+{% extends "passenger/base_mobile.html" %}
 {% load static %}
+
+{% block title %}Ride Completed - DropMe Cab{% endblock %}
+
 {% block extra_css %}
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link rel="stylesheet" href="{% static 'css/global.css' %}">
-<link rel="stylesheet" href="{% static 'css/responsive.css' %}">
-<link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
-<link rel="stylesheet" href="{% static 'css/passenger-mobile.css' %}">
 <style>
-  .info-card { 
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(249, 250, 251, 0.95));
+  /* ============================================
+     CSS VARIABLES
+     ============================================ */
+  
+  :root {
+    --primary: #00A59E;
+    --primary-dark: #008580;
+    --secondary: #0EB9D3;
+    --text-dark: #1a1a1a;
+    --text-gray: #6b7280;
+    --text-light: #9ca3af;
+    --success: #10b981;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  /* ============================================
+     FULL SCREEN CONTAINER
+     ============================================ */
+  
+  .ride-completed-screen {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ============================================
+     HEADER
+     ============================================ */
+  
+  .completion-header {
+    position: relative;
+    z-index: 100;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    padding: max(env(safe-area-inset-top), 12px) 20px 16px;
+    box-shadow: var(--shadow-md);
+    flex-shrink: 0;
+  }
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .back-btn {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
     backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
   }
-  .text-gradient { 
-    background: linear-gradient(90deg,#00A59E,#0EB9D3); -webkit-background-clip:text; -webkit-text-fill-color:transparent; 
+
+  .back-btn:active {
+    transform: scale(0.94);
+    background: rgba(255, 255, 255, 0.25);
   }
-  .card-hover { transition: transform .2s, box-shadow .2s; }
-  .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,.08); }
-  .btn-primary { background: linear-gradient(90deg,#00A59E,#0EB9D3); }
-  .btn-primary:hover { filter: brightness(0.95); }
-  .checkmark-circle { width: 72px; height: 72px; border-radius: 50%; background: #ECFDF5; display:flex; align-items:center; justify-content:center; margin: 0 auto; }
+
+  .header-info {
+    flex: 1;
+  }
+
+  .trip-id {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+
+  .trip-status {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    margin-top: 2px;
+  }
+
+  /* ============================================
+     SUCCESS HERO
+     ============================================ */
+  
+  .success-hero {
+    background: white;
+    padding: 40px 20px 32px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .success-icon-wrapper {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
+    animation: successPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes successPop {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.1);
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .success-icon-wrapper i {
+    color: white;
+    font-size: 42px;
+  }
+
+  .success-title {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin: 0 0 8px;
+    letter-spacing: -0.3px;
+  }
+
+  .success-subtitle {
+    font-size: 15px;
+    color: var(--text-gray);
+    font-weight: 500;
+    margin: 0;
+  }
+
+  /* ============================================
+     SCROLLABLE CONTENT
+     ============================================ */
+  
+  .content-scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 16px 20px calc(env(safe-area-inset-bottom) + 140px);
+  }
+
+  .content-scroll::-webkit-scrollbar {
+    width: 0;
+    display: none;
+  }
+
+  /* ============================================
+     CARD COMPONENTS
+     ============================================ */
+  
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+  }
+
+  /* ============================================
+     ROUTE SUMMARY
+     ============================================ */
+  
+  .route-summary {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .route-line {
+    width: 4px;
+    min-width: 4px;
+    height: 64px;
+    background: linear-gradient(180deg, var(--success) 0%, var(--primary) 100%);
+    border-radius: 2px;
+    position: relative;
+    margin-top: 4px;
+  }
+
+  .route-line::before,
+  .route-line::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 0 0 3px white;
+  }
+
+  .route-line::before {
+    top: -2px;
+    background: var(--success);
+  }
+
+  .route-line::after {
+    bottom: -2px;
+    background: var(--primary);
+  }
+
+  .route-details {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .route-location {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0 0 4px;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .route-location:last-of-type {
+    margin-top: 16px;
+  }
+
+  .route-meta {
+    font-size: 13px;
+    color: var(--text-gray);
+    margin-top: 14px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .route-meta span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+  }
+
+  .route-meta i {
+    color: var(--text-light);
+    font-size: 12px;
+  }
+
+  /* ============================================
+     DRIVER CARD
+     ============================================ */
+  
+  .driver-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .driver-photo {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #f3f4f6;
+  }
+
+  .driver-photo i {
+    font-size: 30px;
+    color: #9ca3af;
+  }
+
+  .driver-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .driver-name {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 4px;
+  }
+
+  .driver-vehicle {
+    font-size: 14px;
+    color: var(--text-gray);
+    margin: 0 0 6px;
+    font-weight: 500;
+  }
+
+  .driver-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #fef3c7;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #92400e;
+  }
+
+  .driver-rating i {
+    color: #f59e0b;
+    font-size: 12px;
+  }
+
+  /* ============================================
+     FARE BREAKDOWN
+     ============================================ */
+  
+  .fare-card {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .fare-header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s;
+  }
+
+  .fare-header:active {
+    background: #fafafa;
+  }
+
+  .fare-label {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-gray);
+  }
+
+  .fare-total-amount {
+    font-size: 28px;
+    font-weight: 800;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+  }
+
+  .fare-breakdown {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    border-top: 1px solid #f3f4f6;
+  }
+
+  .fare-breakdown.expanded {
+    max-height: 500px;
+  }
+
+  .fare-item {
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+  }
+
+  .fare-item-label {
+    color: var(--text-gray);
+    font-weight: 500;
+  }
+
+  .fare-item-value {
+    color: var(--text-dark);
+    font-weight: 600;
+  }
+
+  .fare-total-row {
+    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .fare-total-row .fare-item-label {
+    font-weight: 700;
+    color: var(--text-dark);
+    font-size: 15px;
+  }
+
+  .fare-total-row .fare-item-value {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--primary);
+  }
+
+  .fare-toggle {
+    padding: 14px 20px;
+    text-align: center;
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .fare-toggle:active {
+    background: #fafafa;
+  }
+
+  .fare-toggle i {
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 12px;
+  }
+
+  .fare-breakdown.expanded + .fare-toggle i {
+    transform: rotate(180deg);
+  }
+
+  /* ============================================
+     PAYMENT METHOD
+     ============================================ */
+  
+  .payment-method {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .payment-icon {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 165, 158, 0.25);
+  }
+
+  .payment-icon i {
+    color: white;
+    font-size: 20px;
+  }
+
+  .payment-details {
+    flex: 1;
+  }
+
+  .payment-label {
+    font-size: 12px;
+    color: var(--text-light);
+    margin: 0 0 4px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .payment-type {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+  }
+
+  /* ============================================
+     RATING SECTION
+     ============================================ */
+  
+  .rating-section {
+    text-align: center;
+    padding: 24px 20px;
+  }
+
+  .rating-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0 0 6px;
+  }
+
+  .rating-subtitle {
+    font-size: 14px;
+    color: var(--text-gray);
+    margin: 0 0 24px;
+    font-weight: 500;
+  }
+
+  .star-rating {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .star {
+    width: 52px;
+    height: 52px;
+    background: #f9fafb;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 26px;
+    color: #d1d5db;
+  }
+
+  .star:active {
+    transform: scale(0.92);
+  }
+
+  .star.selected,
+  .star:hover {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    border-color: #f59e0b;
+    color: white;
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+    transform: translateY(-2px);
+  }
+
+  .star.selected {
+    animation: starPulse 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes starPulse {
+    0%, 100% {
+      transform: translateY(0) scale(1);
+    }
+    50% {
+      transform: translateY(-2px) scale(1.12);
+    }
+  }
+
+  /* ============================================
+     FEEDBACK TEXTAREA
+     ============================================ */
+  
+  .feedback-section {
+    margin-top: 16px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .feedback-section.visible {
+    max-height: 220px;
+  }
+
+  .feedback-textarea {
+    width: 100%;
+    min-height: 110px;
+    padding: 14px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--text-dark);
+    resize: vertical;
+    transition: all 0.2s;
+    background: white;
+  }
+
+  .feedback-textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: #f9fafb;
+    box-shadow: 0 0 0 3px rgba(0, 165, 158, 0.1);
+  }
+
+  .feedback-textarea::placeholder {
+    color: var(--text-light);
+  }
+
+  /* ============================================
+     BOTTOM ACTION BAR
+     ============================================ */
+  
+  .bottom-action-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    padding: 12px 20px calc(env(safe-area-inset-bottom) + 12px);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    z-index: 100;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn {
+    width: 100%;
+    height: 54px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    font-family: inherit;
+  }
+
+  .btn:active {
+    transform: scale(0.98);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: white;
+    box-shadow: 0 4px 16px rgba(0, 165, 158, 0.35);
+  }
+
+  .btn-primary:disabled {
+    background: #d1d5db;
+    color: #9ca3af;
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .btn-primary:disabled:active {
+    transform: none;
+  }
+
+  .btn-secondary {
+    background: #f3f4f6;
+    color: var(--text-dark);
+    font-weight: 600;
+  }
+
+  .btn-secondary:active {
+    background: #e5e7eb;
+  }
+
+  /* ============================================
+     RESPONSIVE - DESKTOP
+     ============================================ */
+  
+  @media (min-width: 768px) {
+    .star-rating {
+      gap: 14px;
+    }
+
+    .star {
+      width: 56px;
+      height: 56px;
+      font-size: 28px;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .ride-completed-screen {
+      position: relative;
+      max-width: 520px;
+      margin: 24px auto;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.18);
+      background: white;
+    }
+
+    .completion-header {
+      border-radius: 20px 20px 0 0;
+    }
+
+    .bottom-action-bar {
+      position: static;
+      border-radius: 0 0 20px 20px;
+    }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="app-screen passenger-app">
-  <header class="mobile-header">
-    <div>
-      <div class="brand">Ride Complete</div>
-      <div class="tagline">Thanks for riding</div>
+<div class="ride-completed-screen">
+  
+  <!-- Header -->
+  <div class="completion-header">
+    <div class="header-content">
+      <a href="{% url 'homepage' %}" class="back-btn">
+        <i class="fas fa-arrow-left"></i>
+      </a>
+      <div class="header-info">
+        <div class="trip-id">Trip #{{ booking.id|default:"12345" }}</div>
+        <div class="trip-status">Completed</div>
+      </div>
     </div>
-  </header>
-<div class="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8 px-4">
-  <div class="max-w-lg mx-auto">
-    <div class="info-card rounded-2xl shadow-lg p-8 mb-6 text-center animate-fade-in-up">
-      <div class="checkmark-circle mb-4">
-        <i class="fas fa-check text-green-600 text-3xl"></i>
-      </div>
-      <h1 class="text-3xl font-heading font-bold text-gradient mb-2">Ride Completed</h1>
-      <p class="text-gray-600 font-body">Your ride has been completed.</p>
-      <div class="mt-6 p-4 rounded-xl bg-white border border-gray-100 inline-flex items-baseline gap-2">
-        <span class="text-sm text-gray-500">Total Fare</span>
-        <span class="text-2xl font-heading font-bold text-gray-900">₹{{ booking.fare }}</span>
-      </div>
-      <div class="mt-8 space-y-3">
-        <a href="#" class="w-full btn-primary text-white px-6 py-3 rounded-xl inline-flex items-center justify-center font-medium card-hover" aria-label="Rate Your Driver">
-          <i class="fas fa-star mr-3"></i>
-          Rate Your Driver
-        </a>
-        <a href="{% url 'homepage' %}" class="w-full btn-primary text-white px-6 py-3 rounded-xl inline-flex items-center justify-center font-medium card-hover" aria-label="Rate Later">
-          <i class="fas fa-clock mr-3"></i>
-          Rate Later
-        </a>
+  </div>
+
+  <!-- Success Hero -->
+  <div class="success-hero">
+    <div class="success-icon-wrapper">
+      <i class="fas fa-check"></i>
+    </div>
+    <h1 class="success-title">Ride Completed</h1>
+    <p class="success-subtitle">Thank you for riding with us</p>
+  </div>
+
+  <!-- Scrollable Content -->
+  <div class="content-scroll">
+    
+    <!-- Route Summary -->
+    <div class="card">
+      <div class="route-summary">
+        <div class="route-line"></div>
+        <div class="route-details">
+          <div class="route-location">{{ booking.pickup_location|default:"Pickup Location" }}</div>
+          <div class="route-location">{{ booking.dropoff_location|default:"Drop-off Location" }}</div>
+          <div class="route-meta">
+            <span><i class="far fa-clock"></i>{{ booking.duration|default:"15 min" }}</span>
+            <span><i class="fas fa-route"></i>{{ booking.distance|default:"5.2 km" }}</span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="text-center text-sm text-gray-500 font-body">
-      Thank you for riding with us.
+    <!-- Driver Info -->
+    <div class="card">
+      <div class="driver-card">
+        <div class="driver-photo">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="driver-info">
+          <div class="driver-name">{{ booking.driver.first_name|default:"Driver Name" }}</div>
+          <div class="driver-vehicle">{{ booking.vehicle_type|default:"Sedan" }} • {{ booking.vehicle_number|default:"MH 12 AB 1234" }}</div>
+          <div class="driver-rating">
+            <i class="fas fa-star"></i>
+            <span>{{ booking.driver.rating|default:"4.8" }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fare Breakdown -->
+    <div class="card fare-card">
+      <div class="fare-header" onclick="toggleFareBreakdown()">
+        <span class="fare-label">Total Fare</span>
+        <span class="fare-total-amount">₹{{ booking.fare|default:"250" }}</span>
+      </div>
+      <div class="fare-breakdown" id="fareBreakdown">
+        <div class="fare-item">
+          <span class="fare-item-label">Base Fare</span>
+          <span class="fare-item-value">₹{{ booking.base_fare|default:"50" }}</span>
+        </div>
+        <div class="fare-item">
+          <span class="fare-item-label">Distance ({{ booking.distance|default:"5.2 km" }})</span>
+          <span class="fare-item-value">₹{{ booking.distance_fare|default:"156" }}</span>
+        </div>
+        <div class="fare-item">
+          <span class="fare-item-label">Time ({{ booking.duration|default:"15 min" }})</span>
+          <span class="fare-item-value">₹{{ booking.time_fare|default:"30" }}</span>
+        </div>
+        <div class="fare-item">
+          <span class="fare-item-label">Service Tax</span>
+          <span class="fare-item-value">₹{{ booking.tax|default:"14" }}</span>
+        </div>
+        <div class="fare-total-row">
+          <span class="fare-item-label">Total</span>
+          <span class="fare-item-value">₹{{ booking.fare|default:"250" }}</span>
+        </div>
+      </div>
+      <div class="fare-toggle" onclick="toggleFareBreakdown()">
+        <span id="fareToggleText">View Details</span>
+        <i class="fas fa-chevron-down"></i>
+      </div>
+    </div>
+
+    <!-- Payment Method -->
+    <div class="card">
+      <div class="payment-method">
+        <div class="payment-icon">
+          <i class="fas fa-credit-card"></i>
+        </div>
+        <div class="payment-details">
+          <div class="payment-label">Paid via</div>
+          <div class="payment-type">{{ booking.payment_method|default:"Cash" }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rating Section -->
+    <div class="card rating-section">
+      <h2 class="rating-title">Rate Your Driver</h2>
+      <p class="rating-subtitle">How was your experience?</p>
+      
+      <form method="POST" action="{% url 'submit_rating' booking.pk %}" id="ratingForm">
+        {% csrf_token %}
+        <input type="hidden" name="booking_id" value="{{ booking.pk }}">
+        <input type="hidden" name="rating" id="ratingInput" value="0">
+        
+        <div class="star-rating" id="starRating">
+          <div class="star" data-rating="1"><i class="fas fa-star"></i></div>
+          <div class="star" data-rating="2"><i class="fas fa-star"></i></div>
+          <div class="star" data-rating="3"><i class="fas fa-star"></i></div>
+          <div class="star" data-rating="4"><i class="fas fa-star"></i></div>
+          <div class="star" data-rating="5"><i class="fas fa-star"></i></div>
+        </div>
+
+        <div class="feedback-section" id="feedbackSection">
+          <textarea 
+            class="feedback-textarea" 
+            name="comments" 
+            placeholder="Share your experience (optional)"
+            maxlength="500"
+          ></textarea>
+        </div>
+      </form>
+    </div>
+
+  </div>
+
+  <!-- Bottom Action Bar -->
+  <div class="bottom-action-bar">
+    <div class="action-buttons">
+      <button 
+        type="submit" 
+        form="ratingForm" 
+        class="btn btn-primary" 
+        id="submitBtn"
+        disabled
+      >
+        <i class="fas fa-check-circle"></i>
+        Submit Rating
+      </button>
+      <a href="{% url 'homepage' %}" class="btn btn-secondary">
+        <i class="fas fa-home"></i>
+        Back to Home
+      </a>
     </div>
   </div>
+  
 </div>
-</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // ============================================
+  // STAR RATING INTERACTION
+  // ============================================
+  
+  let selectedRating = 0;
+  const stars = document.querySelectorAll('.star');
+  const ratingInput = document.getElementById('ratingInput');
+  const submitBtn = document.getElementById('submitBtn');
+  const feedbackSection = document.getElementById('feedbackSection');
+
+  stars.forEach(star => {
+    star.addEventListener('click', function() {
+      selectedRating = parseInt(this.getAttribute('data-rating'));
+      ratingInput.value = selectedRating;
+      
+      // Update star UI
+      stars.forEach(s => {
+        const starValue = parseInt(s.getAttribute('data-rating'));
+        if (starValue <= selectedRating) {
+          s.classList.add('selected');
+        } else {
+          s.classList.remove('selected');
+        }
+      });
+
+      // Enable submit button
+      submitBtn.disabled = false;
+
+      // Show feedback section
+      feedbackSection.classList.add('visible');
+    });
+
+    // Hover effect for desktop
+    star.addEventListener('mouseenter', function() {
+      if (window.matchMedia('(min-width: 768px)').matches) {
+        const hoverValue = parseInt(this.getAttribute('data-rating'));
+        stars.forEach(s => {
+          const starValue = parseInt(s.getAttribute('data-rating'));
+          if (starValue <= hoverValue) {
+            s.style.background = 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)';
+            s.style.borderColor = '#f59e0b';
+            s.style.color = 'white';
+          }
+        });
+      }
+    });
+
+    star.addEventListener('mouseleave', function() {
+      if (window.matchMedia('(min-width: 768px)').matches) {
+        stars.forEach(s => {
+          const starValue = parseInt(s.getAttribute('data-rating'));
+          if (starValue > selectedRating) {
+            s.style.background = '#f9fafb';
+            s.style.borderColor = '#e5e7eb';
+            s.style.color = '#d1d5db';
+          }
+        });
+      }
+    });
+  });
+
+  // ============================================
+  // FARE BREAKDOWN TOGGLE
+  // ============================================
+  
+  function toggleFareBreakdown() {
+    const breakdown = document.getElementById('fareBreakdown');
+    const toggleText = document.getElementById('fareToggleText');
+    
+    breakdown.classList.toggle('expanded');
+    
+    if (breakdown.classList.contains('expanded')) {
+      toggleText.textContent = 'Hide Details';
+    } else {
+      toggleText.textContent = 'View Details';
+    }
+  }
+</script>
 {% endblock %}
