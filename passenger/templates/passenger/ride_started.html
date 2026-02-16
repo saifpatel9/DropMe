@@ -829,6 +829,7 @@
   // ============================================
   const statusUrl = "{% url 'booking_status_api' booking.booking_id %}";
   const completedRedirectUrl = "{% url 'ride_completed' booking.booking_id %}";
+  const chooseRideBaseUrl = "{% url 'choose_ride' %}";
 
   const routeInfoEl = document.getElementById('route-info');
   const statusValueEl = document.getElementById('status-value');
@@ -1341,9 +1342,39 @@
           return;
         }
 
-        if (data && (data.status === 'CancelledByDriver' || data.status === 'CancelledByPassenger' || data.status === 'Cancelled')) {
-          alert('This ride was cancelled.');
-          window.location.href = "{% url 'homepage' %}";
+        if (data && data.status === 'CancelledByDriver') {
+          statusValueEl.textContent = 'Searching';
+          summaryEtaEl.textContent = 'Searching';
+          routeInfoEl.textContent = 'The driver has cancelled the ride. Searching for a new driver...';
+          stopStatusPolling();
+
+          if (data.replacement_ride_request_id) {
+            setTimeout(function() {
+              const baseUrl = "{% url 'waiting_for_driver' 0 %}".replace('/0/', '/' + data.replacement_ride_request_id + '/');
+              window.location.href = `${baseUrl}?reason=driver_cancel`;
+            }, 1200);
+          } else if (data.replacement_search_exhausted) {
+            const vehicle = data.service_type || 'selected';
+            routeInfoEl.textContent = `No ${vehicle} drivers are currently available. Please select another category to continue.`;
+            setTimeout(function() {
+              window.location.href = buildChooseRideUrl(data);
+            }, 2200);
+          } else {
+            setTimeout(function() {
+              window.location.href = buildChooseRideUrl(data);
+            }, 2200);
+          }
+          return;
+        }
+
+        if (data && (data.status === 'CancelledByPassenger' || data.status === 'Cancelled')) {
+          statusValueEl.textContent = 'Cancelled';
+          summaryEtaEl.textContent = '--';
+          routeInfoEl.textContent = 'This ride was cancelled.';
+          stopStatusPolling();
+          setTimeout(function() {
+            window.location.href = "{% url 'homepage' %}";
+          }, 1200);
           return;
         }
 
@@ -1357,6 +1388,30 @@
       .catch(function() {
         // Keep current state on transient failures
       });
+  }
+
+  function buildChooseRideUrl(data) {
+    const params = new URLSearchParams();
+    const pickup = (data && data.pickup) || "{{ booking.pickup_location|default:''|escapejs }}";
+    const dropoff = (data && data.dropoff) || "{{ booking.dropoff_location|default:''|escapejs }}";
+    const pickupLat = (data && data.pickup_lat) ?? "{{ booking.pickup_latitude|default_if_none:'' }}";
+    const pickupLng = (data && data.pickup_lng) ?? "{{ booking.pickup_longitude|default_if_none:'' }}";
+    const dropLat = (data && data.drop_lat) ?? "{{ booking.drop_latitude|default_if_none:'' }}";
+    const dropLng = (data && data.drop_lng) ?? "{{ booking.drop_longitude|default_if_none:'' }}";
+    const distanceKm = (data && data.distance_km) ?? "{{ booking.distance_km|default_if_none:'' }}";
+    const durationMin = (data && data.duration_min) ?? "{{ booking.duration_min|default_if_none:'' }}";
+    const rideType = (data && data.ride_type) || "daily";
+
+    if (pickup) params.set('pickup', pickup);
+    if (dropoff) params.set('dropoff', dropoff);
+    if (pickupLat !== null && pickupLat !== '') params.set('pickup_lat', String(pickupLat));
+    if (pickupLng !== null && pickupLng !== '') params.set('pickup_lng', String(pickupLng));
+    if (dropLat !== null && dropLat !== '') params.set('drop_lat', String(dropLat));
+    if (dropLng !== null && dropLng !== '') params.set('drop_lng', String(dropLng));
+    if (distanceKm !== null && distanceKm !== '') params.set('distance_km', String(distanceKm));
+    if (durationMin !== null && durationMin !== '') params.set('duration_min', String(durationMin));
+    params.set('ride_type', rideType);
+    return `${chooseRideBaseUrl}?${params.toString()}`;
   }
 
   // ============================================

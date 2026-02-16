@@ -22,6 +22,7 @@ urlpatterns = [
     path('ratings/', views.driver_rating_page, name='driver_rating_page'),
     path('submit-rating/', views.submit_driver_rating, name='submit_driver_rating'),
     path('api/assigned-requests/', views.api_assigned_requests, name='api_assigned_requests'),
+    path('api/active-booking/', views.api_active_booking, name='api_active_booking'),
     path('api/ride-request/<int:ride_request_id>/', views.api_ride_request_details, name='api_ride_request_details'),
     path('api/booking/<int:booking_id>/', views.api_booking_details, name='api_booking_details'),
     path('api/verify-pin/<int:booking_id>/', views.verify_ride_pin, name='verify_ride_pin'),

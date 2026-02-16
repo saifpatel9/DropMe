@@ -788,9 +788,12 @@ html {
 
 .cancel-ride-container {
     position: fixed;
-    right: 16px;
-    bottom: 152px;
-    z-index: 1002;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 214px;
+    z-index: 1001;
+    animation: slideUpFade 0.3s ease-out;
+    transition: bottom 0.2s ease;
 }
 
 .cancel-ride-btn {
@@ -881,6 +884,41 @@ html {
     display: flex;
     align-items: center;
     gap: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+    position: relative;
+}
+
+.cancel-option.selected {
+    border-color: #0ea5e9;
+    background: #eff6ff;
+    box-shadow: inset 0 0 0 1px #0ea5e9;
+}
+
+.cancel-option input[type="radio"] {
+    -webkit-appearance: radio !important;
+    appearance: auto !important;
+    width: 18px !important;
+    height: 18px !important;
+    margin: 0 !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    accent-color: #0ea5e9;
+}
+
+.cancel-option::after {
+    content: '\f00c';
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    color: #0ea5e9;
+    font-size: 12px;
+    opacity: 0;
+    margin-left: auto;
+    transition: opacity 0.15s ease;
+}
+
+.cancel-option.selected::after {
+    opacity: 1;
 }
 
 .cancel-other-wrap {
@@ -960,8 +998,15 @@ html {
     }
 
     .cancel-ride-container {
-        right: 14px;
-        bottom: 246px;
+        left: 20px;
+        right: 20px;
+        transform: none;
+        bottom: 196px;
+    }
+
+    .cancel-ride-btn {
+        width: 100%;
+        justify-content: center;
     }
 }
 
@@ -1249,37 +1294,6 @@ html {
     </div>
   </div>
 
-<div id="cancel-overlay" class="cancel-overlay" onclick="if(event.target === this) closeCancelModal()">
-    <div class="cancel-sheet" onclick="event.stopPropagation()">
-        <div class="cancel-sheet-header">
-            <div class="cancel-sheet-title">Cancel Ride</div>
-            <button type="button" class="cancel-close-btn" onclick="closeCancelModal()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <div class="cancel-sheet-hint">
-            Frequent cancellations may affect your driver rating.
-        </div>
-        <div class="cancel-options" id="cancel-options">
-            <label class="cancel-option"><input type="radio" name="cancel_reason" value="vehicle_malfunction"> Vehicle malfunction</label>
-            <label class="cancel-option"><input type="radio" name="cancel_reason" value="low_fuel"> Low fuel</label>
-            <label class="cancel-option"><input type="radio" name="cancel_reason" value="personal_emergency"> Personal emergency</label>
-            <label class="cancel-option"><input type="radio" name="cancel_reason" value="traffic_issue"> Traffic issue</label>
-            <label class="cancel-option"><input type="radio" name="cancel_reason" value="unable_to_reach_pickup"> Unable to reach pickup location</label>
-            <label class="cancel-option"><input type="radio" name="cancel_reason" value="passenger_not_responding"> Passenger not responding</label>
-            <label class="cancel-option"><input type="radio" name="cancel_reason" value="other"> Other</label>
-        </div>
-        <div class="cancel-other-wrap" id="cancel-other-wrap">
-            <textarea id="cancel-other-input" class="cancel-other-input" placeholder="Please enter your reason"></textarea>
-        </div>
-        <div class="cancel-error" id="cancel-error-text"></div>
-        <div class="cancel-actions">
-            <button type="button" class="cancel-secondary-btn" onclick="closeCancelModal()">Back</button>
-            <button type="button" class="cancel-confirm-btn" id="confirm-cancel-btn">Confirm Cancellation</button>
-        </div>
-    </div>
-</div>
-
         <div class="trip-details-section">
             <div class="location-item-popup pickup">
                 <div class="location-icon-popup">
@@ -1333,6 +1347,38 @@ html {
       </div>
     </div>
   </div>
+
+<!-- Cancel Ride Modal -->
+<div id="cancel-overlay" class="cancel-overlay" onclick="if(event.target === this) closeCancelModal()">
+    <div class="cancel-sheet" onclick="event.stopPropagation()">
+        <div class="cancel-sheet-header">
+            <div class="cancel-sheet-title">Cancel Ride</div>
+            <button type="button" class="cancel-close-btn" onclick="closeCancelModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cancel-sheet-hint">
+            Frequent cancellations may affect your driver rating.
+        </div>
+        <div class="cancel-options" id="cancel-options">
+            <label class="cancel-option" for="cancel_reason_vehicle_malfunction"><input id="cancel_reason_vehicle_malfunction" type="radio" name="cancel_reason" value="vehicle_malfunction"> Vehicle malfunction</label>
+            <label class="cancel-option" for="cancel_reason_low_fuel"><input id="cancel_reason_low_fuel" type="radio" name="cancel_reason" value="low_fuel"> Low fuel</label>
+            <label class="cancel-option" for="cancel_reason_personal_emergency"><input id="cancel_reason_personal_emergency" type="radio" name="cancel_reason" value="personal_emergency"> Personal emergency</label>
+            <label class="cancel-option" for="cancel_reason_traffic_issue"><input id="cancel_reason_traffic_issue" type="radio" name="cancel_reason" value="traffic_issue"> Traffic issue</label>
+            <label class="cancel-option" for="cancel_reason_unable_to_reach_pickup"><input id="cancel_reason_unable_to_reach_pickup" type="radio" name="cancel_reason" value="unable_to_reach_pickup"> Unable to reach pickup location</label>
+            <label class="cancel-option" for="cancel_reason_passenger_not_responding"><input id="cancel_reason_passenger_not_responding" type="radio" name="cancel_reason" value="passenger_not_responding"> Passenger not responding</label>
+            <label class="cancel-option" for="cancel_reason_other"><input id="cancel_reason_other" type="radio" name="cancel_reason" value="other"> Other</label>
+        </div>
+        <div class="cancel-other-wrap" id="cancel-other-wrap">
+            <textarea id="cancel-other-input" class="cancel-other-input" placeholder="Please enter your reason"></textarea>
+        </div>
+        <div class="cancel-error" id="cancel-error-text"></div>
+        <div class="cancel-actions">
+            <button type="button" class="cancel-secondary-btn" onclick="closeCancelModal()">Back</button>
+            <button type="button" class="cancel-confirm-btn" id="confirm-cancel-btn">Confirm Cancellation</button>
+        </div>
+    </div>
+</div>
 
 <!-- Leaflet.js JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1449,6 +1495,7 @@ html {
     const serverActiveBookingId = {{ active_booking.booking_id|default:"null" }};
     const serverActiveBookingStatus = {% if active_booking %}"{{ active_booking.status }}"{% else %}null{% endif %};
     let currentBookingId = null;
+    let currentBookingStatus = serverActiveBookingStatus;
     let isRideActive = false; // Track if ride is active (started)
     let rideTrackingWatchId = null; // Separate watch ID for ride tracking
     let ridePinVerified = false;
@@ -1925,6 +1972,7 @@ html {
         // Close popup immediately for better UX
         closeRideRequest();
         // Do not depend on GPS/proximity or network response; show action immediately on accept.
+        currentBookingStatus = 'Confirmed';
         showDriverArrivedButton();
         showCancelRideButton('cancelled_after_accept');
         updateStatusCard('Ride Accepted', 'Heading to pickup location');
@@ -2448,6 +2496,7 @@ html {
                 endRideBtn.addEventListener('click', handleEndRide);
             }
         }
+        positionCancelRideButton();
     }
 
     // Draw route from pickup to dropoff using Leaflet Routing Machine
@@ -2790,6 +2839,7 @@ html {
             ensureDriverArrivedButton();
             container.style.display = 'block';
         }
+        positionCancelRideButton();
     }
 
     // Hide Driver Arrived button
@@ -2798,15 +2848,102 @@ html {
         if (container) {
             container.style.display = 'none';
         }
+        positionCancelRideButton();
+    }
+
+    function positionCancelRideButton() {
+        const driverContainer = document.getElementById('driver-arrived-button-container');
+        const cancelContainer = document.getElementById('cancel-ride-container');
+        if (!cancelContainer) return;
+
+        const isMobile = window.matchMedia('(max-width: 768px)').matches;
+        const fallbackBottom = isMobile ? 196 : 214;
+
+        if (!driverContainer || driverContainer.style.display === 'none') {
+            cancelContainer.style.bottom = `${fallbackBottom}px`;
+            return;
+        }
+
+        const baseBottom = isMobile ? 120 : 140; // Mirrors .driver-arrived-container positioning
+        const driverHeight = Math.max(driverContainer.offsetHeight || 0, 72);
+        const gap = 12;
+        cancelContainer.style.bottom = `${baseBottom + driverHeight + gap}px`;
+    }
+
+    function normalizeBookingStatus(status) {
+        if (!status) return null;
+        return String(status).trim();
+    }
+
+    function canCancelRideForStatus(status) {
+        const normalized = normalizeBookingStatus(status);
+        return ['Confirmed', 'Arrived', 'Ongoing', 'Started'].includes(normalized);
+    }
+
+    async function syncCurrentBookingStatus() {
+        if (!currentBookingId) return currentBookingStatus;
+
+        try {
+            const detailsUrl = "{% url 'driver:api_booking_details' 0 %}".replace('0', String(currentBookingId));
+            const response = await fetch(detailsUrl, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' },
+                credentials: 'same-origin',
+            });
+            if (response.ok) {
+                const data = await response.json();
+                if (data && data.status) {
+                    currentBookingStatus = normalizeBookingStatus(data.status);
+                }
+            }
+        } catch (error) {
+            console.warn('Unable to refresh booking status before cancellation:', error);
+        }
+
+        return currentBookingStatus;
+    }
+
+    async function hydrateActiveBookingState() {
+        try {
+            const response = await fetch("{% url 'driver:api_active_booking' %}", {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' },
+                credentials: 'same-origin',
+            });
+            if (!response.ok) return false;
+
+            const data = await response.json();
+            if (data && data.booking_id) {
+                currentBookingId = data.booking_id;
+                currentBookingStatus = normalizeBookingStatus(data.status) || currentBookingStatus;
+                console.info('[cancel-debug] hydrated active booking', {
+                    booking_id: currentBookingId,
+                    status: currentBookingStatus
+                });
+                return true;
+            }
+        } catch (error) {
+            console.warn('[cancel-debug] failed to hydrate active booking', error);
+        }
+        return false;
     }
 
     function showCancelRideButton(stage) {
         const container = document.getElementById('cancel-ride-container');
         const label = document.getElementById('cancel-ride-btn-label');
         if (!container || !label) return;
+        if (!canCancelRideForStatus(currentBookingStatus)) {
+            hideCancelRideButton();
+            return;
+        }
         currentCancellationStage = stage || 'cancelled_after_accept';
         label.textContent = currentCancellationStage === 'cancelled_mid_ride' ? 'Stop Ride' : 'Cancel Ride';
+        const driverContainer = document.getElementById('driver-arrived-button-container');
+        if (driverContainer && driverContainer.style.display === 'none') {
+            driverContainer.style.display = 'block';
+        }
         container.style.display = 'block';
+        positionCancelRideButton();
     }
 
     function hideCancelRideButton() {
@@ -2814,15 +2951,45 @@ html {
         if (container) {
             container.style.display = 'none';
         }
+        positionCancelRideButton();
     }
 
-    function openCancelModal() {
+    async function openCancelModal() {
+        console.info('[cancel-debug] cancel button clicked', {
+            booking_id: currentBookingId,
+            current_status: currentBookingStatus,
+            stage: currentCancellationStage
+        });
         if (!currentBookingId) {
-            showToast('No active booking found.', 'error');
+            await hydrateActiveBookingState();
+            if (!currentBookingId) {
+                showToast('No active booking found.', 'error');
+                return;
+            }
+        }
+        await syncCurrentBookingStatus();
+        if (!canCancelRideForStatus(currentBookingStatus)) {
+            hideCancelRideButton();
+            showToast('Ride can only be cancelled before it is completed.', 'error');
             return;
         }
         const overlay = document.getElementById('cancel-overlay');
         if (!overlay) return;
+
+        // Default to first reason so confirmation isn't blocked by an unselected radio.
+        const selectedReason = document.querySelector('input[name="cancel_reason"]:checked');
+        if (!selectedReason) {
+            const firstReason = document.querySelector('input[name="cancel_reason"]');
+            if (firstReason) {
+                firstReason.checked = true;
+                const otherWrap = document.getElementById('cancel-other-wrap');
+                if (otherWrap) {
+                    otherWrap.classList.toggle('show', firstReason.value === 'other');
+                }
+            }
+        }
+        syncCancelReasonUi();
+
         overlay.classList.add('show');
         const errorText = document.getElementById('cancel-error-text');
         if (errorText) {
@@ -2845,6 +3012,16 @@ html {
         errorText.style.display = 'block';
     }
 
+    function syncCancelReasonUi() {
+        const reasonInputs = document.querySelectorAll('input[name="cancel_reason"]');
+        reasonInputs.forEach((input) => {
+            const option = input.closest('.cancel-option');
+            if (!option) return;
+            option.classList.toggle('selected', input.checked);
+            option.setAttribute('aria-checked', input.checked ? 'true' : 'false');
+        });
+    }
+
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -2861,13 +3038,31 @@ html {
     }
 
     async function submitRideCancellation() {
+        console.info('[cancel-debug] submitRideCancellation entered', {
+            booking_id: currentBookingId,
+            status: currentBookingStatus,
+            stage: currentCancellationStage
+        });
         if (!currentBookingId) {
-            showCancelError('No active booking found.');
+            await hydrateActiveBookingState();
+            if (!currentBookingId) {
+                console.warn('[cancel-debug] submit blocked: booking id missing after hydration');
+                showCancelError('No active booking found.');
+                return;
+            }
+        }
+
+        await syncCurrentBookingStatus();
+        if (!canCancelRideForStatus(currentBookingStatus)) {
+            console.warn('[cancel-debug] submit blocked: invalid status', currentBookingStatus);
+            showCancelError(`Ride cannot be cancelled in ${currentBookingStatus || 'Unknown'} state.`);
+            hideCancelRideButton();
             return;
         }
 
         const selected = document.querySelector('input[name="cancel_reason"]:checked');
         if (!selected) {
+            console.warn('[cancel-debug] submit blocked: no cancellation reason selected');
             showCancelError('Please select a cancellation reason.');
             return;
         }
@@ -2876,6 +3071,7 @@ html {
         const otherReasonInput = document.getElementById('cancel-other-input');
         const otherReason = otherReasonInput ? otherReasonInput.value.trim() : '';
         if (reasonCode === 'other' && !otherReason) {
+            console.warn('[cancel-debug] submit blocked: other reason empty');
             showCancelError('Please provide your reason.');
             return;
         }
@@ -2892,6 +3088,12 @@ html {
 
         const csrfToken = getCookie('csrftoken') || '{{ csrf_token }}';
         const cancelUrl = "{% url 'driver:cancel_ride' 0 %}".replace('0', currentBookingId);
+        console.info('[cancel-debug] submitting cancel request', {
+            booking_id: currentBookingId,
+            status: currentBookingStatus,
+            stage: currentCancellationStage,
+            reason_code: reasonCode
+        });
         const body = new URLSearchParams({
             reason_code: reasonCode,
             other_reason: otherReason,
@@ -2912,6 +3114,11 @@ html {
                 mode: 'same-origin'
             });
             const data = await response.json();
+            console.info('[cancel-debug] cancel response', {
+                http_ok: response.ok,
+                status: response.status,
+                payload: data
+            });
             if (!response.ok || !data.success) {
                 throw new Error(data.error || 'Failed to cancel ride.');
             }
@@ -2927,6 +3134,7 @@ html {
                 showToast(`Partial fare applied: ₹${data.partial_fare}`, 'info');
             }
 
+            currentBookingStatus = data.status || 'CancelledByDriver';
             currentBookingId = null;
         } catch (error) {
             showCancelError(error.message || 'Failed to cancel ride.');
@@ -2940,24 +3148,119 @@ html {
 
     function initCancellationModalControls() {
         const cancelBtn = document.getElementById('cancel-ride-btn');
+        const confirmBtn = document.getElementById('confirm-cancel-btn');
+        console.info('[cancel-debug] element lookup', {
+            cancelButtonExists: !!cancelBtn,
+            confirmButtonExists: !!confirmBtn,
+            cancelOverlayExists: !!document.getElementById('cancel-overlay'),
+            cancelButtonCount: document.querySelectorAll('#cancel-ride-btn').length,
+            confirmButtonCount: document.querySelectorAll('#confirm-cancel-btn').length,
+        });
+        console.log('Cancel button element:', cancelBtn);
+        console.log('Event listeners attached? binding cancel + confirm handlers now.');
+
         if (cancelBtn) {
-            cancelBtn.onclick = openCancelModal;
+            cancelBtn.onclick = (event) => {
+                console.info('[cancel-debug] cancel button onclick fired');
+                openCancelModal(event);
+            };
+            cancelBtn.addEventListener('click', () => {
+                console.info('[cancel-debug] cancel button event bound and fired');
+            });
         }
 
-        const confirmBtn = document.getElementById('confirm-cancel-btn');
         if (confirmBtn) {
-            confirmBtn.onclick = submitRideCancellation;
+            confirmBtn.onclick = (event) => {
+                console.info('[cancel-debug] confirm cancel clicked (onclick)');
+                submitRideCancellation(event);
+            };
+            confirmBtn.addEventListener('click', () => {
+                console.info('[cancel-debug] confirm cancel clicked (listener)');
+            });
         }
 
         const reasonInputs = document.querySelectorAll('input[name="cancel_reason"]');
+        const reasonOptions = document.querySelectorAll('.cancel-option');
         const otherWrap = document.getElementById('cancel-other-wrap');
+
+        reasonOptions.forEach((option) => {
+            option.setAttribute('role', 'radio');
+            option.tabIndex = 0;
+
+            const selectOption = () => {
+                const input = option.querySelector('input[name="cancel_reason"]');
+                if (!input) return;
+                input.checked = true;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            };
+
+            option.addEventListener('click', (event) => {
+                if (event.target && event.target.tagName === 'INPUT') return;
+                selectOption();
+            });
+            option.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    selectOption();
+                }
+            });
+        });
+
         reasonInputs.forEach((input) => {
             input.addEventListener('change', () => {
                 if (!otherWrap) return;
                 otherWrap.classList.toggle('show', input.value === 'other' && input.checked);
+                syncCancelReasonUi();
+                console.info('[cancel-debug] reason changed', { value: input.value, checked: input.checked });
             });
         });
+        syncCancelReasonUi();
+
+        // Delegated fallback for dynamically replaced DOM.
+        document.addEventListener('click', (event) => {
+            const cancelTrigger = event.target.closest('#cancel-ride-btn');
+            if (cancelTrigger) {
+                console.info('[cancel-debug] delegated cancel click fired');
+            }
+
+            const confirmTrigger = event.target.closest('#confirm-cancel-btn');
+            if (confirmTrigger) {
+                console.info('[cancel-debug] delegated confirm click fired');
+            }
+        });
     }
+
+    // Manual probe for route/CSRF validation from browser console:
+    // window.testCancelRequest(bookingId)
+    window.testCancelRequest = async function testCancelRequest(bookingId) {
+        const targetId = bookingId || currentBookingId;
+        const csrfToken = getCookie('csrftoken') || '{{ csrf_token }}';
+        const url = "{% url 'driver:cancel_ride' 0 %}".replace('0', String(targetId || '0'));
+        console.info('[cancel-debug] testCancelRequest start', { bookingId: targetId, url, csrfTokenPresent: !!csrfToken });
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({
+                    reason_code: 'traffic_issue',
+                    cancellation_stage: 'cancelled_after_accept',
+                    csrfmiddlewaretoken: csrfToken,
+                }).toString(),
+                credentials: 'same-origin',
+                mode: 'same-origin'
+            });
+            const data = await response.json().catch(() => ({}));
+            console.info('[cancel-debug] testCancelRequest response', { ok: response.ok, status: response.status, data });
+            return { ok: response.ok, status: response.status, data };
+        } catch (error) {
+            console.error('[cancel-debug] testCancelRequest error', error);
+            return { ok: false, error: String(error) };
+        }
+    };
 
     // Render PIN verification + Start Ride controls
     function renderPinVerificationCard() {
@@ -2997,6 +3300,7 @@ html {
 
         ridePinVerified = false;
         ridePinLockedUntil = null;
+        positionCancelRideButton();
     }
 
     // Update status card
@@ -3043,6 +3347,7 @@ html {
     function handleAcceptSuccess(rideRequestId) {
         console.log('Ride accepted successfully (redirect)');
         showToast('Ride accepted successfully!', 'success');
+        currentBookingStatus = 'Confirmed';
         showDriverArrivedButton();
         showCancelRideButton('cancelled_after_accept');
         updateStatusCard('Ride Accepted', 'Heading to pickup location');
@@ -3055,48 +3360,51 @@ html {
     }
 
     // Get booking ID from ride request ID
-    async function getBookingIdFromRideRequest(rideRequestId) {
-        try {
-            const response = await fetch("{% url 'driver:api_ride_request_details' 0 %}".replace('0', rideRequestId));
-            if (response.ok) {
-                const data = await response.json();
-                if (data.booking_id) {
-                    currentBookingId = data.booking_id;
-                    console.log('Booking ID retrieved:', currentBookingId);
-                } else {
-                    console.warn('Booking ID not yet available in ride request');
+    async function getBookingIdFromRideRequest(rideRequestId, attempts = 5) {
+        const detailsUrl = "{% url 'driver:api_ride_request_details' 0 %}".replace('0', rideRequestId);
+        for (let attempt = 1; attempt <= attempts; attempt++) {
+            try {
+                const response = await fetch(detailsUrl, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'same-origin',
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.booking_id) {
+                        currentBookingId = data.booking_id;
+                        currentBookingStatus = data.status || currentBookingStatus || 'Confirmed';
+                        console.info('[cancel-debug] booking id hydrated from ride request', {
+                            ride_request_id: rideRequestId,
+                            booking_id: currentBookingId,
+                            attempt: attempt
+                        });
+                        return currentBookingId;
+                    }
                 }
+            } catch (error) {
+                console.warn('[cancel-debug] failed to get booking id from ride request', { rideRequestId, attempt, error });
             }
-        } catch (error) {
-            console.error('Error getting booking ID:', error);
+
+            await new Promise(resolve => setTimeout(resolve, 400));
         }
+
+        const hydrated = await hydrateActiveBookingState();
+        if (hydrated) {
+            return currentBookingId;
+        }
+        return null;
     }
 
     // Handle Driver Arrived button click
     async function handleDriverArrived() {
         // If we don't have booking_id, try to get it from the current ride request
         if (!currentBookingId && currentRideRequest) {
-            try {
-                const response = await fetch("{% url 'driver:api_ride_request_details' 0 %}".replace('0', currentRideRequest.id));
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.booking_id) {
-                        currentBookingId = data.booking_id;
-                        console.log('Booking ID retrieved:', currentBookingId);
-                        // Continue with the arrival notification
-                    } else {
-                        showToast('Booking not found. Please refresh the page.', 'error');
-                        return;
-                    }
-                } else {
-                    showToast('Unable to get booking information', 'error');
-                    return;
-                }
-            } catch (error) {
-                console.error('Error fetching booking ID:', error);
-                showToast('Unable to get booking information', 'error');
-                return;
-            }
+            await getBookingIdFromRideRequest(currentRideRequest.id);
+        }
+
+        if (!currentBookingId) {
+            await hydrateActiveBookingState();
         }
         
         if (!currentBookingId) {
@@ -3147,6 +3455,7 @@ html {
                 console.log('Driver arrived notification sent');
                 showToast(data.message || 'Passenger notified: Driver has arrived!', 'success');
                 updateStatusCard('Driver Arrived', 'Waiting for passenger');
+                currentBookingStatus = 'Arrived';
                 showCancelRideButton('cancelled_at_pickup');
                 
                 renderPinVerificationCard();
@@ -3253,14 +3562,21 @@ html {
                 verifyBtn.disabled = false;
                 verifyBtn.innerHTML = '<i class="fas fa-check"></i><span>Verify PIN</span>';
             }
+            positionCancelRideButton();
         });
     }
 
     // Handle Start Ride button click
     async function handleStartRide() {
+        if (!currentBookingId && currentRideRequest) {
+            await getBookingIdFromRideRequest(currentRideRequest.id);
+        }
         if (!currentBookingId) {
-            showToast('No active booking found. Please refresh the page.', 'error');
-            return;
+            await hydrateActiveBookingState();
+            if (!currentBookingId) {
+                showToast('No active booking found. Please refresh the page.', 'error');
+                return;
+            }
         }
 
         if (!ridePinVerified) {
@@ -3309,6 +3625,7 @@ html {
                 console.log('Ride started - API response:', data);
                 showToast(data.message || 'Ride started! Route displayed on map.', 'success');
                 updateStatusCard('Ride in Progress', 'Trip is ongoing');
+                currentBookingStatus = data.status || 'Ongoing';
                 showCancelRideButton('cancelled_mid_ride');
                 
                 // Function to get coordinates with multiple fallbacks
@@ -3619,6 +3936,7 @@ html {
                 showToast(data.message || 'Ride completed! Payment recorded.', 'success');
                 updateStatusCard('Ride Completed', 'Trip finished successfully');
                 hideCancelRideButton();
+                currentBookingStatus = 'Completed';
                 
                 // Reset current booking ID
                 currentBookingId = null;
@@ -3654,8 +3972,14 @@ html {
     document.addEventListener('DOMContentLoaded', () => {
         initMap();
         initCancellationModalControls();
+        hydrateActiveBookingState();
+        positionCancelRideButton();
         window.addEventListener('resize', refreshMapViewport);
-        window.addEventListener('orientationchange', () => setTimeout(refreshMapViewport, 150));
+        window.addEventListener('resize', positionCancelRideButton);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(refreshMapViewport, 150);
+            setTimeout(positionCancelRideButton, 150);
+        });
 
         // Check for ride requests every 5 seconds (if driver is online)
         const availabilityToggle = document.getElementById('availability-toggle');
@@ -3673,14 +3997,17 @@ html {
         if (serverActiveBookingId) {
             currentBookingId = serverActiveBookingId;
             if (serverActiveBookingStatus === 'Confirmed') {
+                currentBookingStatus = 'Confirmed';
                 showDriverArrivedButton();
                 showCancelRideButton('cancelled_after_accept');
                 updateStatusCard('Ride Accepted', 'Heading to pickup location');
             } else if (serverActiveBookingStatus === 'Arrived') {
+                currentBookingStatus = 'Arrived';
                 renderPinVerificationCard();
                 showCancelRideButton('cancelled_at_pickup');
                 updateStatusCard('Driver Arrived', 'Waiting for passenger');
             } else if (serverActiveBookingStatus === 'Ongoing') {
+                currentBookingStatus = 'Ongoing';
                 const container = document.getElementById('driver-arrived-button-container');
                 if (container) {
                     container.style.display = 'block';
@@ -3689,6 +4016,7 @@ html {
                 showCancelRideButton('cancelled_mid_ride');
                 updateStatusCard('Ride in Progress', 'Trip is ongoing');
             } else {
+                currentBookingStatus = serverActiveBookingStatus;
                 hideCancelRideButton();
             }
         }

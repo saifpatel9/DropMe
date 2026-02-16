@@ -748,6 +748,7 @@
     const startTime = Date.now();
     let reassignedOnce = false;
     let currentStatus = 'Pending';
+    const chooseRideBaseUrl = "{% url 'choose_ride' %}";
 
     /* ============================================
        ELAPSED TIME TRACKER
@@ -787,20 +788,24 @@
                     }, 1000);
                 } else if (data.status === 'Rejected') {
                     updateUI('rejected');
-                    setTimeout(() => {
-                        alert('Your ride request was rejected. Redirecting to homepage.');
-                        window.location.href = "/";
-                    }, 2000);
+                    const heroSubtitle = document.getElementById('hero-subtitle');
+                    if (heroSubtitle) {
+                        heroSubtitle.innerHTML = 'Driver cancelled. Searching for a new driver...';
+                    }
                 } else if (data.status === 'Expired') {
                     updateUI('expired');
+                    const heroSubtitle = document.getElementById('hero-subtitle');
+                    if (heroSubtitle) {
+                        const currentCategory = "{{ selected_service|escapejs }}";
+                        heroSubtitle.innerHTML = `No ${currentCategory || 'selected'} drivers are currently available. Please select another category to continue.`;
+                    }
                     setTimeout(() => {
-                        alert('Your ride request expired. Redirecting to homepage.');
-                        window.location.href = "/";
+                        window.location.href = buildChooseRideUrl();
                     }, 2000);
                 } else if (data.status === 'Cancelled') {
                     updateUI('cancelled');
                     setTimeout(() => {
-                        window.location.href = "/";
+                        window.location.href = "{% url 'homepage' %}";
                     }, 1500);
                 } else if (data.status === 'Not Found') {
                     console.error('[Status Check] Ride request not found on server');
@@ -873,7 +878,7 @@
        AUTO-REASSIGNMENT
        ============================================ */
     function triggerReassignment() {
-        if (reassignedOnce || currentStatus !== 'Pending') return;
+        if (reassignedOnce || (currentStatus !== 'Pending' && currentStatus !== 'Requested')) return;
 
         console.log('[Reassignment] Triggering automatic reassignment after 2 minutes');
         
@@ -926,7 +931,10 @@
         })
         .catch(err => {
             console.error('[Cancel] Error:', err);
-            alert('Failed to cancel ride. Please try again.');
+            const heroSubtitle = document.getElementById('hero-subtitle');
+            if (heroSubtitle) {
+                heroSubtitle.innerHTML = 'Failed to cancel ride. Please try again.';
+            }
         });
     }
 
@@ -938,12 +946,44 @@
         return match ? match[2] : '';
     }
 
+    function buildChooseRideUrl() {
+        const params = new URLSearchParams();
+        const pickup = "{{ pickup|default:''|escapejs }}";
+        const dropoff = "{{ dropoff|default:''|escapejs }}";
+        const pickupLat = "{{ pickup_lat|default_if_none:'' }}";
+        const pickupLng = "{{ pickup_lng|default_if_none:'' }}";
+        const dropLat = "{{ drop_lat|default_if_none:'' }}";
+        const dropLng = "{{ drop_lng|default_if_none:'' }}";
+        const distanceKm = "{{ distance_km|default_if_none:'' }}";
+        const durationMin = "{{ duration_min|default_if_none:'' }}";
+        const rideType = "{{ request.session.ride_type|default:'daily'|escapejs }}";
+
+        if (pickup) params.set('pickup', pickup);
+        if (dropoff) params.set('dropoff', dropoff);
+        if (pickupLat) params.set('pickup_lat', pickupLat);
+        if (pickupLng) params.set('pickup_lng', pickupLng);
+        if (dropLat) params.set('drop_lat', dropLat);
+        if (dropLng) params.set('drop_lng', dropLng);
+        if (distanceKm) params.set('distance_km', distanceKm);
+        if (durationMin) params.set('duration_min', durationMin);
+        params.set('ride_type', rideType || 'daily');
+        return `${chooseRideBaseUrl}?${params.toString()}`;
+    }
+
     /* ============================================
        INITIALIZATION
        ============================================ */
     document.addEventListener('DOMContentLoaded', () => {
         console.log('[Init] Waiting for driver page loaded');
         console.log('[Init] Ride Request ID:', rideRequestId);
+
+        const reason = new URLSearchParams(window.location.search).get('reason');
+        if (reason === 'driver_cancel') {
+            const heroTitle = document.getElementById('hero-title');
+            const heroSubtitle = document.getElementById('hero-subtitle');
+            if (heroTitle) heroTitle.textContent = 'Searching for a New Driver';
+            if (heroSubtitle) heroSubtitle.innerHTML = 'Driver cancelled. Searching for a new driver<span class="typing-dots"><span></span><span></span><span></span></span>';
+        }
 
         if (!rideRequestId || rideRequestId === 'None') {
             console.error('[Init] Invalid ride request ID');

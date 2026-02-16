@@ -60,8 +60,13 @@ def driver_homepage_cab_view(request):
 
     active_booking = Booking.objects.filter(
         driver=driver,
-        status__in=['Confirmed', 'Arrived', 'Ongoing']
+        status__in=['Confirmed', 'Arrived', 'Ongoing', 'Started']
     ).order_by('-scheduled_time', '-booking_id').first()
+    print(
+        f"[DEBUG][driver_homepage] driver_id={driver.driver_id} "
+        f"active_booking_id={getattr(active_booking, 'booking_id', None)} "
+        f"status={getattr(active_booking, 'status', None)}"
+    )
 
     confirmed_rides = Booking.objects.filter(
         driver=driver,
@@ -143,6 +148,38 @@ def driver_homepage_cab_view(request):
         'active_booking': active_booking,
     })
 
+
+@driver_login_required
+def api_active_booking(request):
+    """
+    Return the driver's current active booking id/status for client-side hydration/debug.
+    """
+    driver_id = request.session.get('driver_id')
+    if not driver_id:
+        return JsonResponse({'success': False, 'error': 'Not authenticated'}, status=401)
+
+    try:
+        driver = Driver.objects.get(driver_id=driver_id)
+    except Driver.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Driver not found'}, status=404)
+
+    active_booking = (
+        Booking.objects
+        .filter(driver=driver, status__in=['Confirmed', 'Arrived', 'Ongoing', 'Started'])
+        .order_by('-scheduled_time', '-booking_id')
+        .first()
+    )
+    print(
+        f"[DEBUG][api_active_booking] driver_id={driver.driver_id} "
+        f"active_booking_id={getattr(active_booking, 'booking_id', None)} "
+        f"status={getattr(active_booking, 'status', None)}"
+    )
+    return JsonResponse({
+        'success': True,
+        'booking_id': active_booking.booking_id if active_booking else None,
+        'status': active_booking.status if active_booking else None,
+    })
+
 def accept_ride(request, ride_request_id):
     logger.debug(f"accept_ride called for ride_request_id={ride_request_id}")
 
@@ -184,6 +221,10 @@ def accept_ride(request, ride_request_id):
             payment_mode=ride_request.payment_mode,
             service_type=ride_request.service_type,
             status='Confirmed'
+        )
+        print(
+            f"[DEBUG][accept_ride] ride_request_id={ride_request_id} "
+            f"booking_id={booking.booking_id} status={booking.status}"
         )
 
         # Generate a unique 4-digit PIN for this booking
@@ -345,11 +386,19 @@ def arrived_ride_view(request, booking_id):
         return redirect('unified_login')
 
     booking = get_object_or_404(Booking, booking_id=booking_id, driver=driver)
+    print(
+        f"[DEBUG][arrived_ride_view] booking_id={booking.booking_id} "
+        f"status_before={booking.status}"
+    )
     # Only allow arrival announcement before ride start
     if booking.status in ['Confirmed', 'Scheduled']:
         # Persist status change to 'Arrived'
         booking.status = 'Arrived'
         booking.save(update_fields=['status'])
+        print(
+            f"[DEBUG][arrived_ride_view] booking_id={booking.booking_id} "
+            f"status_after={booking.status}"
+        )
         cache_key = f"booking:{booking.booking_id}:arrived"
         cache.set(cache_key, True, timeout=60 * 60)  # 1 hour TTL
         
@@ -482,6 +531,10 @@ def api_booking_details(request, booking_id):
             'status': booking.status,
             'fare': str(booking.fare) if booking.fare else None,
         }
+        print(
+            f"[DEBUG][api_booking_details] driver_id={driver.driver_id} "
+            f"booking_id={booking.booking_id} status={booking.status}"
+        )
         
         return JsonResponse(response_data)
     except Booking.DoesNotExist:
@@ -506,9 +559,17 @@ def end_ride_view(request, booking_id):
         return redirect('unified_login')
 
     booking = get_object_or_404(Booking, booking_id=booking_id, driver=driver)
+    print(
+        f"[DEBUG][end_ride_view] booking_id={booking.booking_id} "
+        f"status_before={booking.status}"
+    )
     if booking.status == 'Ongoing':
         booking.status = 'Completed'
         booking.save()
+        print(
+            f"[DEBUG][end_ride_view] booking_id={booking.booking_id} "
+            f"status_after={booking.status}"
+        )
 
         payment_mode = booking.payment_mode or "Cash"  # default if somehow null
 
@@ -585,8 +646,25 @@ def cancel_ride_view(request, booking_id):
         return JsonResponse({'success': False, 'error': 'Driver not found'}, status=404)
 
     booking = get_object_or_404(Booking, booking_id=booking_id, driver=driver)
-    if booking.status in ['Completed', 'Cancelled', 'CancelledByDriver', 'CancelledByPassenger']:
-        return JsonResponse({'success': False, 'error': 'This ride cannot be cancelled.'}, status=400)
+    print(
+        f"[DEBUG][cancel_ride_view] booking_id={booking.booking_id} "
+        f"status_before={booking.status} "
+        f"reason_code={request.POST.get('reason_code')} "
+        f"stage={request.POST.get('cancellation_stage')}"
+    )
+    current_status = (booking.status or '').strip()
+    terminal_statuses = {'Completed', 'Cancelled', 'CancelledByDriver', 'CancelledByPassenger'}
+    allowed_cancel_statuses = {'Confirmed', 'Arrived', 'Ongoing', 'Started'}
+    if current_status in terminal_statuses:
+        return JsonResponse(
+            {'success': False, 'error': f'Ride cannot be cancelled in "{current_status}" state.'},
+            status=400
+        )
+    if current_status not in allowed_cancel_statuses:
+        return JsonResponse(
+            {'success': False, 'error': f'Ride cannot be cancelled in "{current_status or "Unknown"}" state.'},
+            status=400
+        )
 
     reason_code = (request.POST.get('reason_code') or '').strip()
     stage = (request.POST.get('cancellation_stage') or '').strip()
@@ -602,6 +680,7 @@ def cancel_ride_view(request, booking_id):
         'Confirmed': 'cancelled_after_accept',
         'Arrived': 'cancelled_at_pickup',
         'Ongoing': 'cancelled_mid_ride',
+        'Started': 'cancelled_mid_ride',
     }.get(booking.status)
     if not inferred_stage:
         return JsonResponse({'success': False, 'error': 'Ride cannot be cancelled at current stage.'}, status=400)
@@ -621,11 +700,15 @@ def cancel_ride_view(request, booking_id):
         booking.cancellation_stage = stage
         booking.cancelled_at = timezone.now()
 
-        if prior_status == 'Ongoing' and booking.fare:
+        if prior_status in ['Ongoing', 'Started'] and booking.fare:
             partial_fare = (Decimal(booking.fare) * Decimal('0.50')).quantize(Decimal('0.01'))
             booking.fare = partial_fare
 
         booking.save()
+        print(
+            f"[DEBUG][cancel_ride_view] booking_id={booking.booking_id} "
+            f"status_after={booking.status} stage={stage}"
+        )
 
         # Invalidate PIN on cancellation
         ride_pin = getattr(booking, 'ride_pin', None)
@@ -666,11 +749,27 @@ def cancel_ride_view(request, booking_id):
                 ride_request.status = 'Requested' if next_driver else 'Expired'
                 ride_request.driver = next_driver
                 ride_request.save(update_fields=['booking', 'status', 'driver'])
+                cache.set(
+                    f"booking:{booking.booking_id}:reassignment_meta",
+                    {
+                        'ride_request_id': ride_request.id,
+                        'replacement_status': ride_request.status,
+                        'service_type': ride_request.service_type.name if ride_request.service_type else None,
+                    },
+                    timeout=60 * 10
+                )
 
                 if next_driver:
                     reassigned = True
                     next_driver_id = next_driver.driver_id
                     cache.set(queue_key, candidate_ids, timeout=60 * 10)
+                    print(
+                        f"[DEBUG][ride_dispatch] RideRequest {ride_request.id} "
+                        f"sent to Driver ID={next_driver.driver_id}, "
+                        f"VehicleType={next_driver.vehicle_type}, "
+                        f"Status={next_driver.status}, "
+                        f"Timestamp={timezone.now().isoformat()}"
+                    )
                 else:
                     cache.delete(queue_key)
 
@@ -788,6 +887,10 @@ def start_ride_view(request, booking_id):
         return redirect('unified_login')
 
     booking = get_object_or_404(Booking, booking_id=booking_id, driver=driver)
+    print(
+        f"[DEBUG][start_ride_view] booking_id={booking.booking_id} "
+        f"status_before={booking.status}"
+    )
 
     # Enforce PIN verification before starting
     ride_pin = getattr(booking, 'ride_pin', None)
@@ -803,6 +906,10 @@ def start_ride_view(request, booking_id):
     if booking.status in ['Confirmed', 'Arrived']:
         booking.status = 'Ongoing'
         booking.save()
+        print(
+            f"[DEBUG][start_ride_view] booking_id={booking.booking_id} "
+            f"status_after={booking.status}"
+        )
 
         # Invalidate PIN once ride starts
         if ride_pin:

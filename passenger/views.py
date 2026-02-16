@@ -46,10 +46,10 @@ def passenger_dashboard(request):
     active_ride_request = None
     current_state = 'booking'  # Default state
     
-    # Check for active booking (Confirmed, Arrived, or Ongoing)
+    # Check for active booking (Confirmed, Arrived, Ongoing, or legacy Started)
     active_booking = Booking.objects.filter(
         user=request.user,
-        status__in=['Confirmed', 'Arrived', 'Ongoing']
+        status__in=['Confirmed', 'Arrived', 'Ongoing', 'Started']
     ).order_by('-booking_id').first()
     
     if active_booking:
@@ -58,7 +58,7 @@ def passenger_dashboard(request):
         elif active_booking.status == 'Arrived':
             # Keep passenger on the confirmed screen and surface "Arrived" inline.
             current_state = 'confirmed'
-        elif active_booking.status == 'Ongoing':
+        elif active_booking.status in ['Ongoing', 'Started']:
             current_state = 'ride_started'
     
     # Check for pending ride request (waiting for driver)
@@ -954,7 +954,13 @@ def confirm_booking(request):
                         assigned_driver = Driver.objects.get(driver_id=first_driver_id)
                         ride_request.driver = assigned_driver
                         ride_request.save(update_fields=['driver'])
-                        print(f"[DEBUG] Initially assigned Driver {first_driver_id} to RideRequest {ride_request.id}")
+                        print(
+                            f"[DEBUG][ride_dispatch] RideRequest {ride_request.id} "
+                            f"sent to Driver ID={assigned_driver.driver_id}, "
+                            f"VehicleType={assigned_driver.vehicle_type}, "
+                            f"Status={assigned_driver.status}, "
+                            f"Timestamp={timezone.now().isoformat()}"
+                        )
                     except Driver.DoesNotExist:
                         pass
 
@@ -1029,6 +1035,13 @@ def reassign_next_driver(request, ride_request_id):
     # Soft-assign to next driver
     ride_request.driver = next_driver
     ride_request.save(update_fields=['driver'])
+    print(
+        f"[DEBUG][ride_dispatch] RideRequest {ride_request.id} "
+        f"sent to Driver ID={next_driver.driver_id}, "
+        f"VehicleType={next_driver.vehicle_type}, "
+        f"Status={next_driver.status}, "
+        f"Timestamp={timezone.now().isoformat()}"
+    )
     return JsonResponse({'success': True, 'driver_id': next_driver.driver_id})
 
 @login_required
@@ -1050,6 +1063,12 @@ def waiting_for_driver_view(request, ride_request_id):
         service_type_name = ride_request.booking.service_type.name
         ride_type = ride_request.booking.service_type.name
         scheduled_time = ride_request.booking.scheduled_time
+        pickup_lat = ride_request.booking.pickup_latitude
+        pickup_lng = ride_request.booking.pickup_longitude
+        drop_lat = ride_request.booking.drop_latitude
+        drop_lng = ride_request.booking.drop_longitude
+        distance_km = ride_request.booking.distance_km
+        duration_min = ride_request.booking.duration_min
     else:
         pickup = ride_request.pickup_location
         dropoff = ride_request.dropoff_location
@@ -1057,6 +1076,12 @@ def waiting_for_driver_view(request, ride_request_id):
         service_type_name = ride_request.service_type.name if ride_request.service_type else ""
         ride_type = ride_request.service_type.name if ride_request.service_type else ""
         scheduled_time = ride_request.scheduled_time
+        pickup_lat = ride_request.pickup_latitude
+        pickup_lng = ride_request.pickup_longitude
+        drop_lat = ride_request.drop_latitude
+        drop_lng = ride_request.drop_longitude
+        distance_km = ride_request.distance_km
+        duration_min = ride_request.duration_min
 
     return render(request, 'passenger/waiting_for_driver.html', {
         'ride_request_id': ride_request.id,
@@ -1066,6 +1091,12 @@ def waiting_for_driver_view(request, ride_request_id):
         'scheduled_time': scheduled_time,
         'selected_service': service_type_name,
         'ride_type': ride_type,
+        'pickup_lat': pickup_lat,
+        'pickup_lng': pickup_lng,
+        'drop_lat': drop_lat,
+        'drop_lng': drop_lng,
+        'distance_km': distance_km,
+        'duration_min': duration_min,
     })
 
 
@@ -1146,6 +1177,24 @@ def cancel_booking(request):
     try:
         # Ensure the booking belongs to the current user
         booking = Booking.objects.get(booking_id=booking_id, user=request.user)
+        print(
+            f"[DEBUG][passenger.cancel_booking] user_id={request.user.id} "
+            f"booking_id={booking.booking_id} status_before={booking.status}"
+        )
+        current_status = (booking.status or '').strip()
+        cancellable_statuses = {'Pending', 'Confirmed', 'Arrived', 'Ongoing', 'Started'}
+        terminal_statuses = {'Completed', 'Cancelled', 'CancelledByDriver', 'CancelledByPassenger'}
+
+        if current_status in terminal_statuses:
+            messages.error(request, f"Booking #{booking_id} cannot be cancelled because it is already {current_status}.")
+            print(f"DEBUG: Booking #{booking_id} cancellation blocked in terminal state: {current_status}")
+            return redirect('homepage')
+
+        if current_status not in cancellable_statuses:
+            messages.error(request, f"Booking #{booking_id} cannot be cancelled in state {current_status or 'Unknown'}.")
+            print(f"DEBUG: Booking #{booking_id} cancellation blocked in invalid state: {current_status}")
+            return redirect('homepage')
+
         booking.status = 'CancelledByPassenger'
         booking.cancelled_by = 'passenger'
         booking.cancellation_reason = 'Passenger cancelled the ride'
@@ -1163,6 +1212,17 @@ def cancel_booking(request):
             ride_pin.is_active = False
             ride_pin.pin_plain = ''
             ride_pin.save(update_fields=['is_active', 'pin_plain'])
+
+        # Keep the linked ride request consistent with booking cancellation.
+        ride_request = RideRequest.objects.filter(booking=booking).first()
+        if ride_request and ride_request.status not in ['Rejected', 'Expired', 'Cancelled']:
+            ride_request.status = 'Cancelled'
+            ride_request.save(update_fields=['status'])
+
+        print(
+            f"[DEBUG][passenger.cancel_booking] user_id={request.user.id} "
+            f"booking_id={booking.booking_id} status_after={booking.status}"
+        )
 
         messages.success(request, f"Booking #{booking_id} has been cancelled.")
         print(f"DEBUG: Booking #{booking_id} cancelled successfully.")
@@ -1397,11 +1457,59 @@ def ride_started_view(request, booking_id):
     }
     return render(request, "passenger/ride_started.html", context)
 
+@login_required
 def booking_status_api(request, booking_id):
     try:
-        booking = Booking.objects.get(booking_id=booking_id)
+        booking = Booking.objects.get(booking_id=booking_id, user=request.user)
         arrived = cache.get(f"booking:{booking_id}:arrived", False)
-        return JsonResponse({"status": booking.status, "arrived": bool(arrived)})
+        payload = {"status": booking.status, "arrived": bool(arrived)}
+
+        if booking.status == 'CancelledByDriver':
+            reassignment_meta = cache.get(f"booking:{booking.booking_id}:reassignment_meta") or {}
+            if not reassignment_meta:
+                latest_rr = (
+                    RideRequest.objects
+                    .filter(
+                        user=request.user,
+                        service_type=booking.service_type,
+                        status__in=['Requested', 'Expired']
+                    )
+                    .order_by('-id')
+                    .first()
+                )
+                if latest_rr:
+                    reassignment_meta = {
+                        'ride_request_id': latest_rr.id,
+                        'replacement_status': latest_rr.status,
+                        'service_type': latest_rr.service_type.name if latest_rr.service_type else None,
+                    }
+            if reassignment_meta:
+                payload.update({
+                    'replacement_ride_request_id': reassignment_meta.get('ride_request_id'),
+                    'replacement_status': reassignment_meta.get('replacement_status'),
+                    'replacement_search_exhausted': reassignment_meta.get('replacement_status') == 'Expired',
+                    'service_type': reassignment_meta.get('service_type') or (
+                        booking.service_type.name if booking.service_type else 'selected'
+                    ),
+                })
+
+        payload.update({
+            'pickup': booking.pickup_location,
+            'dropoff': booking.dropoff_location,
+            'pickup_lat': float(booking.pickup_latitude) if booking.pickup_latitude is not None else None,
+            'pickup_lng': float(booking.pickup_longitude) if booking.pickup_longitude is not None else None,
+            'drop_lat': float(booking.drop_latitude) if booking.drop_latitude is not None else None,
+            'drop_lng': float(booking.drop_longitude) if booking.drop_longitude is not None else None,
+            'distance_km': float(booking.distance_km) if booking.distance_km is not None else None,
+            'duration_min': booking.duration_min,
+            'ride_type': request.session.get('ride_type') or 'daily',
+        })
+
+        print(
+            f"[DEBUG][passenger.booking_status_api] booking_id={booking.booking_id} "
+            f"status={booking.status} arrived={bool(arrived)}"
+        )
+        return JsonResponse(payload)
     except Booking.DoesNotExist:
         return JsonResponse({"status": "not_found"})
 
