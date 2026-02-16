@@ -166,6 +166,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://160.187.80.217",
     "https://saifpatel.com",
     "https://www.saifpatel.com",
+    "https://joyless-richard-idiosyncratic.ngrok-free.dev",
 ]
 
 

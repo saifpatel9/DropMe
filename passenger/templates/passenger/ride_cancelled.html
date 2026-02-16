@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ride Cancelled</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f3f4f6;
+            color: #111827;
+        }
+        .wrap {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .card {
+            width: 100%;
+            max-width: 420px;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+        }
+        .icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: #fee2e2;
+            color: #dc2626;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin-bottom: 14px;
+        }
+        h1 {
+            margin: 0 0 8px;
+            font-size: 22px;
+        }
+        p {
+            margin: 0 0 16px;
+            color: #4b5563;
+        }
+        .meta {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+        .meta div {
+            margin: 6px 0;
+        }
+        .row-label {
+            color: #6b7280;
+            margin-right: 8px;
+        }
+        .btn {
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            text-decoration: none;
+            background: #0ea5a5;
+            color: #fff;
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="card">
+            <div class="icon"><i class="fas fa-ban"></i></div>
+            <h1>Ride Cancelled</h1>
+            <p>This trip was cancelled. You can book a new ride anytime.</p>
+            <div class="meta">
+                <div><span class="row-label">Booking ID:</span>#{{ booking.booking_id }}</div>
+                <div><span class="row-label">Status:</span>{{ booking.status }}</div>
+                <div><span class="row-label">From:</span>{{ booking.pickup_location|default:"-" }}</div>
+                <div><span class="row-label">To:</span>{{ booking.dropoff_location|default:"-" }}</div>
+                {% if booking.cancellation_reason %}
+                <div><span class="row-label">Reason:</span>{{ booking.cancellation_reason }}</div>
+                {% endif %}
+            </div>
+            <a href="{% url 'homepage' %}" class="btn">Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>

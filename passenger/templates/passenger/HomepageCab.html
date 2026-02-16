@@ -685,6 +685,131 @@
         .fade-in {
             animation: fadeIn 0.3s ease-in;
         }
+
+        .view-hidden {
+            display: none !important;
+        }
+
+        .active-ride-banner {
+            margin: 14px 20px 0;
+            background: linear-gradient(135deg, #ecfeff, #f0fdfa);
+            border: 1px solid #99f6e4;
+            border-radius: 14px;
+            padding: 12px 14px;
+        }
+
+        .active-ride-banner p {
+            margin: 0 0 8px;
+            color: #0f766e;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .resume-ride-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #0d9488;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .activity-view {
+            padding: 18px 16px 20px;
+        }
+
+        .activity-header {
+            font-size: 20px;
+            color: #0f172a;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .activity-subtext {
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .activity-empty {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 18px;
+            color: #64748b;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .activity-card {
+            display: block;
+            text-decoration: none;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 14px;
+            color: inherit;
+        }
+
+        .activity-card.current {
+            border-color: #2dd4bf;
+            box-shadow: 0 8px 20px rgba(20, 184, 166, 0.12);
+            background: linear-gradient(135deg, #ffffff, #f0fdfa);
+        }
+
+        .activity-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 10px;
+        }
+
+        .activity-id {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .activity-status {
+            font-size: 11px;
+            border-radius: 999px;
+            padding: 4px 9px;
+            font-weight: 700;
+            color: #0f766e;
+            background: #ccfbf1;
+            white-space: nowrap;
+        }
+
+        .activity-route {
+            font-size: 12px;
+            color: #334155;
+            line-height: 1.5;
+        }
+
+        .activity-route strong {
+            color: #0f172a;
+        }
+
+        .activity-meta {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #64748b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
         
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
@@ -826,6 +951,25 @@
                 </div>
             </div>
         </nav>
+
+        <section id="home-view">
+        {% if user.is_authenticated and active_resume_url %}
+        <div class="active-ride-banner">
+            <p>
+                {% if active_booking %}
+                You already have an active booking ({{ active_booking.status }}). Resume your ride flow.
+                {% elif active_ride_request %}
+                Driver search is still active for your booking. Resume now.
+                {% else %}
+                You already have an active ride in progress.
+                {% endif %}
+            </p>
+            <a class="resume-ride-btn" href="{{ active_resume_url }}">
+                <i class="fas fa-location-arrow"></i>
+                Resume Ride
+            </a>
+        </div>
+        {% endif %}
 
         <!-- Booking Widget (Expanded on Mobile) -->
         <div class="booking-widget fade-in">
@@ -975,7 +1119,7 @@
         <div class="quick-actions fade-in">
             <h2 class="quick-actions-title">Quick Actions</h2>
             <div class="quick-action-grid">
-                <div class="quick-action">
+                <div class="quick-action" id="recent-activity-action">
                     <div class="quick-action-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
                         <i class="fas fa-history"></i>
                     </div>
@@ -1159,18 +1303,66 @@
                 </div>
             </div>
         </div>
+        </section>
+
+        <section id="activity-view" class="activity-view view-hidden">
+            <div class="activity-header">Activity</div>
+            <div class="activity-subtext">Tap any card to resume or view ride details.</div>
+
+            <div class="activity-list">
+                {% if active_ride_request %}
+                    <a href="{% url 'waiting_for_driver' active_ride_request.id %}" class="activity-card current">
+                        <div class="activity-top">
+                            <div class="activity-id">Ride Request #{{ active_ride_request.id }}</div>
+                            <div class="activity-status">Requested</div>
+                        </div>
+                        <div class="activity-route">
+                            <div><strong>From:</strong> {{ active_ride_request.pickup_location|default:"-" }}</div>
+                            <div><strong>To:</strong> {{ active_ride_request.dropoff_location|default:"-" }}</div>
+                        </div>
+                        <div class="activity-meta">
+                            <span>{{ active_ride_request.service_type.name|default:"Service" }}</span>
+                            <span>₹{{ active_ride_request.fare|default:"0" }}</span>
+                        </div>
+                    </a>
+                {% endif %}
+
+                {% if activity_items %}
+                    {% for item in activity_items %}
+                        <a href="{{ item.resume_url }}" class="activity-card {% if item.is_active %}current{% endif %}">
+                            <div class="activity-top">
+                                <div class="activity-id">Booking #{{ item.booking.booking_id }}</div>
+                                <div class="activity-status">{{ item.status_label }}</div>
+                            </div>
+                            <div class="activity-route">
+                                <div><strong>From:</strong> {{ item.booking.pickup_location|default:"-" }}</div>
+                                <div><strong>To:</strong> {{ item.booking.dropoff_location|default:"-" }}</div>
+                            </div>
+                            <div class="activity-meta">
+                                <span>{{ item.booking.service_type.name|default:"Service" }}</span>
+                                <span>₹{{ item.booking.fare|default:"0" }}</span>
+                            </div>
+                        </a>
+                    {% endfor %}
+                {% elif not active_ride_request %}
+                    <div class="activity-empty">
+                        No rides yet. Your completed and ongoing bookings will appear here.
+                    </div>
+                {% endif %}
+            </div>
+        </section>
 
         <!-- Bottom Navigation (Mobile Only) -->
         <nav class="bottom-nav">
-            <a href="#" class="nav-item active">
+            <a href="#" class="nav-item active" data-nav="home">
                 <i class="fas fa-home"></i>
                 <span>Home</span>
             </a>
-            <a href="#" class="nav-item">
+            <a href="#" class="nav-item" data-nav="activity">
                 <i class="fas fa-history"></i>
                 <span>Activity</span>
             </a>
-            <a href="#" class="nav-item">
+            <a href="#" class="nav-item" data-nav="wallet">
                 <i class="fas fa-wallet"></i>
                 <span>Wallet</span>
             </a>
@@ -1349,6 +1541,43 @@
                 }, 100);
             });
         });
+
+        // Home / Activity tab behavior
+        const homeView = document.getElementById('home-view');
+        const activityView = document.getElementById('activity-view');
+        const navItems = document.querySelectorAll('.bottom-nav .nav-item[data-nav]');
+        const recentQuickAction = document.getElementById('recent-activity-action');
+
+        function switchMainTab(tab) {
+            if (!homeView || !activityView) return;
+            if (tab === 'activity') {
+                homeView.classList.add('view-hidden');
+                activityView.classList.remove('view-hidden');
+            } else {
+                activityView.classList.add('view-hidden');
+                homeView.classList.remove('view-hidden');
+            }
+            navItems.forEach(item => item.classList.toggle('active', item.dataset.nav === tab));
+        }
+
+        navItems.forEach(item => {
+            item.addEventListener('click', function(event) {
+                if (this.dataset.nav === 'wallet') {
+                    return;
+                }
+                if (this.dataset.nav === 'activity' || this.dataset.nav === 'home') {
+                    event.preventDefault();
+                    switchMainTab(this.dataset.nav);
+                }
+            });
+        });
+
+        if (recentQuickAction) {
+            recentQuickAction.addEventListener('click', function() {
+                switchMainTab('activity');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        }
     </script>
 </body>
 </html>

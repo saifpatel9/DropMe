@@ -24,6 +24,8 @@ urlpatterns = [
     path('cancel-ride-request/<int:ride_request_id>/', views.cancel_ride_request, name='cancel_ride_request'),
     path('check-ride-status/<int:ride_request_id>/', views.check_ride_status, name='check_ride_status'),
     path('reassign-next-driver/<int:ride_request_id>/', views.reassign_next_driver, name='reassign_next_driver'),
+    path('resume-ride/', views.resume_active_ride_view, name='resume_active_ride'),
+    path('resume-booking/<int:booking_id>/', views.resume_booking_view, name='resume_booking'),
     path('booking-confirmed/<int:booking_id>/', views.booking_confirmed_view, name='booking_confirmed'),
     path('booking-details/<int:booking_id>/', views.booking_details_api, name='booking_details_api'),
     path('apply-promo_code/', views.apply_promo_code, name='apply_promo_code'),
@@ -31,4 +33,5 @@ urlpatterns = [
     path("ride-started/<int:booking_id>/", views.ride_started_view, name="ride_started"),
     path("booking-status/<int:booking_id>/", views.booking_status_api, name="booking_status_api"),
     path("ride-completed/<int:booking_id>/", views.ride_completed_view, name="ride_completed"),
+    path("ride-cancelled/<int:booking_id>/", views.ride_cancelled_view, name="ride_cancelled"),
 ]

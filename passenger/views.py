@@ -36,6 +36,97 @@ from django.core.cache import cache
 from django.db.models import Q
 from django.views.decorators.csrf import csrf_exempt
 
+ACTIVE_BOOKING_STATUSES = ['Pending', 'Confirmed', 'Arrived', 'Ongoing', 'Started']
+CANCELLED_BOOKING_STATUSES = ['Cancelled', 'CancelledByDriver', 'CancelledByPassenger']
+
+
+def _get_latest_active_booking(user):
+    return (
+        Booking.objects
+        .filter(user=user, status__in=ACTIVE_BOOKING_STATUSES)
+        .order_by('-booking_id')
+        .first()
+    )
+
+
+def _get_latest_requested_ride_request(user):
+    return (
+        RideRequest.objects
+        .filter(user=user, status='Requested')
+        .order_by('-id')
+        .first()
+    )
+
+
+def _resume_url_for_booking(booking, ride_request_id=None):
+    status = (booking.status or '').strip()
+    if status in ['Pending']:
+        if ride_request_id:
+            return reverse('waiting_for_driver', args=[ride_request_id])
+        return reverse('booking_confirmed', args=[booking.booking_id])
+    if status in ['Confirmed', 'Arrived']:
+        return reverse('booking_confirmed', args=[booking.booking_id])
+    if status in ['Ongoing', 'Started']:
+        return reverse('ride_started', args=[booking.booking_id])
+    if status == 'Completed':
+        return reverse('ride_completed', args=[booking.booking_id])
+    if status in CANCELLED_BOOKING_STATUSES:
+        return reverse('ride_cancelled', args=[booking.booking_id])
+    return reverse('homepage')
+
+
+def _build_activity_payload(user, limit=30):
+    bookings = list(
+        Booking.objects
+        .filter(user=user)
+        .select_related('service_type', 'driver')
+        .order_by('-booking_id')[:limit]
+    )
+    booking_ids = [b.booking_id for b in bookings]
+    ride_requests = (
+        RideRequest.objects
+        .filter(user=user, booking_id__in=booking_ids)
+        .order_by('-id')
+    )
+    rr_by_booking = {}
+    for rr in ride_requests:
+        rr_by_booking.setdefault(rr.booking_id, rr.id)
+
+    active_booking_id = None
+    active_booking = _get_latest_active_booking(user)
+    if active_booking:
+        active_booking_id = active_booking.booking_id
+
+    items = []
+    for booking in bookings:
+        rr_id = rr_by_booking.get(booking.booking_id)
+        items.append({
+            'booking': booking,
+            'is_active': booking.booking_id == active_booking_id,
+            'resume_url': _resume_url_for_booking(booking, rr_id),
+            'status_label': (booking.status or 'Unknown').replace('By', ' By '),
+        })
+    return items, active_booking
+
+
+def _resolve_active_ride_redirect(user):
+    active_booking = _get_latest_active_booking(user)
+    if active_booking:
+        rr = (
+            RideRequest.objects
+            .filter(user=user, booking=active_booking)
+            .order_by('-id')
+            .first()
+        )
+        return _resume_url_for_booking(active_booking, rr.id if rr else None), active_booking, None
+
+    active_request = _get_latest_requested_ride_request(user)
+    if active_request:
+        return reverse('waiting_for_driver', args=[active_request.id]), None, active_request
+
+    return None, None, None
+
+
 @login_required
 def passenger_dashboard(request):
     """
@@ -90,10 +181,59 @@ def passenger_dashboard(request):
 
 def homepage_cab_view(request):
     rental_packages = RentalPackage.objects.all()
+    activity_items = []
+    active_booking = None
+    active_ride_request = None
+    active_resume_url = None
+
+    if request.user.is_authenticated:
+        activity_items, active_booking = _build_activity_payload(request.user)
+        active_resume_url, active_booking_from_resolver, active_ride_request = _resolve_active_ride_redirect(request.user)
+        if not active_booking and active_booking_from_resolver:
+            active_booking = active_booking_from_resolver
+
     return render(request, 'passenger/HomepageCab.html', {
         'rental_packages': rental_packages,
         'outstation_distance_km': get_outstation_threshold_km(),
+        'activity_items': activity_items,
+        'active_booking': active_booking,
+        'active_ride_request': active_ride_request,
+        'active_resume_url': active_resume_url,
     })
+
+
+@login_required
+def resume_active_ride_view(request):
+    resume_url, active_booking, active_request = _resolve_active_ride_redirect(request.user)
+    print(
+        f"[DEBUG][resume_active_ride] user_id={request.user.id} "
+        f"active_booking_id={getattr(active_booking, 'booking_id', None)} "
+        f"active_booking_status={getattr(active_booking, 'status', None)} "
+        f"active_ride_request_id={getattr(active_request, 'id', None)} "
+        f"target={resume_url}"
+    )
+    if resume_url:
+        return redirect(resume_url)
+    messages.info(request, "No active ride found. You can book a new ride.")
+    return redirect('homepage')
+
+
+@login_required
+def resume_booking_view(request, booking_id):
+    booking = get_object_or_404(Booking, booking_id=booking_id, user=request.user)
+    rr = (
+        RideRequest.objects
+        .filter(user=request.user, booking=booking)
+        .order_by('-id')
+        .first()
+    )
+    target_url = _resume_url_for_booking(booking, rr.id if rr else None)
+    print(
+        f"[DEBUG][resume_booking] user_id={request.user.id} "
+        f"booking_id={booking.booking_id} status={booking.status} "
+        f"ride_request_id={getattr(rr, 'id', None)} target={target_url}"
+    )
+    return redirect(target_url)
 
 def signup_view(request):
     if request.method == 'POST':
@@ -640,6 +780,19 @@ def faq_page(request):
 # Book Ride View
 @login_required
 def book_ride_view(request):
+    resume_url, active_booking, active_request = _resolve_active_ride_redirect(request.user)
+    if resume_url:
+        messages.info(
+            request,
+            "You already have an active booking. Continue that ride before creating a new one."
+        )
+        print(
+            f"[DEBUG][book_ride_view] active booking guard user_id={request.user.id} "
+            f"active_booking_id={getattr(active_booking, 'booking_id', None)} "
+            f"active_request_id={getattr(active_request, 'id', None)} redirect={resume_url}"
+        )
+        return redirect(resume_url)
+
     pickup = request.GET.get('pickup') or request.session.get('pickup_location')
     dropoff = request.GET.get('dropoff') or request.session.get('dropoff_location')
     service = request.GET.get('service_name') or request.session.get('chosen_service')
@@ -727,6 +880,19 @@ def book_ride_view(request):
 
 @login_required
 def confirm_booking(request):
+    resume_url, active_booking, active_request = _resolve_active_ride_redirect(request.user)
+    if resume_url:
+        messages.info(
+            request,
+            "You already have an active booking. Continue that ride before creating a new one."
+        )
+        print(
+            f"[DEBUG][confirm_booking] active booking guard user_id={request.user.id} "
+            f"active_booking_id={getattr(active_booking, 'booking_id', None)} "
+            f"active_request_id={getattr(active_request, 'id', None)} redirect={resume_url}"
+        )
+        return redirect(resume_url)
+
     if request.method == 'POST':
         selected_vehicle_type = request.POST.get('vehicle_type')
         pickup_location = request.POST.get('pickup')
@@ -1564,3 +1730,15 @@ def ride_completed_view(request, booking_id):
         'booking': booking,
     }
     return render(request, 'passenger/ride_completed.html', context)
+
+
+@login_required
+def ride_cancelled_view(request, booking_id):
+    booking = get_object_or_404(Booking, booking_id=booking_id, user=request.user)
+    if booking.status not in CANCELLED_BOOKING_STATUSES and booking.status != 'Cancelled':
+        return redirect('resume_booking', booking_id=booking.booking_id)
+
+    context = {
+        'booking': booking,
+    }
+    return render(request, 'passenger/ride_cancelled.html', context)
