@@ -611,8 +611,12 @@
                     id="phone"
                     name="phone"
                     class="input-field"
-                    placeholder="+1 (555) 000-0000"
+                    placeholder="Enter 10-digit mobile number"
                     autocomplete="tel"
+                    pattern="^[6-9]\d{9}$"
+                    maxlength="10"
+                    inputmode="numeric"
+                    title="Enter a valid 10-digit mobile number starting with 6, 7, 8, or 9."
                     required
                 >
             </div>

@@ -205,8 +205,12 @@
               type="tel" 
               name="phone" 
               value="{{ user.phone }}" 
-              placeholder="Enter your phone number"
+              placeholder="Enter 10-digit mobile number"
               class="form-input w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white"
+              pattern="^[6-9]\d{9}$"
+              maxlength="10"
+              inputmode="numeric"
+              title="Enter a valid 10-digit mobile number starting with 6, 7, 8, or 9."
               required
             >
             <div class="input-icon">

@@ -1,6 +1,7 @@
 # driver/models.py
 from django.db import models
 from django.utils import timezone
+from config.validators import mobile_number_validator
 
 class Driver(models.Model):
     driver_id = models.AutoField(primary_key=True)
@@ -21,7 +22,7 @@ class Driver(models.Model):
     last_name = models.CharField(max_length=100, blank=True, null=True)
     vehicle_type = models.CharField(max_length=50, blank=True, null=True)
     email = models.CharField(unique=True, max_length=150)  # NOT NULL in DB
-    phone = models.CharField(unique=True, max_length=15)   # NOT NULL in DB
+    phone = models.CharField(unique=True, max_length=15, validators=[mobile_number_validator])   # NOT NULL in DB
     gender = models.CharField(max_length=6, choices=GENDER_CHOICES, blank=True, null=True)  # ENUM in DB
     state = models.CharField(max_length=100, blank=True, null=True)
     city = models.CharField(max_length=100, blank=True, null=True)

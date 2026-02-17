@@ -2,6 +2,7 @@ from django import forms
 from passenger.models import User
 from driver.models import Driver
 from services.models import RentalService
+from config.validators import MOBILE_NUMBER_ERROR, MOBILE_NUMBER_PATTERN, mobile_number_validator
 
 
 class PassengerForm(forms.ModelForm):
@@ -33,6 +34,19 @@ class PassengerForm(forms.ModelForm):
             else:
                 field.widget.attrs.update({'class': input_class})
 
+        if 'phone' in self.fields:
+            self.fields['phone'].widget.attrs.update({
+                'pattern': MOBILE_NUMBER_PATTERN,
+                'maxlength': '10',
+                'inputmode': 'numeric',
+                'title': MOBILE_NUMBER_ERROR,
+            })
+
+    def clean_phone(self):
+        phone = (self.cleaned_data.get('phone') or '').strip()
+        mobile_number_validator(phone)
+        return phone
+
 
 class DriverForm(forms.ModelForm):
     class Meta:
@@ -44,7 +58,7 @@ class DriverForm(forms.ModelForm):
             'full_address': forms.Textarea(attrs={'rows': 3}),
             'manufacturing_year': forms.NumberInput(attrs={'min': 1900, 'max': 2100}),
             'email': forms.EmailInput(attrs={'placeholder': 'Enter email'}),
-            'phone': forms.TextInput(attrs={'placeholder': 'e.g., +919876543210'}),
+            'phone': forms.TextInput(attrs={'placeholder': 'Enter 10-digit mobile number'}),
             'rating': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '5'}),
             # 'created_at': forms.DateTimeInput(attrs={'type': 'datetime-local'}), # Uncomment if you want to allow manual input
         }
@@ -55,7 +69,7 @@ class DriverForm(forms.ModelForm):
             'vehicle_rc': 'Vehicle RC Document',
         }
         help_texts = {
-            'phone': 'Enter phone number with country code, e.g., +919876543210',
+            'phone': MOBILE_NUMBER_ERROR,
             'availability': '0 for Unavailable, 1 for Available',
             'password_hash': 'Driver password will be hashed securely.',
         }
@@ -86,9 +100,10 @@ class DriverForm(forms.ModelForm):
         # Prefer numeric phone and length hint
         if 'phone' in self.fields:
             self.fields['phone'].widget.attrs.update({
-                'pattern': r'^[0-9]{10}$',
+                'pattern': MOBILE_NUMBER_PATTERN,
                 'maxlength': '10',
                 'inputmode': 'numeric',
+                'title': MOBILE_NUMBER_ERROR,
             })
 
     def clean(self):
@@ -112,8 +127,11 @@ class DriverForm(forms.ModelForm):
 
         # Phone format: 10 digits
         phone = cleaned.get('phone') or ''
-        if phone and (not phone.isdigit() or len(phone) != 10):
-            errors['phone'] = "Enter a valid 10-digit mobile number."
+        if phone:
+            try:
+                mobile_number_validator(phone)
+            except forms.ValidationError:
+                errors['phone'] = MOBILE_NUMBER_ERROR
 
         # If any errors, raise
         if errors:

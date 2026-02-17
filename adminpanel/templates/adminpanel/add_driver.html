@@ -325,7 +325,7 @@ input[type="file"].form-input:hover {
           <label for="{{ form.phone.id_for_label }}" class="form-label">
             {{ form.phone.label }}
           </label>
-          {{ form.phone|add_class:"form-input"|attr:"required:true"|attr:"pattern:^[0-9]{10}$"|attr:"maxlength:10"|attr:"inputmode:numeric"|attr:"data-required:true" }}
+          {{ form.phone|add_class:"form-input"|attr:"required:true"|attr:"pattern:^[6-9][0-9]{9}$"|attr:"maxlength:10"|attr:"inputmode:numeric"|attr:"title:Enter a valid 10-digit mobile number starting with 6, 7, 8, or 9."|attr:"data-required:true" }}
           <small class="text-red-500 text-xs mt-1 hidden error-msg">Enter a valid 10-digit mobile number.</small>
         </div>
         <div class="form-field">
@@ -709,8 +709,8 @@ input[type="file"].form-input:hover {
           showError(input, 'This field is required.');
           return false;
         }
-        if (!/^[0-9]{10}$/.test(val)) {
-          showError(input, 'Enter a valid 10-digit mobile number.');
+        if (!/^[6-9][0-9]{9}$/.test(val)) {
+          showError(input, 'Enter a valid 10-digit mobile number starting with 6, 7, 8, or 9.');
           return false;
         }
       } else if (input.required && !input.value) {

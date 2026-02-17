@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils.translation import gettext_lazy as _
+from config.validators import mobile_number_validator
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -40,7 +41,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=100, blank=False, null=False)
     email = models.EmailField(unique=True, max_length=150)  # NOT NULL in DB
     password = models.CharField(max_length=128)
-    phone = models.CharField(unique=True, max_length=15)   # NOT NULL in DB
+    phone = models.CharField(unique=True, max_length=15, validators=[mobile_number_validator])   # NOT NULL in DB
     country_code = models.CharField(max_length=5, blank=True, default='+91')
     gender = models.CharField(max_length=6, choices=GENDER_CHOICES, blank=True, null=True)  # ENUM in DB
     profile_picture = models.CharField(max_length=255, blank=True, null=True)

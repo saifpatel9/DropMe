@@ -1,6 +1,7 @@
 from django import forms
 from .models import User
 from django.core.exceptions import ValidationError
+from config.validators import MOBILE_NUMBER_ERROR, MOBILE_NUMBER_PATTERN, mobile_number_validator
 
 class SignupForm(forms.ModelForm):
     confirm_password = forms.CharField(
@@ -26,6 +27,13 @@ class SignupForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(SignupForm, self).__init__(*args, **kwargs)
         self.fields['country_code'].initial = '+91'
+        self.fields['phone'].widget.attrs.update({
+            'placeholder': 'Enter 10-digit mobile number',
+            'pattern': MOBILE_NUMBER_PATTERN,
+            'maxlength': '10',
+            'inputmode': 'numeric',
+            'title': MOBILE_NUMBER_ERROR,
+        })
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -34,7 +42,8 @@ class SignupForm(forms.ModelForm):
         return email
 
     def clean_phone(self):
-        phone = self.cleaned_data.get('phone')
+        phone = (self.cleaned_data.get('phone') or '').strip()
+        mobile_number_validator(phone)
         if User.objects.filter(phone=phone).exists():
             raise forms.ValidationError("This phone number is already registered.")
         return phone
