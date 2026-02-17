@@ -1,3 +1,5 @@
+{% load custom_filters %}
+
 <style>
   /* Custom star rating styles */
   .star-rating {
@@ -321,10 +323,10 @@
                 </div>
                 <div class="flex items-center text-gray-600 mb-2">
                   <i class="fas fa-map-marker-alt text-green-500 mr-2"></i>
-                  <span class="font-medium">{{ ride.pickup_location }}</span>
+                  <span class="font-medium">{{ ride.pickup_location|before_comma }}</span>
                   <i class="fas fa-arrow-right text-gray-400 mx-3"></i>
                   <i class="fas fa-map-marker-alt text-red-500 mr-2"></i>
-                  <span class="font-medium">{{ ride.dropoff_location }}</span>
+                  <span class="font-medium">{{ ride.dropoff_location|before_comma }}</span>
                 </div>
                 <div class="flex items-center text-gray-500 text-sm">
                   <i class="fas fa-user-tie text-blue-500 mr-2"></i>
@@ -442,10 +444,10 @@
                 </div>
                 <div class="flex items-center text-gray-600 mb-2">
                   <i class="fas fa-map-marker-alt text-green-500 mr-2"></i>
-                  <span class="font-medium">{{ rating.booking.pickup_location }}</span>
+                  <span class="font-medium">{{ rating.booking.pickup_location|before_comma }}</span>
                   <i class="fas fa-arrow-right text-gray-400 mx-3"></i>
                   <i class="fas fa-map-marker-alt text-red-500 mr-2"></i>
-                  <span class="font-medium">{{ rating.booking.dropoff_location }}</span>
+                  <span class="font-medium">{{ rating.booking.dropoff_location|before_comma }}</span>
                 </div>
                 <div class="flex items-center text-gray-500 text-sm mb-3">
                   <i class="fas fa-user-tie text-blue-500 mr-2"></i>

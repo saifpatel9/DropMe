@@ -1,590 +1,649 @@
 {% load static %}
 
 {% block extra_css %}
-<!-- Tailwind CSS -->
 <script src="https://cdn.tailwindcss.com"></script>
-
-<!-- Fonts and Icons -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
-<link rel="stylesheet" href="{% static 'css/responsive.css' %}">
 <link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
 
 <style>
     :root {
-        --primary-gradient: linear-gradient(135deg, #0f766e 0%, #0891b2 50%, #7c3aed 100%);
-        --glass-bg: rgba(255, 255, 255, 0.95);
-        --glass-border: rgba(255, 255, 255, 0.2);
-        --shadow-soft: 0 20px 40px rgba(0, 0, 0, 0.08);
-        --shadow-hover: 0 25px 50px rgba(0, 0, 0, 0.12);
-        --teal-gradient: linear-gradient(135deg, #0f766e 0%, #0891b2 100%);
-        --purple-gradient: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+        --primary: #00A59E;
+        --primary-dark: #008580;
+        --secondary: #0EB9D3;
+        --text-dark: #1a1a1a;
+        --text-gray: #6b7280;
+        --text-light: #9ca3af;
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
+        --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+        --panel-radius: 24px;
+        --bottom-nav-height: calc(78px + env(safe-area-inset-bottom));
     }
 
     * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
-    body {
-        background: var(--primary-gradient);
-        background-attachment: fixed;
-        min-height: 100vh;
-        position: relative;
+    html {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        position: fixed;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
     }
 
-    /* Animated background */
-    body::before {
-        content: '';
+    body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        position: fixed;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #0d9488;
+    }
+
+    .container,
+    .app-container,
+    .screen-content,
+    .app-screen,
+    .main-content,
+    .wrapper {
+        max-width: none !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .profile-screen {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        z-index: 1;
+        background: linear-gradient(160deg, #0d9488 0%, #0f766e 40%, #134e4a 100%);
+        overflow: hidden;
+    }
+
+    .profile-screen-inner {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        padding: max(env(safe-area-inset-top), 42px) 24px 0;
+    }
+
+    .deco-circle {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .deco-1 { width: 280px; height: 280px; top: -80px; right: -80px; }
+    .deco-2 { width: 180px; height: 180px; bottom: 40%; left: -60px; }
+    .deco-3 { width: 120px; height: 120px; bottom: 37%; right: 20px; }
+
+    .brand-area {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .brand-logo {
+        width: 64px;
+        height: 64px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(12px);
+        border: 1.5px solid rgba(255,255,255,0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+        font-weight: 800;
+        color: white;
+        letter-spacing: -1px;
+    }
+
+    .brand-name {
+        font-size: 26px;
+        font-weight: 800;
+        color: white;
+        letter-spacing: -0.5px;
+        text-align: center;
+    }
+
+    .brand-tagline {
+        font-size: 14px;
+        color: rgba(255,255,255,0.75);
+        text-align: center;
+        margin-top: 4px;
+        line-height: 1.5;
+    }
+
+    .hero-profile {
+        margin-top: 28px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .hero-avatar {
+        width: 78px;
+        height: 78px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        border: 2px solid rgba(255,255,255,0.55);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        font-weight: 800;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .hero-name {
+        margin-top: 12px;
+        font-size: 24px;
+        line-height: 1.2;
+        font-weight: 800;
+        color: #fff;
+        letter-spacing: -0.2px;
+    }
+
+    .hero-sub {
+        margin-top: 6px;
+        font-size: 13px;
+        color: rgba(255,255,255,0.85);
+        line-height: 1.45;
+    }
+
+    .top-bar {
         position: fixed;
         top: 0;
         left: 0;
-        width: 100%;
-        height: 100%;
-        background-image: 
-            radial-gradient(circle at 25% 75%, rgba(120, 119, 198, 0.15) 0%, transparent 50%),
-            radial-gradient(circle at 75% 25%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
-            radial-gradient(circle at 50% 50%, rgba(6, 182, 212, 0.08) 0%, transparent 50%);
-        pointer-events: none;
-        z-index: -1;
-    }
-
-    /* Glass morphism containers */
-    .glass-container {
-        background: var(--glass-bg);
-        backdrop-filter: blur(12px);
-        border: 1px solid var(--glass-border);
-        box-shadow: var(--shadow-soft);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .glass-container::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
         right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(15, 118, 110, 0.3), transparent);
+        z-index: 1000;
+        padding: max(env(safe-area-inset-top), 12px) 16px 12px;
+        pointer-events: none;
     }
 
-    /* Enhanced back button */
-    .back-btn {
-        background: var(--teal-gradient);
-        color: white;
-        text-decoration: none;
-        font-weight: 600;
-        padding: 12px 24px;
-        border-radius: 16px;
-        display: inline-flex;
+    .top-content {
+        display: flex;
         align-items: center;
-        gap: 8px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 15px rgba(15, 118, 110, 0.3);
-        position: relative;
-        overflow: hidden;
+        justify-content: space-between;
+        pointer-events: auto;
     }
 
-    .back-btn::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-        transition: left 0.5s ease;
-    }
-
-    .back-btn:hover::before {
-        left: 100%;
-    }
-
-    .back-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(15, 118, 110, 0.4);
-    }
-
-    /* Profile sidebar enhancements */
-    .profile-sidebar {
-        background: var(--glass-bg);
-        backdrop-filter: blur(15px);
-        border: 1px solid var(--glass-border);
-        border-radius: 24px;
-        padding: 2rem;
-        box-shadow: var(--shadow-soft);
-        position: relative;
-        transition: all 0.3s ease;
-    }
-
-    .profile-sidebar:hover {
-        box-shadow: var(--shadow-hover);
-        transform: translateY(-2px);
-    }
-
-    /* Profile avatar */
-    .profile-avatar {
-        width: 80px;
-        height: 80px;
-        background: var(--teal-gradient);
+    .icon-btn {
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(10px);
+        border: 1.5px solid rgba(255,255,255,0.3);
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
-        font-size: 2rem;
-        position: relative;
-        box-shadow: 0 8px 32px rgba(15, 118, 110, 0.3);
-        transition: all 0.3s ease;
-    }
-
-    .profile-avatar:hover {
-        transform: scale(1.05);
-        box-shadow: 0 12px 40px rgba(15, 118, 110, 0.4);
-    }
-
-    .profile-avatar::after {
-        content: '';
-        position: absolute;
-        inset: -2px;
-        padding: 2px;
-        background: var(--teal-gradient);
-        border-radius: 50%;
-        mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-        mask-composite: subtract;
-    }
-
-    /* Profile info */
-    .profile-name {
-        font-family: 'Poppins', sans-serif;
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #1e293b;
-        margin-bottom: 0.5rem;
-        background: linear-gradient(135deg, #1e293b, #0f766e);
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
-    .profile-email {
-        color: #64748b;
-        font-size: 0.95rem;
-        font-weight: 500;
-    }
-
-    /* Navigation menu enhancements */
-    .profile-nav {
-        margin-top: 2rem;
-        space-y: 0.75rem;
-    }
-
-    .nav-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 16px 20px;
-        border-radius: 16px;
-        color: #475569;
+        font-size: 17px;
+        cursor: pointer;
         text-decoration: none;
-        font-weight: 500;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-        margin-bottom: 8px;
-        background: rgba(255, 255, 255, 0.5);
-        border: 1px solid rgba(15, 118, 110, 0.1);
+        transition: all 0.2s;
     }
 
-    .nav-item::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 4px;
-        height: 100%;
-        background: var(--teal-gradient);
-        transform: scaleY(0);
-        transition: transform 0.3s ease;
+    .icon-btn:active {
+        transform: scale(0.94);
+        background: rgba(255,255,255,0.3);
     }
 
-    .nav-item:hover {
-        background: rgba(15, 118, 110, 0.1);
-        color: #0f766e;
-        transform: translateX(8px);
-        border-color: rgba(15, 118, 110, 0.3);
-        box-shadow: 0 4px 12px rgba(15, 118, 110, 0.15);
-    }
-
-    .nav-item:hover::before {
-        transform: scaleY(1);
-    }
-
-    .nav-item.active {
-        background: var(--teal-gradient);
-        color: white;
-        box-shadow: 0 4px 15px rgba(15, 118, 110, 0.3);
-    }
-
-    .nav-item.active::before {
-        background: rgba(255, 255, 255, 0.3);
-        transform: scaleY(1);
-    }
-
-    .nav-item.delete-account {
-        background: rgba(239, 68, 68, 0.1);
-        color: #dc2626;
-        border-color: rgba(239, 68, 68, 0.2);
-    }
-
-    .nav-item.delete-account:hover {
-        background: rgba(239, 68, 68, 0.15);
-        color: #b91c1c;
-        border-color: rgba(239, 68, 68, 0.3);
-    }
-
-    .nav-item.delete-account::before {
-        background: linear-gradient(135deg, #ef4444, #dc2626);
-    }
-
-    .nav-icon {
-        font-size: 1.1rem;
-        width: 20px;
-        text-align: center;
-        transition: transform 0.3s ease;
-    }
-
-    .nav-item:hover .nav-icon {
-        transform: scale(1.1);
-    }
-
-    /* Main content area */
-    .main-content {
-        background: var(--glass-bg);
-        backdrop-filter: blur(15px);
-        border: 1px solid var(--glass-border);
-        border-radius: 24px;
-        padding: 2.5rem;
-        box-shadow: var(--shadow-soft);
-        position: relative;
-        min-height: 500px;
-        transition: all 0.3s ease;
-    }
-
-    .main-content:hover {
-        box-shadow: var(--shadow-hover);
-    }
-
-    /* Welcome content */
-    .welcome-content {
-        text-align: center;
-        padding: 3rem 2rem;
-        position: relative;
-    }
-
-    .welcome-title {
-        font-family: 'Poppins', sans-serif;
-        font-size: 2.5rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, #1e293b, #0f766e, #7c3aed);
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 1rem;
-    }
-
-    .welcome-subtitle {
-        font-size: 1.2rem;
-        color: #64748b;
-        font-weight: 500;
-        margin-bottom: 2rem;
-    }
-
-    .welcome-icon {
-        font-size: 4rem;
-        background: var(--teal-gradient);
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 1rem;
-        display: block;
-    }
-
-    /* Quick stats cards */
-    .quick-stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-top: 2rem;
-    }
-
-    .stat-card {
-        background: rgba(255, 255, 255, 0.7);
-        border: 1px solid rgba(15, 118, 110, 0.1);
-        border-radius: 16px;
-        padding: 1.5rem;
-        text-align: center;
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .stat-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
+    .profile-panel {
+        position: fixed;
         left: 0;
         right: 0;
-        height: 3px;
-        background: var(--teal-gradient);
-        transform: scaleX(0);
-        transition: transform 0.3s ease;
+        bottom: 0;
+        z-index: 1000;
+        background: #fff;
+        border-radius: var(--panel-radius) var(--panel-radius) 0 0;
+        box-shadow: 0 -4px 30px rgba(0,0,0,0.18);
+        max-height: 72vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        width: 100%;
+        padding-bottom: 0;
     }
 
-    .stat-card:hover::before {
-        transform: scaleX(1);
+    .profile-panel::-webkit-scrollbar {
+        display: none;
     }
 
-    .stat-card:hover {
-        background: rgba(255, 255, 255, 0.9);
-        border-color: rgba(15, 118, 110, 0.3);
-        transform: translateY(-4px);
-        box-shadow: 0 8px 25px rgba(15, 118, 110, 0.15);
+    .panel-handle {
+        width: 36px;
+        height: 4px;
+        background: #d1d5db;
+        border-radius: 2px;
+        margin: 12px auto 0;
     }
 
-    .stat-icon {
-        font-size: 2rem;
-        background: var(--teal-gradient);
-        background-clip: text;
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 0.5rem;
+    .panel-content {
+        padding: 18px 16px calc(var(--bottom-nav-height) + 16px);
     }
 
-    .stat-value {
-        font-size: 1.5rem;
+    .section-title {
+        margin: 2px 2px 10px;
+        font-size: 12px;
         font-weight: 700;
-        color: #1e293b;
-        margin-bottom: 0.25rem;
+        color: var(--text-light);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
     }
 
-    .stat-label {
-        color: #64748b;
-        font-size: 0.9rem;
-        font-weight: 500;
+    .option-list {
+        display: grid;
+        gap: 10px;
+        margin-bottom: 16px;
     }
 
-    /* Loading state */
-    .loading-spinner {
-        display: inline-block;
-        width: 24px;
-        height: 24px;
-        border: 3px solid rgba(15, 118, 110, 0.2);
-        border-radius: 50%;
-        border-top-color: #0f766e;
-        animation: spin 1s linear infinite;
-        margin-right: 8px;
+    .option-item {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 13px 12px;
+        text-decoration: none;
+        color: var(--text-dark);
+        background: #fff;
+        box-shadow: 0 6px 14px rgba(15, 23, 42, 0.05);
+        transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
     }
 
-    @keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
+    .option-item:active {
+        transform: scale(0.98);
     }
 
-    /* Error state */
-    .error-message {
-        background: rgba(239, 68, 68, 0.1);
-        border: 1px solid rgba(239, 68, 68, 0.2);
+    .option-item.active {
+        border-color: #14b8a6;
+        background: linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%);
+        box-shadow: 0 10px 18px rgba(20, 184, 166, 0.12);
+    }
+
+    .option-item.danger {
+        border-color: #fecaca;
+        background: #fff1f2;
+    }
+
+    .option-left {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        min-width: 0;
+    }
+
+    .option-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 11px;
+        background: #ecfeff;
+        color: #0f766e;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .option-item.danger .option-icon {
+        background: #fee2e2;
         color: #dc2626;
-        padding: 1rem;
-        border-radius: 12px;
+    }
+
+    .option-label {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    .option-sub {
+        margin: 2px 0 0;
+        font-size: 12px;
+        color: var(--text-gray);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .option-chevron {
+        color: #94a3b8;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+
+    .section-panel {
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 8px 20px rgba(15,23,42,0.06);
+        padding: 12px;
+    }
+
+    .section-panel.empty {
+        padding: 24px 16px;
+    }
+
+    .empty-state {
         text-align: center;
-        margin: 2rem 0;
     }
 
-    /* Responsive design */
-    @media (max-width: 768px) {
-        .profile-sidebar {
-            padding: 1.5rem;
+    .empty-state i {
+        font-size: 32px;
+        color: #0f766e;
+        margin-bottom: 10px;
+    }
+
+    .empty-state h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text-dark);
+    }
+
+    .empty-state p {
+        margin: 8px 0 0;
+        color: var(--text-gray);
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    /* Make subsection templates obey mobile panel constraints */
+    #profile-content,
+    #profile-content * {
+        max-width: none;
+    }
+
+    #profile-content .max-w-7xl,
+    #profile-content .max-w-6xl,
+    #profile-content .max-w-5xl,
+    #profile-content .max-w-4xl,
+    #profile-content .max-w-3xl,
+    #profile-content .max-w-2xl,
+    #profile-content .max-w-xl,
+    #profile-content .max-w-lg,
+    #profile-content .max-w-md,
+    #profile-content .max-w-sm,
+    #profile-content .mx-auto {
+        max-width: none !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    #profile-content .rounded-2xl,
+    #profile-content .rounded-3xl,
+    #profile-content .rounded-xl {
+        border-radius: 14px !important;
+    }
+
+    #profile-content table {
+        width: 100%;
+    }
+
+    #profile-content .delete-glass {
+        max-width: none !important;
+        border-radius: 14px !important;
+        padding: 1rem !important;
+    }
+
+    .passenger-bottom-nav {
+        display: grid !important;
+        z-index: 1200;
+    }
+
+    @media (min-width: 768px) {
+        .app-bottom-nav.passenger-bottom-nav {
+            display: grid !important;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        body {
+            background: #e2e8f0;
         }
 
-        .main-content {
-            padding: 2rem 1.5rem;
+        .profile-screen {
+            top: 24px;
+            bottom: 24px;
+            left: 24px;
+            right: 448px;
+            width: auto;
+            height: auto;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(15,23,42,0.18);
         }
 
-        .welcome-title {
-            font-size: 2rem;
+        .top-bar {
+            top: 24px;
+            left: 24px;
+            right: 448px;
         }
 
-        .profile-avatar {
-            width: 60px;
-            height: 60px;
-            font-size: 1.5rem;
+        .profile-panel {
+            top: 24px;
+            bottom: 24px;
+            right: 24px;
+            left: auto;
+            width: 400px;
+            height: auto;
+            max-height: calc(100vh - 48px);
+            border-radius: 22px;
+            box-shadow: 0 20px 60px rgba(15,23,42,0.18);
         }
 
-        .nav-item {
-            padding: 12px 16px;
+        .panel-handle {
+            display: none;
         }
 
-        .quick-stats {
-            grid-template-columns: 1fr;
+        .panel-content {
+            padding: 24px 18px 20px;
         }
-    }
 
-    /* Smooth transitions for dynamic content */
-    #profile-content {
-        transition: opacity 0.3s ease;
-    }
-
-    .content-loading {
-        opacity: 0.5;
-    }
-
-    /* Enhanced scrollbar */
-    ::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-        background: rgba(0, 0, 0, 0.05);
-        border-radius: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: var(--teal-gradient);
-        border-radius: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-        background: var(--purple-gradient);
+        .passenger-bottom-nav {
+            display: none !important;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="app-screen passenger-app">
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-    <!-- Enhanced back button -->
-    <div class="mb-8">
-        <a href="{% url 'homepage' %}" class="back-btn">
+<div class="profile-screen">
+    <div class="deco-circle deco-1"></div>
+    <div class="deco-circle deco-2"></div>
+    <div class="deco-circle deco-3"></div>
+
+    <div class="profile-screen-inner">
+        <div class="brand-area">
+            <div class="brand-logo">D</div>
+            <div>
+                <div class="brand-name">Dropme</div>
+                <div class="brand-tagline">Profile and preferences, in one place.</div>
+            </div>
+        </div>
+
+        <div class="hero-profile">
+            <div class="hero-avatar">
+                {% if user.first_name %}{{ user.first_name|first|upper }}{% else %}<i class="fas fa-user"></i>{% endif %}
+            </div>
+            <h1 class="hero-name">{{ user.first_name }} {{ user.last_name }}</h1>
+            <p class="hero-sub">{{ user.phone|default:"No mobile number" }}</p>
+            <p class="hero-sub">{{ user.email }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="top-bar">
+    <div class="top-content">
+        <a href="{% url 'homepage' %}" class="icon-btn" aria-label="Back to home">
             <i class="fas fa-arrow-left"></i>
-            Back to Homepage
+        </a>
+        <a href="{% url 'profile_section' 'personal-info' %}" class="icon-btn" aria-label="Edit profile">
+            <i class="fas fa-pen"></i>
         </a>
     </div>
 </div>
 
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        
-        <!-- Enhanced Sidebar -->
-        <aside class="glass-container profile-sidebar">
-            <!-- Profile Header -->
-            <div class="flex flex-col items-center text-center mb-8">
-                <div class="profile-avatar mb-4">
-                    <i class="fas fa-user"></i>
+<div class="profile-panel">
+    <div class="panel-handle"></div>
+    <div class="panel-content">
+        <h2 class="section-title">Profile Options</h2>
+        <nav class="option-list" aria-label="Passenger profile options">
+            <a href="{% url 'profile_section' 'personal-info' %}" class="option-item {% if 'personal-info' in request.path %}active{% endif %}">
+                <div class="option-left">
+                    <span class="option-icon"><i class="fas fa-id-card"></i></span>
+                    <div>
+                        <p class="option-label">Personal Info</p>
+                        <p class="option-sub">Name, email, mobile and account details</p>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="profile-name">{{ user.first_name }} {{ user.last_name }}</h3>
-                    <p class="profile-email">{{ user.email }}</p>
+                <i class="fas fa-chevron-right option-chevron"></i>
+            </a>
+
+            <a href="{% url 'profile_section' 'my-rides' %}" class="option-item {% if 'my-rides' in request.path %}active{% endif %}">
+                <div class="option-left">
+                    <span class="option-icon"><i class="fas fa-route"></i></span>
+                    <div>
+                        <p class="option-label">My Rides</p>
+                        <p class="option-sub">Trip history, statuses and details</p>
+                    </div>
                 </div>
-            </div>
+                <i class="fas fa-chevron-right option-chevron"></i>
+            </a>
 
-            <!-- Navigation Menu -->
-            <nav class="profile-nav">
-                <a href="{% url 'profile_section' 'personal_info' %}" id="personal_info_link" class="nav-item">
-                    <i class="fas fa-id-card-alt nav-icon"></i>
-                    <span>Personal Info</span>
-                </a>
-                <a href="{% url 'profile_section' 'my_rides' %}" class="nav-item">
-                    <i class="fas fa-car nav-icon"></i>
-                    <span>My Rides</span>
-                </a>
-                <a href="{% url 'profile_section' 'payment' %}" class="nav-item">
-                    <i class="fas fa-wallet nav-icon"></i>
-                    <span>Payment</span>
-                </a>
-                <a href="{% url 'profile_section' 'safety' %}" class="nav-item">
-                    <i class="fas fa-shield-alt nav-icon"></i>
-                    <span>Safety</span>
-                </a>
-                <a href="{% url 'profile_section' 'rating_and_feedback' %}" class="nav-item">
-                    <i class="fas fa-star-half-alt nav-icon"></i>
-                    <span>Rating & Feedback</span>
-                </a>
-                <a href="{% url 'profile_section' 'emergency_contact' %}" class="nav-item">
-                    <i class="fas fa-phone-alt nav-icon"></i>
-                    <span>Emergency Contact</span>
-                </a>
-                <a href="{% url 'profile_section' 'delete_account' %}" class="nav-item delete-account">
-                    <i class="fas fa-trash-alt nav-icon"></i>
-                    <span>Delete Account</span>
-                </a>
-            </nav>
-        </aside>
+            <a href="{% url 'profile_section' 'payment' %}" class="option-item {% if '/payment/' in request.path %}active{% endif %}">
+                <div class="option-left">
+                    <span class="option-icon"><i class="fas fa-wallet"></i></span>
+                    <div>
+                        <p class="option-label">Payment Methods</p>
+                        <p class="option-sub">Manage your preferred payment mode</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right option-chevron"></i>
+            </a>
 
-        <!-- Enhanced Main Content Area -->
-        <section class="lg:col-span-3 glass-container main-content">
+            <a href="{% url 'profile_section' 'emergency-contact' %}" class="option-item {% if 'emergency-contact' in request.path %}active{% endif %}">
+                <div class="option-left">
+                    <span class="option-icon"><i class="fas fa-phone-volume"></i></span>
+                    <div>
+                        <p class="option-label">Emergency Contact</p>
+                        <p class="option-sub">Set your trusted emergency number</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right option-chevron"></i>
+            </a>
+
+            <a href="{% url 'profile_section' 'safety' %}" class="option-item {% if 'safety' in request.path %}active{% endif %}">
+                <div class="option-left">
+                    <span class="option-icon"><i class="fas fa-shield-alt"></i></span>
+                    <div>
+                        <p class="option-label">Safety</p>
+                        <p class="option-sub">Safety controls and preferences</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right option-chevron"></i>
+            </a>
+
+            <a href="{% url 'profile_section' 'rating-and-feedback' %}" class="option-item {% if 'rating-and-feedback' in request.path %}active{% endif %}">
+                <div class="option-left">
+                    <span class="option-icon"><i class="fas fa-star"></i></span>
+                    <div>
+                        <p class="option-label">Ratings & Feedback</p>
+                        <p class="option-sub">Review rides and share feedback</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right option-chevron"></i>
+            </a>
+
+            <a href="{% url 'faq_page' %}" class="option-item">
+                <div class="option-left">
+                    <span class="option-icon"><i class="fas fa-headset"></i></span>
+                    <div>
+                        <p class="option-label">Support</p>
+                        <p class="option-sub">Help center and assistance</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right option-chevron"></i>
+            </a>
+
+            <a href="{% url 'profile_section' 'delete-account' %}" class="option-item danger {% if 'delete-account' in request.path %}active{% endif %}">
+                <div class="option-left">
+                    <span class="option-icon"><i class="fas fa-user-slash"></i></span>
+                    <div>
+                        <p class="option-label">Delete Account</p>
+                        <p class="option-sub">Permanently remove your passenger account</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right option-chevron"></i>
+            </a>
+
+            <a href="{% url 'logout' %}" class="option-item danger">
+                <div class="option-left">
+                    <span class="option-icon"><i class="fas fa-right-from-bracket"></i></span>
+                    <div>
+                        <p class="option-label">Logout</p>
+                        <p class="option-sub">Sign out from your passenger account</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right option-chevron"></i>
+            </a>
+        </nav>
+
+        <h2 class="section-title">Section</h2>
+        <section class="section-panel {% if not section_template %}empty{% endif %}">
             <div id="profile-content">
                 {% if section_template %}
                     {% include section_template %}
                 {% else %}
-                    <div class="welcome-content">
-                        <i class="fas fa-user-circle welcome-icon"></i>
-                        <h2 class="welcome-title">Welcome to Your Profile</h2>
-                        <p class="welcome-subtitle">Manage your account settings and preferences from the sidebar menu</p>
-                        
-                        <!-- Quick Stats -->
-                        <div class="quick-stats">
-                            <div class="stat-card">
-                                <div class="stat-icon">
-                                    <i class="fas fa-car"></i>
-                                </div>
-                                <div class="stat-value">--</div>
-                                <div class="stat-label">Total Rides</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-icon">
-                                    <i class="fas fa-star"></i>
-                                </div>
-                                <div class="stat-value">--</div>
-                                <div class="stat-label">Average Rating</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-icon">
-                                    <i class="fas fa-dollar-sign"></i>
-                                </div>
-                                <div class="stat-value">--</div>
-                                <div class="stat-label">Total Spent</div>
-                            </div>
-                            <div class="stat-card">
-                                <div class="stat-icon">
-                                    <i class="fas fa-calendar"></i>
-                                </div>
-                                <div class="stat-value">--</div>
-                                <div class="stat-label">Member Since</div>
-                            </div>
-                        </div>
-
-                        <!-- Quick Actions -->
-                        <div class="mt-8 flex flex-wrap justify-center gap-4">
-                            <a href="{% url 'profile_section' 'my_rides' %}" class="nav-item inline-flex items-center" style="margin-bottom: 0;">
-                                <i class="fas fa-car nav-icon"></i>
-                                <span>View My Rides</span>
-                            </a>
-                            <a href="{% url 'profile_section' 'payment' %}" class="nav-item inline-flex items-center" style="margin-bottom: 0;">
-                                <i class="fas fa-wallet nav-icon"></i>
-                                <span>Manage Payments</span>
-                            </a>
-                        </div>
+                    <div class="empty-state">
+                        <i class="fas fa-user-gear"></i>
+                        <h3>Manage your profile</h3>
+                        <p>Select an option above to update your info, payment preferences, safety settings, and ride history.</p>
                     </div>
                 {% endif %}
             </div>
         </section>
     </div>
 </div>
-</div>
 
+<nav class="app-bottom-nav passenger-bottom-nav">
+    <a href="{% url 'homepage' %}">
+        <i class="fas fa-house"></i>
+        <span>Home</span>
+    </a>
+    <a href="{% url 'choose_ride' %}">
+        <i class="fas fa-map-location-dot"></i>
+        <span>Book</span>
+    </a>
+    <a href="{% url 'profile_section' 'my-rides' %}" class="{% if 'my-rides' in request.path %}active{% endif %}">
+        <i class="fas fa-clock-rotate-left"></i>
+        <span>Rides</span>
+    </a>
+    <a href="{% url 'profile_page' %}" class="{% if request.resolver_match.url_name == 'profile_page' or request.resolver_match.url_name == 'profile_section' %}active{% endif %}">
+        <i class="fas fa-user"></i>
+        <span>Profile</span>
+    </a>
+</nav>
 {% endblock %}
-
