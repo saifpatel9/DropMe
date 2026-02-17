@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
     <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+    <link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
 
 <style>
 :root {
@@ -26,9 +27,15 @@ body {
     background: #f3f4f6;
 }
 
+.app-screen {
+    min-height: 100vh;
+    padding-bottom: 0;
+}
+
 .profile-container {
     min-height: 100vh;
-    padding-bottom: 30px;
+    padding-bottom: calc(104px + env(safe-area-inset-bottom));
+    box-sizing: border-box;
 }
 
 /* Header */
@@ -373,6 +380,12 @@ body {
     .document-upload {
         width: 100%;
         justify-content: flex-end;
+    }
+}
+
+@media (min-width: 769px) {
+    .profile-container {
+        padding-bottom: 30px;
     }
 }
 </style>

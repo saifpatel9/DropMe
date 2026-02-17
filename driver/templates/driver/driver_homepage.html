@@ -22,6 +22,7 @@
 :root {
     --primary-teal: #00A59E;
     --primary-cyan: #0EB9D3;
+    --driver-nav-offset: 0px;
 }
 
 body {
@@ -583,7 +584,7 @@ html {
 /* Bottom Status Card */
 .bottom-status-card {
     position: fixed;
-    bottom: 0;
+    bottom: var(--driver-nav-offset);
     left: 0;
     right: 0;
     height: 150px;
@@ -741,7 +742,7 @@ html {
 /* Driver Arrived Button */
 .driver-arrived-container {
     position: fixed;
-    bottom: 140px;
+    bottom: calc(var(--driver-nav-offset) + 140px);
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
@@ -790,7 +791,7 @@ html {
     position: fixed;
     left: 50%;
     transform: translateX(-50%);
-    bottom: 214px;
+    bottom: calc(var(--driver-nav-offset) + 214px);
     z-index: 1001;
     animation: slideUpFade 0.3s ease-out;
     transition: bottom 0.2s ease;
@@ -986,7 +987,7 @@ html {
 
 @media (max-width: 768px) {
     .driver-arrived-container {
-        bottom: 120px;
+        bottom: calc(var(--driver-nav-offset) + 120px);
         left: 20px;
         right: 20px;
         transform: none;
@@ -1001,7 +1002,7 @@ html {
         left: 20px;
         right: 20px;
         transform: none;
-        bottom: 196px;
+        bottom: calc(var(--driver-nav-offset) + 196px);
     }
 
     .cancel-ride-btn {
@@ -2856,18 +2857,26 @@ html {
         const cancelContainer = document.getElementById('cancel-ride-container');
         if (!cancelContainer) return;
 
+        const nav = document.querySelector('.app-bottom-nav');
+        const navOffset = nav && window.getComputedStyle(nav).display !== 'none' ? nav.offsetHeight : 0;
         const isMobile = window.matchMedia('(max-width: 768px)').matches;
-        const fallbackBottom = isMobile ? 196 : 214;
+        const fallbackBottom = navOffset + (isMobile ? 196 : 214);
 
         if (!driverContainer || driverContainer.style.display === 'none') {
             cancelContainer.style.bottom = `${fallbackBottom}px`;
             return;
         }
 
-        const baseBottom = isMobile ? 120 : 140; // Mirrors .driver-arrived-container positioning
+        const baseBottom = navOffset + (isMobile ? 120 : 140); // Mirrors .driver-arrived-container positioning
         const driverHeight = Math.max(driverContainer.offsetHeight || 0, 72);
         const gap = 12;
         cancelContainer.style.bottom = `${baseBottom + driverHeight + gap}px`;
+    }
+
+    function updateBottomOffsets() {
+        const nav = document.querySelector('.app-bottom-nav');
+        const navOffset = nav && window.getComputedStyle(nav).display !== 'none' ? nav.offsetHeight : 0;
+        document.documentElement.style.setProperty('--driver-nav-offset', `${navOffset}px`);
     }
 
     function normalizeBookingStatus(status) {
@@ -3970,14 +3979,19 @@ html {
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', () => {
+        updateBottomOffsets();
         initMap();
         initCancellationModalControls();
         hydrateActiveBookingState();
         positionCancelRideButton();
         window.addEventListener('resize', refreshMapViewport);
-        window.addEventListener('resize', positionCancelRideButton);
+        window.addEventListener('resize', () => {
+            updateBottomOffsets();
+            positionCancelRideButton();
+        });
         window.addEventListener('orientationchange', () => {
             setTimeout(refreshMapViewport, 150);
+            setTimeout(updateBottomOffsets, 150);
             setTimeout(positionCancelRideButton, 150);
         });
 
