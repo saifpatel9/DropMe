@@ -33,7 +33,7 @@ from django.views.decorators.http import require_POST
 import json
 from .forms import EmergencyContactForm
 from django.core.cache import cache
-from django.db.models import Q
+from django.db.models import Q, Sum, Avg
 from django.views.decorators.csrf import csrf_exempt
 
 ACTIVE_BOOKING_STATUSES = ['Pending', 'Confirmed', 'Arrived', 'Ongoing', 'Started']
@@ -125,6 +125,27 @@ def _resolve_active_ride_redirect(user):
         return reverse('waiting_for_driver', args=[active_request.id]), None, active_request
 
     return None, None, None
+
+
+def _build_profile_summary(user):
+    rides_qs = Booking.objects.filter(user=user)
+    completed_rides_qs = rides_qs.filter(status='Completed')
+
+    total_rides = rides_qs.count()
+    total_spent = completed_rides_qs.aggregate(total=Sum('fare')).get('total') or 0
+    average_rating = (
+        Rating.objects
+        .filter(User=user, given_by='user')
+        .aggregate(avg=Avg('rating'))
+        .get('avg')
+    )
+
+    return {
+        'profile_total_rides': total_rides,
+        'profile_total_spent': total_spent,
+        'profile_average_rating': average_rating,
+        'profile_member_since': getattr(user, 'created_at', None),
+    }
 
 
 @login_required
@@ -535,15 +556,17 @@ def choose_ride_view(request):
 def profile_page(request, section=None):
     if section:
         return profile_section(request, section)
-    return render(request, 'passenger/profile_page.html', {
-        'section_template': None
-    })
+    context = {
+        'section_template': None,
+        **_build_profile_summary(request.user),
+    }
+    return render(request, 'passenger/profile_page.html', context)
 
 @login_required
 def profile_section(request, section):
     user = request.user
     section_key = section.replace('_', '-')
-    context = {}
+    context = _build_profile_summary(user)
     section_template = None
 
     if section_key == 'personal-info':
