@@ -1,146 +1,723 @@
 {% load static %}
 
-{% block extra_css %}
-<!-- Tailwind CSS -->
-<script src="https://cdn.tailwindcss.com"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Sign Up – Dropme</title>
 
-<!-- Fonts and Icons -->
-<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
-<link rel="stylesheet" href="{% static 'css/responsive.css' %}">
-<link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
-{% endblock %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
 
-{% block content %}
-<div class="app-screen passenger-app">
-<section class="min-h-screen bg-gradient-to-br from-white via-slate-100 to-slate-200 flex items-center justify-center px-4 py-12 font-body">
-  <div class="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-8 md:p-10 animate-fade-in">
-    <div class="mb-8 text-center">
-      <h2 class="text-3xl font-extrabold text-gray-900 font-heading">Create Your Account</h2>
-      <p class="text-sm text-gray-500 mt-2">Join Hospione to start your journey</p>
+    <style>
+        /* ============================================
+           CRITICAL RESET — MIRRORS choose_ride.html
+           ============================================ */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            margin: 0 !important;
+            padding: 0 !important;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0d9488;
+        }
+
+        /* Force remove any container constraints from base templates */
+        .container,
+        .app-container,
+        .screen-content,
+        .app-screen {
+            max-width: none !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        :root {
+            --primary: #00A59E;
+            --primary-dark: #008580;
+            --secondary: #0EB9D3;
+            --text-dark: #1a1a1a;
+            --text-gray: #6b7280;
+            --text-light: #9ca3af;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.10);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
+            --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+        }
+
+        /* ============================================
+           FULL-SCREEN BASE LAYER  (≡ .map-screen)
+           ============================================ */
+
+        .auth-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            z-index: 1;
+            background: linear-gradient(160deg, #0d9488 0%, #0f766e 40%, #134e4a 100%);
+            overflow: hidden;
+        }
+
+        .auth-screen-inner {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: max(env(safe-area-inset-top), 48px) 24px 0;
+        }
+
+        .brand-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .brand-logo {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(12px);
+            border: 1.5px solid rgba(255,255,255,0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -1px;
+        }
+
+        .brand-name {
+            font-size: 26px;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-tagline {
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        /* Decorative circles */
+        .deco-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .deco-1 { width: 280px; height: 280px; top: -80px; right: -80px; }
+        .deco-2 { width: 180px; height: 180px; bottom: 38%; left: -60px; }
+        .deco-3 { width: 120px; height: 120px; bottom: 36%; right: 20px; }
+
+        /* ============================================
+           TOP BAR  (≡ .top-bar)
+           ============================================ */
+
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: max(env(safe-area-inset-top), 12px) 16px 12px;
+            pointer-events: none;
+        }
+
+        .top-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .back-btn:active {
+            transform: scale(0.94);
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* ============================================
+           BOTTOM PANEL  (≡ .bottom-panel)
+           Taller for signup — more fields
+           ============================================ */
+
+        .auth-panel {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            background: white;
+            border-radius: 24px 24px 0 0;
+            box-shadow: 0 -4px 30px rgba(0,0,0,0.18);
+            /* Signup needs more height for the form */
+            max-height: 82vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+        }
+
+        .auth-panel::-webkit-scrollbar { display: none; }
+
+        .panel-handle {
+            width: 36px;
+            height: 4px;
+            background: #d1d5db;
+            border-radius: 2px;
+            margin: 12px auto 0;
+            flex-shrink: 0;
+        }
+
+        /* ============================================
+           PANEL CONTENT  (≡ .panel-content)
+           ============================================ */
+
+        .auth-content {
+            padding: 24px 24px calc(env(safe-area-inset-bottom) + 28px);
+        }
+
+        .panel-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+            letter-spacing: -0.3px;
+        }
+
+        .panel-subtitle {
+            font-size: 14px;
+            color: var(--text-gray);
+            margin-bottom: 24px;
+        }
+
+        /* ============================================
+           ERROR NOTICE  (≡ .notice.error)
+           ============================================ */
+
+        .error-notice {
+            margin-bottom: 20px;
+            padding: 12px 14px;
+            background: #fee2e2;
+            border-left: 3px solid #ef4444;
+            border-radius: 10px;
+            font-size: 13px;
+            color: #991b1b;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .error-notice i {
+            margin-top: 1px;
+            flex-shrink: 0;
+        }
+
+        .error-notice ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .error-notice li {
+            margin-bottom: 4px;
+        }
+
+        .error-notice li:last-child {
+            margin-bottom: 0;
+        }
+
+        /* ============================================
+           INPUT FIELDS  (≡ .input-field / .input-box)
+           ============================================ */
+
+        .input-box {
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .input-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-gray);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .input-label .optional {
+            font-weight: 400;
+            color: var(--text-light);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 16px 18px;
+            border: 2px solid #e5e7eb;
+            border-radius: 14px;
+            font-size: 16px;
+            color: var(--text-dark);
+            background: #f9fafb;
+            transition: all 0.2s;
+            font-family: inherit;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(0,165,158,0.1);
+        }
+
+        .input-field::placeholder {
+            color: #9ca3af;
+            font-weight: 400;
+        }
+
+        /* Select arrow */
+        select.input-field {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath fill='%236b7280' d='M11.293 4.293L7 8.586 2.707 4.293A1 1 0 001.293 5.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 18px center;
+            padding-right: 48px;
+            cursor: pointer;
+        }
+
+        /* Password with toggle */
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-with-icon .input-field {
+            padding-right: 52px;
+        }
+
+        .toggle-btn {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+        }
+
+        .toggle-btn:active {
+            color: var(--text-gray);
+        }
+
+        /* Two-column name row (≡ .grid-2 in choose_ride) */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .grid-2 .input-box {
+            margin-bottom: 0;
+        }
+
+        .name-row {
+            margin-bottom: 16px;
+        }
+
+        /* Section divider label */
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin: 20px 0 14px;
+        }
+
+        /* ============================================
+           ACTION BAR  (≡ .action-bar / .book-btn)
+           ============================================ */
+
+        .action-bar {
+            margin-top: 24px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0,165,158,0.35);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: inherit;
+            letter-spacing: 0.2px;
+        }
+
+        .submit-btn:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 8px rgba(0,165,158,0.25);
+        }
+
+        /* Switch page link */
+        .switch-row {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 14px;
+            color: var(--text-gray);
+        }
+
+        .switch-row a {
+            color: var(--primary);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .switch-row a:active {
+            opacity: 0.7;
+        }
+
+        /* ============================================
+           DESKTOP SPLIT LAYOUT  (≡ choose_ride desktop)
+           ============================================ */
+
+        @media (min-width: 1024px) {
+            body {
+                background: #e2e8f0;
+            }
+
+            .auth-screen {
+                top: 24px;
+                bottom: 24px;
+                left: 24px;
+                right: 448px;
+                width: auto;
+                height: auto;
+                border-radius: 24px;
+                overflow: hidden;
+                box-shadow: 0 20px 60px rgba(15,23,42,0.18);
+            }
+
+            .top-bar {
+                top: 24px;
+                left: 24px;
+                right: 448px;
+            }
+
+            .auth-panel {
+                top: 24px;
+                bottom: 24px;
+                right: 24px;
+                left: auto;
+                width: 400px;
+                height: auto;
+                max-height: calc(100vh - 48px);
+                border-radius: 22px;
+                box-shadow: 0 20px 60px rgba(15,23,42,0.18);
+            }
+
+            .panel-handle {
+                display: none;
+            }
+
+            .auth-content {
+                padding: 36px 36px calc(env(safe-area-inset-bottom) + 36px);
+            }
+        }
+
+        /* iOS font-size fix */
+        @supports (-webkit-touch-callout: none) {
+            .input-field { font-size: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- =============================================
+     BASE LAYER  (≡ .map-screen in choose_ride)
+     ============================================= -->
+<div class="auth-screen">
+    <div class="deco-circle deco-1"></div>
+    <div class="deco-circle deco-2"></div>
+    <div class="deco-circle deco-3"></div>
+
+    <div class="auth-screen-inner">
+        <div class="brand-area">
+            <div class="brand-logo">D</div>
+            <div>
+                <div class="brand-name">Dropme</div>
+                <div class="brand-tagline">Your ride, your way.</div>
+            </div>
+        </div>
     </div>
+</div>
 
-    {% if form.errors %}
-      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6 text-sm">
-        <ul class="list-disc list-inside">
-          {% for field in form %}
-            {% for error in field.errors %}
-              <li><strong>{{ field.label }}:</strong> {{ error }}</li>
-            {% endfor %}
-          {% endfor %}
-          {% for error in form.non_field_errors %}
-            <li>{{ error }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
+<!-- =============================================
+     TOP BAR  (≡ .top-bar in choose_ride)
+     ============================================= -->
+<div class="top-bar">
+    <div class="top-content">
+        <a href="javascript:history.back()" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+    </div>
+</div>
 
-    <form method="POST" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {% csrf_token %}
+<!-- =============================================
+     BOTTOM PANEL  (≡ .bottom-panel in choose_ride)
+     Signup form lives here
+     ============================================= -->
+<div class="auth-panel">
+    <div class="panel-handle"></div>
 
-      <!-- First Name -->
-      <div>
-        <label for="firstName" class="block text-sm font-medium text-gray-700">First Name</label>
-        <input type="text" id="firstName" name="first_name" placeholder="Enter first name" required
-               class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm font-body">
-      </div>
+    <div class="auth-content">
 
-      <!-- Last Name -->
-      <div>
-        <label for="lastName" class="block text-sm font-medium text-gray-700">Last Name</label>
-        <input type="text" id="lastName" name="last_name" placeholder="Enter last name" required
-               class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm font-body">
-      </div>
+        <div class="panel-title">Create account ✨</div>
+        <div class="panel-subtitle">Join Hospione and start your journey</div>
 
-      <!-- Email -->
-      <div class="md:col-span-2">
-        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-        <input type="email" id="email" name="email" placeholder="example@example.com" required
-               class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm font-body">
-      </div>
+        <!-- Django form validation errors -->
+        {% if form.errors %}
+            <div class="error-notice">
+                <i class="fas fa-exclamation-circle"></i>
+                <div>
+                    <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
 
-      <!-- Password -->
-      <div>
-        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-        <div class="relative">
-          <input type="password" id="password" name="password" placeholder="Enter password" required
-                 class="mt-1 block w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm font-body">
-          <span class="absolute inset-y-0 right-3 flex items-center text-gray-400 cursor-pointer" onclick="togglePassword('password', 'toggleIcon1')">
-            <i class="fas fa-eye" id="toggleIcon1"></i>
-          </span>
+        <!-- Signup form — full Django functionality preserved -->
+        <form method="POST">
+            {% csrf_token %}
+
+            <!-- Name row (≡ .grid-2 in choose_ride) -->
+            <div class="name-row grid-2">
+                <div class="input-box">
+                    <label for="firstName" class="input-label">First Name</label>
+                    <input
+                        type="text"
+                        id="firstName"
+                        name="first_name"
+                        class="input-field"
+                        placeholder="John"
+                        autocomplete="given-name"
+                        required
+                    >
+                </div>
+                <div class="input-box">
+                    <label for="lastName" class="input-label">Last Name</label>
+                    <input
+                        type="text"
+                        id="lastName"
+                        name="last_name"
+                        class="input-field"
+                        placeholder="Doe"
+                        autocomplete="family-name"
+                        required
+                    >
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div class="input-box">
+                <label for="email" class="input-label">Email Address</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    class="input-field"
+                    placeholder="your@email.com"
+                    autocomplete="email"
+                    required
+                >
+            </div>
+
+            <!-- Phone -->
+            <div class="input-box">
+                <label for="phone" class="input-label">Phone Number</label>
+                <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    class="input-field"
+                    placeholder="+1 (555) 000-0000"
+                    autocomplete="tel"
+                    required
+                >
+            </div>
+
+            <!-- Gender -->
+            <div class="input-box">
+                <label for="gender" class="input-label">Gender</label>
+                <select id="gender" name="gender" class="input-field" required>
+                    <option value="" disabled selected>Select gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <!-- Password row -->
+            <div class="grid-2">
+                <div class="input-box">
+                    <label for="password" class="input-label">Password</label>
+                    <div class="input-with-icon">
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            class="input-field"
+                            placeholder="Create password"
+                            autocomplete="new-password"
+                            required
+                        >
+                        <button type="button" class="toggle-btn" onclick="togglePassword('password','toggleIcon1')">
+                            <i class="fas fa-eye" id="toggleIcon1"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-box">
+                    <label for="confirmPassword" class="input-label">Confirm</label>
+                    <div class="input-with-icon">
+                        <input
+                            type="password"
+                            id="confirmPassword"
+                            name="confirm_password"
+                            class="input-field"
+                            placeholder="Repeat password"
+                            autocomplete="new-password"
+                            required
+                        >
+                        <button type="button" class="toggle-btn" onclick="togglePassword('confirmPassword','toggleIcon2')">
+                            <i class="fas fa-eye" id="toggleIcon2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Referral code (optional) -->
+            <div class="input-box">
+                <label for="referralCode" class="input-label">
+                    Referral Code <span class="optional">(optional)</span>
+                </label>
+                <input
+                    type="text"
+                    id="referralCode"
+                    name="referral_code"
+                    class="input-field"
+                    placeholder="Enter code if you have one"
+                >
+            </div>
+
+            <!-- Submit — mirrors .book-btn -->
+            <div class="action-bar">
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-arrow-right"></i>
+                    Create Account
+                </button>
+            </div>
+        </form>
+
+        <!-- Switch to login -->
+        <div class="switch-row">
+            Already have an account? <a href="{% url 'login' %}">Sign In</a>
         </div>
-      </div>
 
-      <!-- Confirm Password -->
-      <div>
-        <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirm Password</label>
-        <div class="relative">
-          <input type="password" id="confirmPassword" name="confirm_password" placeholder="Confirm password" required
-                 class="mt-1 block w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm font-body">
-          <span class="absolute inset-y-0 right-3 flex items-center text-gray-400 cursor-pointer" onclick="togglePassword('confirmPassword', 'toggleIcon2')">
-            <i class="fas fa-eye" id="toggleIcon2"></i>
-          </span>
-        </div>
-      </div>
-
-      <!-- Phone -->
-      <div>
-        <label for="phone" class="block text-sm font-medium text-gray-700">Phone</label>
-        <input type="text" id="phone" name="phone" placeholder="Enter phone number" required
-               class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm font-body">
-      </div>
-
-      <!-- Gender -->
-      <div>
-        <label for="gender" class="block text-sm font-medium text-gray-700">Gender</label>
-        <select id="gender" name="gender" required
-                class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm font-body">
-          <option value="" selected disabled>Select gender</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-          <option value="Other">Other</option>
-        </select>
-      </div>
-
-      <!-- Referral Code -->
-      <div class="md:col-span-2">
-        <label for="referralCode" class="block text-sm font-medium text-gray-700">Referral Code (Optional)</label>
-        <input type="text" id="referralCode" name="referral_code" placeholder="Enter referral code"
-               class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-teal-500 focus:border-teal-500 sm:text-sm font-body">
-      </div>
-
-      <!-- Submit Button -->
-      <div class="md:col-span-2">
-        <button type="submit" class="w-full py-3 btn-primary text-white rounded-xl font-semibold hover:shadow-lg transition transform hover:scale-105 font-body">
-          Sign Up
-        </button>
-      </div>
-    </form>
-
-    <!-- Already have account -->
-    <p class="text-center text-sm text-gray-500 mt-6 font-body">
-      Already have an account?
-      <a href="{% url 'login' %}" class="text-teal-600 font-medium hover:underline">Log in</a>
-    </p>
-  </div>
-</section>
+    </div><!-- /auth-content -->
+</div><!-- /auth-panel -->
 
 <script>
 function togglePassword(fieldId, iconId) {
-  const input = document.getElementById(fieldId);
-  const icon = document.getElementById(iconId);
-  if (input.type === "password") {
-    input.type = "text";
-    icon.classList.remove("fa-eye");
-    icon.classList.add("fa-eye-slash");
-  } else {
-    input.type = "password";
-    icon.classList.remove("fa-eye-slash");
-    icon.classList.add("fa-eye");
-  }
+    const input = document.getElementById(fieldId);
+    const icon  = document.getElementById(iconId);
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
 }
-</script>
-</div>
-{% endblock %}
 
+// Scroll error into view on load
+window.addEventListener('DOMContentLoaded', function () {
+    const err = document.querySelector('.error-notice');
+    if (err) {
+        setTimeout(() => err.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    }
+});
+</script>
+
+</body>
+</html>
