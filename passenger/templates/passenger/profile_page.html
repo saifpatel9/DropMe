@@ -15,6 +15,16 @@
     <!-- Your Existing CSS (UNCHANGED) -->
     <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
 
+    <script>
+        (function () {
+            var ua = navigator.userAgent;
+            var isChromeDesktop = /Chrome\/\d+/.test(ua) && !/Edg\/|OPR\/|Brave\/|CriOS\/|Firefox\//.test(ua);
+            if (isChromeDesktop) {
+                document.documentElement.classList.add('is-chrome');
+            }
+        })();
+    </script>
+
     <style>
         .glass-card {
             background: rgba(255,255,255,0.85);
@@ -38,6 +48,57 @@
         .save-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(20, 184, 166, 0.4);
+        }
+
+        .account-content {
+            content-visibility: auto;
+            contain-intrinsic-size: 1px 1100px;
+        }
+
+        /* Chrome-specific rendering optimizations for My Account pages */
+        html.is-chrome .glass-card,
+        html.is-chrome .app-topbar,
+        html.is-chrome .delete-glass {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+
+        html.is-chrome .glass-card {
+            background: rgba(255,255,255,0.96);
+        }
+
+        html.is-chrome .floating-animation,
+        html.is-chrome .floating,
+        html.is-chrome .warning-icon {
+            animation: none !important;
+        }
+
+        html.is-chrome .nav-link,
+        html.is-chrome .ride-card,
+        html.is-chrome .feature-card,
+        html.is-chrome .safety-card,
+        html.is-chrome .payment-option,
+        html.is-chrome .delete-btn,
+        html.is-chrome .save-btn,
+        html.is-chrome .form-field {
+            transition-property: transform, box-shadow, background-color, border-color, color, opacity !important;
+            transition-duration: 0.2s !important;
+            transition-timing-function: ease !important;
+        }
+
+        html.is-chrome .ride-card,
+        html.is-chrome .feature-card,
+        html.is-chrome .safety-card,
+        html.is-chrome .delete-glass {
+            contain: paint;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .floating-animation,
+            .floating,
+            .warning-icon {
+                animation: none !important;
+            }
         }
     </style>
 </head>
@@ -132,7 +193,7 @@
 
 
         <!-- ================= MAIN CONTENT ================= -->
-        <section class="w-full md:w-3/4 ml-0 md:ml-0 glass-card p-6 sm:p-8 rounded-2xl">
+        <section class="account-content w-full md:w-3/4 ml-0 md:ml-0 glass-card p-6 sm:p-8 rounded-2xl">
 
             {% if section_template %}
                 {% include section_template %}

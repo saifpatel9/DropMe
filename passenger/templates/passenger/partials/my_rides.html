@@ -2,7 +2,7 @@
 
 <style>
   .ride-card {
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
   
   .ride-card:hover {
@@ -11,7 +11,7 @@
   }
   
   .status-badge {
-    transition: all 0.3s ease;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
   }
   
   .status-completed {
@@ -56,7 +56,7 @@
   .table-hover tr:hover {
     background: linear-gradient(90deg, rgba(20, 184, 166, 0.05), rgba(6, 182, 212, 0.05));
     transform: scale(1.01);
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease, background 0.2s ease;
   }
   
   .filter-tabs {
@@ -73,7 +73,7 @@
     background: white;
     color: #6b7280;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
     font-weight: 500;
   }
   
@@ -129,11 +129,11 @@
   {% if rides %}
     <!-- Filter Tabs -->
     <div class="filter-tabs">
-      <div class="filter-tab active" onclick="filterRides('all')">All Rides</div>
-      <div class="filter-tab" onclick="filterRides('completed')">Completed</div>
-      <div class="filter-tab" onclick="filterRides('pending')">Pending</div>
-      <div class="filter-tab" onclick="filterRides('ongoing')">Ongoing</div>
-      <div class="filter-tab" onclick="filterRides('cancelled')">Cancelled</div>
+      <div class="filter-tab active" data-filter="all" onclick="filterRides('all')">All Rides</div>
+      <div class="filter-tab" data-filter="completed" onclick="filterRides('completed')">Completed</div>
+      <div class="filter-tab" data-filter="pending" onclick="filterRides('pending')">Pending</div>
+      <div class="filter-tab" data-filter="ongoing" onclick="filterRides('ongoing')">Ongoing</div>
+      <div class="filter-tab" data-filter="cancelled" onclick="filterRides('cancelled')">Cancelled</div>
     </div>
 
     <!-- Desktop Table View -->
@@ -267,24 +267,18 @@
 </div>
 
 <script>
+  const rideFilterTabs = document.querySelectorAll('.filter-tab');
+  const rideFilterRows = document.querySelectorAll('.ride-row');
+  const rideFilterCards = document.querySelectorAll('.ride-card');
+
   function filterRides(status) {
-    const tabs = document.querySelectorAll('.filter-tab');
-    const rows = document.querySelectorAll('.ride-row');
-    const cards = document.querySelectorAll('.ride-card');
-    
     // Update active tab
-    tabs.forEach(tab => {
-      tab.classList.remove('active');
-      if (tab.textContent.toLowerCase().includes(status) || status === 'all') {
-        if ((status === 'all' && tab.textContent === 'All Rides') ||
-            (status !== 'all' && tab.textContent.toLowerCase().includes(status))) {
-          tab.classList.add('active');
-        }
-      }
+    rideFilterTabs.forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.filter === status);
     });
     
     // Filter table rows
-    rows.forEach(row => {
+    rideFilterRows.forEach(row => {
       if (status === 'all' || row.dataset.status === status) {
         row.style.display = '';
         row.classList.add('fade-in');
@@ -295,7 +289,7 @@
     });
     
     // Filter cards
-    cards.forEach(card => {
+    rideFilterCards.forEach(card => {
       if (status === 'all' || card.dataset.status === status) {
         card.style.display = '';
         card.classList.add('fade-in');
@@ -308,13 +302,13 @@
   
   // Add click handlers for mobile cards
   document.addEventListener('DOMContentLoaded', function() {
-    const viewDetailsButtons = document.querySelectorAll('.ride-card button');
-    viewDetailsButtons.forEach(button => {
-      button.addEventListener('click', function(e) {
-        e.preventDefault();
-        // Add your view details logic here
-        console.log('View details clicked');
-      });
+    const cardsContainer = document.querySelector('.lg\\:hidden');
+    if (!cardsContainer) return;
+
+    cardsContainer.addEventListener('click', function(e) {
+      const viewDetailsBtn = e.target.closest('.ride-card button');
+      if (!viewDetailsBtn) return;
+      e.preventDefault();
     });
   });
 </script>
