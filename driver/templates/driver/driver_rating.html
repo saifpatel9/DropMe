@@ -3,536 +3,842 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rate Passengers - Driver Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
-    <link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
-    <style>
-        /* Star Rating Styles */
-        .star-rating {
-            display: flex;
-            gap: 4px;
-            margin: 8px 0;
-        }
-        
-        .star {
-            font-size: 20px;
-            color: #d1d5db;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        
-        .star:hover,
-        .star.active {
-            color: #fbbf24;
-            transform: scale(1.1);
-        }
-        
-        .star.filled {
-            color: #fbbf24;
-        }
-        
-        /* Compact card styles */
-        .ride-card {
-            transition: all 0.3s ease;
-            border-left: 4px solid transparent;
-        }
-        
-        .ride-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(20, 184, 166, 0.15);
-            border-left-color: #14b8a6;
-        }
-        
-        .ride-card.rated {
-            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-            border-left-color: #22c55e;
-        }
-        
-        .compact-info {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 1rem;
-        }
-        
-        @media (max-width: 768px) {
-            .compact-info {
-                grid-template-columns: 1fr;
-                gap: 0.5rem;
-            }
-        }
-        
-        /* Collapsible sections */
-        .section-toggle {
-            cursor: pointer;
-            user-select: none;
-        }
-        
-        .section-content.collapsed {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-        
-        .section-content.expanded {
-            max-height: 2000px;
-            transition: max-height 0.5s ease;
-        }
-        
-        /* Submit button fade out */
-        .submit-btn.hidden {
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-    </style>
-</head>
-<body class="bg-gradient-to-br from-gray-50 to-teal-50 min-h-screen">
-    <div class="app-screen">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rate Passengers - Driver Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+  <link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
 
-<div class="container mx-auto px-4 py-8 max-w-6xl">
-    <!-- Header -->
-    <div class="bg-white shadow-xl rounded-2xl px-8 py-6 mb-8 border border-teal-100">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center">
-                <a href="{% url 'driver_homepage' %}" 
-               class="px-4 py-2 bg-teal-600 text-white rounded-lg shadow hover:bg-teal-700 transition-colors mr-4 flex items-center">
-                <i class="fas fa-arrow-left mr-2"></i> Back
-                </a>
-                <div class="bg-teal-100 p-4 rounded-full mr-4">
-                    <svg class="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
-                    </svg>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      --brand:          #00C896;
+      --brand-dark:     #00A87D;
+      --brand-light:    #E6FBF5;
+      --brand-glow:     rgba(0, 200, 150, 0.20);
+      --surface:        #FFFFFF;
+      --surface-2:      #F7FAFA;
+      --border:         #E8F0EE;
+      --text-primary:   #0D2622;
+      --text-secondary: #5A7A75;
+      --text-muted:     #9BB5B0;
+      --star-on:        #FFBE00;
+      --star-off:       #DDE8E6;
+      --orange:         #F97316;
+      --orange-light:   #FFF7ED;
+      --orange-border:  #FED7AA;
+      --green-light:    #F0FDF4;
+      --green-border:   #BBF7D0;
+      --shadow-sm:      0 2px 8px rgba(0, 40, 30, 0.06);
+      --shadow-md:      0 8px 24px rgba(0, 40, 30, 0.10);
+      --radius-xl:      24px;
+      --radius-lg:      16px;
+      --radius-md:      12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .app-shell {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--surface-2);
+      min-height: 100vh;
+      padding-bottom: 80px;
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Sticky top bar ── */
+    .app-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-back {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      text-decoration: none;
+      flex-shrink: 0;
+      font-size: 14px;
+      transition: background 0.15s ease;
+    }
+
+    .btn-back:hover { background: var(--border); }
+
+    .topbar-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 3px 10px var(--brand-glow);
+    }
+
+    .topbar-icon svg { width: 18px; height: 18px; stroke: #fff; }
+
+    .topbar-text { flex: 1; min-width: 0; }
+    .topbar-title { font-size: 16px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.3px; line-height: 1.2; }
+    .topbar-sub   { font-size: 11px; font-weight: 500; color: var(--text-muted); margin-top: 1px; }
+
+    /* ── Stats strip ── */
+    .stats-strip {
+      display: flex;
+      gap: 10px;
+      padding: 14px 16px 0;
+    }
+
+    .stat-chip {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 10px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-chip-value { font-size: 18px; font-weight: 800; color: var(--text-primary); line-height: 1; }
+    .stat-chip-value.orange { color: var(--orange); }
+    .stat-chip-value.green  { color: var(--brand-dark); }
+    .stat-chip-label { font-size: 10px; font-weight: 600; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+    /* ── Messages ── */
+    .messages-wrap { padding: 14px 16px 0; display: flex; flex-direction: column; gap: 8px; }
+
+    .msg-toast {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 11px 14px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .msg-toast.success { background: #E6FBF5; color: #006B50; border: 1px solid #9FECDA; }
+    .msg-toast.error   { background: #FFF0F0; color: #CC3333; border: 1px solid #FFBFBF; }
+    .msg-toast.info    { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+    .msg-toast svg     { width: 15px; height: 15px; stroke: currentColor; flex-shrink: 0; }
+
+    /* ── Section header ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 22px 16px 10px;
+    }
+
+    .section-dot   { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .section-dot.orange { background: var(--orange); }
+    .section-dot.green  { background: var(--brand); }
+
+    .section-title { font-size: 14px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.2px; }
+
+    .section-badge {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+    }
+
+    .badge-orange { background: var(--orange-light); color: var(--orange); }
+    .badge-green  { background: var(--brand-light);  color: var(--brand-dark); }
+
+    /* ── Ride cards wrap ── */
+    .cards-wrap { padding: 0 16px; display: flex; flex-direction: column; gap: 12px; }
+
+    /* ── Pending ride card ── */
+    .ride-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* ── Card header: passenger + booking ── */
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .passenger-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      background: var(--brand-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--brand-dark);
+      flex-shrink: 0;
+      letter-spacing: -0.5px;
+    }
+
+    .passenger-name  { font-size: 14px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.1px; }
+    .passenger-email { font-size: 11px; font-weight: 500; color: var(--text-muted); margin-top: 2px; }
+
+    .booking-id-pill {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--brand-dark);
+      background: var(--brand-light);
+      border: 1px solid #9FECDA;
+      border-radius: 20px;
+      padding: 3px 10px;
+      flex-shrink: 0;
+    }
+
+    /* ── Card meta row ── */
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .meta-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+    .meta-value { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+    .meta-value.fare { font-size: 16px; font-weight: 800; color: var(--text-primary); }
+
+    .meta-divider { width: 1px; height: 28px; background: var(--border); flex-shrink: 0; }
+
+    /* ── Route section ── */
+    .card-route {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .route-stop { display: flex; align-items: center; gap: 10px; }
+
+    .route-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .route-dot.green { background: #22C55E; }
+    .route-dot.red   { background: #EF4444; }
+
+    .route-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+    .route-place { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-top: 1px; line-height: 1.3; }
+
+    .route-connector { width: 1px; height: 8px; background: var(--border); margin-left: 3px; }
+
+    /* ── Rating form body ── */
+    .card-body { padding: 16px 18px; }
+
+    .rating-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    /* ── Star component ── */
+    .star-rating {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .star {
+      font-size: 2.2rem;
+      color: var(--star-off);
+      cursor: pointer;
+      transition: color 0.15s ease, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+      line-height: 1;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .star:hover,
+    .star.active,
+    .star.filled { color: var(--star-on); }
+
+    .star.filled { transform: scale(1.08); }
+
+    /* Rating chip */
+    .rating-chip {
+      text-align: center;
+      min-height: 24px;
+      margin-bottom: 14px;
+    }
+
+    .rating-chip span {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 12px;
+      border-radius: 20px;
+      background: #FFF8E1;
+      color: #A07000;
+      opacity: 0;
+      transform: scale(0.85);
+      transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .rating-chip span.show { opacity: 1; transform: scale(1); }
+
+    /* Feedback textarea */
+    .feedback-textarea {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+      background: var(--surface-2);
+      resize: none;
+      outline: none;
+      transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+
+    .feedback-textarea::placeholder { color: var(--text-muted); font-weight: 400; }
+
+    .feedback-textarea:focus {
+      border-color: var(--brand);
+      background: var(--surface);
+      box-shadow: 0 0 0 3px var(--brand-glow);
+    }
+
+    /* Submit button */
+    .btn-submit {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      width: 100%;
+      height: 50px;
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-lg);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 14px var(--brand-glow);
+      transition: background 0.15s ease, box-shadow 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-submit:hover:not(:disabled)  { background: var(--brand-dark); box-shadow: 0 6px 18px rgba(0,200,150,0.30); }
+    .btn-submit:active:not(:disabled) { background: var(--brand-dark); box-shadow: none; }
+
+    .btn-submit:disabled {
+      background: #B0C8C4;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .btn-submit.submitted {
+      background: #22C55E;
+      box-shadow: none;
+      pointer-events: none;
+    }
+
+    .btn-submit svg { width: 16px; height: 16px; stroke: #fff; }
+
+    /* ── Rated ride card ── */
+    .rated-card {
+      background: var(--surface);
+      border: 1px solid var(--green-border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+    }
+
+    .rated-card::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: linear-gradient(to bottom, var(--brand), var(--brand-dark));
+    }
+
+    .rated-card-inner { padding: 16px 18px; }
+
+    .rated-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .rated-passenger { display: flex; align-items: center; gap: 10px; }
+
+    .rated-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 11px;
+      background: var(--green-light);
+      border: 1px solid var(--green-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      color: #166534;
+      flex-shrink: 0;
+    }
+
+    .rated-stars {
+      display: flex;
+      gap: 2px;
+      font-size: 15px;
+      margin-bottom: 3px;
+    }
+
+    .star-on  { color: var(--star-on); }
+    .star-off { color: var(--star-off); }
+
+    .rated-ago { font-size: 11px; font-weight: 500; color: var(--text-muted); }
+
+    .rated-comment {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      font-style: italic;
+      padding: 9px 12px;
+      background: var(--green-light);
+      border-radius: var(--radius-sm, 8px);
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+
+    .rated-comment.empty {
+      color: var(--text-muted);
+      font-style: normal;
+      font-size: 11px;
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 56px 24px;
+    }
+
+    .empty-icon {
+      width: 68px;
+      height: 68px;
+      border-radius: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .empty-icon svg { width: 30px; height: 30px; stroke: var(--text-muted); }
+
+    .empty-title { font-size: 16px; font-weight: 800; color: var(--text-primary); margin-bottom: 5px; }
+    .empty-desc  { font-size: 13px; font-weight: 500; color: var(--text-muted); line-height: 1.6; max-width: 240px; margin: 0 auto; }
+  </style>
+</head>
+
+<body>
+<div class="app-shell">
+
+  <!-- Top bar -->
+  <div class="app-topbar">
+    <a href="{% url 'driver_homepage' %}" class="btn-back">
+      <i class="fas fa-arrow-left"></i>
+    </a>
+    <div class="topbar-icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+      </svg>
+    </div>
+    <div class="topbar-text">
+      <div class="topbar-title">Rate Passengers</div>
+      <div class="topbar-sub">Rate your completed rides</div>
+    </div>
+  </div>
+
+  <!-- Stats strip -->
+  <div class="stats-strip">
+    <div class="stat-chip">
+      <div class="stat-chip-value">{{ total_completed }}</div>
+      <div class="stat-chip-label">Total</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-chip-value orange">{{ total_unrated }}</div>
+      <div class="stat-chip-label">Pending</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-chip-value green">{{ total_rated }}</div>
+      <div class="stat-chip-label">Rated</div>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  {% if messages %}
+    <div class="messages-wrap">
+      {% for message in messages %}
+        <div class="msg-toast {% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %}">
+          {% if message.tags == 'success' %}
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          {% else %}
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01"/></svg>
+          {% endif %}
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- ══════════════════════════════════════
+       PENDING RATINGS
+  ══════════════════════════════════════ -->
+  {% if unrated_bookings %}
+    <div class="section-header">
+      <div class="section-dot orange"></div>
+      <div class="section-title">Pending Ratings</div>
+      <span class="section-badge badge-orange">{{ total_unrated }} ride{{ total_unrated|pluralize }}</span>
+    </div>
+
+    <div class="cards-wrap">
+      {% for booking in unrated_bookings %}
+        <div class="ride-card">
+
+          <!-- Passenger + booking ID -->
+          <div class="card-header">
+            <div class="passenger-avatar">
+              {{ booking.user.first_name|first|upper }}{{ booking.user.last_name|first|upper }}
+            </div>
+            <div>
+              <div class="passenger-name">{{ booking.user.first_name }} {{ booking.user.last_name }}</div>
+              <div class="passenger-email">{{ booking.user.email }}</div>
+            </div>
+            <div class="booking-id-pill">#{{ booking.booking_id }}</div>
+          </div>
+
+          <!-- Meta: date, fare, ride type -->
+          <div class="card-meta">
+            <div class="meta-item">
+              <div class="meta-label">Date</div>
+              <div class="meta-value">{{ booking.scheduled_time|date:"d M Y" }}</div>
+            </div>
+            <div class="meta-divider"></div>
+            <div class="meta-item">
+              <div class="meta-label">Time</div>
+              <div class="meta-value">{{ booking.scheduled_time|date:"h:i A" }}</div>
+            </div>
+            <div class="meta-divider"></div>
+            <div class="meta-item">
+              <div class="meta-label">Type</div>
+              <div class="meta-value">{{ booking.service_type.name }}</div>
+            </div>
+            <div class="meta-divider"></div>
+            <div class="meta-item">
+              <div class="meta-label">Fare</div>
+              <div class="meta-value fare">₹{{ booking.fare }}</div>
+            </div>
+          </div>
+
+          <!-- Route -->
+          <div class="card-route">
+            <div class="route-stop">
+              <div class="route-dot green"></div>
+              <div>
+                <div class="route-label">Pickup</div>
+                <div class="route-place">{{ booking.pickup_location|shorten_address }}</div>
+              </div>
+            </div>
+            <div class="route-connector"></div>
+            <div class="route-stop">
+              <div class="route-dot red"></div>
+              <div>
+                <div class="route-label">Dropoff</div>
+                <div class="route-place">{{ booking.dropoff_location|shorten_address }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rating form -->
+          <div class="card-body">
+            <form class="rating-form" data-booking-id="{{ booking.booking_id }}">
+              {% csrf_token %}
+              <input type="hidden" name="rating" class="rating-input" data-booking-id="{{ booking.booking_id }}">
+
+              <div class="rating-label">How was this passenger?</div>
+
+              <div class="star-rating" data-booking-id="{{ booking.booking_id }}">
+                {% for i in "12345" %}
+                  <span class="star" data-rating="{{ i }}" data-booking-id="{{ booking.booking_id }}">
+                    <i class="fas fa-star"></i>
+                  </span>
+                {% endfor %}
+              </div>
+
+              <div class="rating-chip">
+                <span id="rating-chip-{{ booking.booking_id }}"></span>
+              </div>
+
+              <textarea
+                name="comments"
+                class="feedback-textarea"
+                rows="3"
+                placeholder="Share your experience with this passenger (optional)…"
+                data-booking-id="{{ booking.booking_id }}"
+              ></textarea>
+
+              <button type="submit" class="btn-submit submit-btn" data-booking-id="{{ booking.booking_id }}">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                </svg>
+                Submit Rating
+              </button>
+            </form>
+          </div>
+
+        </div><!-- /ride-card -->
+      {% endfor %}
+    </div><!-- /cards-wrap -->
+  {% endif %}
+
+  <!-- ══════════════════════════════════════
+       PREVIOUSLY RATED
+  ══════════════════════════════════════ -->
+  {% if rated_bookings %}
+    <div class="section-header">
+      <div class="section-dot green"></div>
+      <div class="section-title">Submitted Ratings</div>
+      <span class="section-badge badge-green">{{ total_rated }} review{{ total_rated|pluralize }}</span>
+    </div>
+
+    <div class="cards-wrap">
+      {% for booking in rated_bookings %}
+        <div class="rated-card">
+          <div class="rated-card-inner">
+
+            <div class="rated-header">
+              <div class="rated-passenger">
+                <div class="rated-avatar">
+                  {{ booking.user.first_name|first|upper }}{{ booking.user.last_name|first|upper }}
                 </div>
                 <div>
-                    <h1 class="text-3xl font-bold text-teal-600 mb-2">Rate Passengers</h1>
-                    <p class="text-gray-600">Rate your completed rides and provide feedback</p>
-                </div>
-            </div>
-            
-            <!-- Statistics -->
-            <div class="hidden md:flex space-x-6">
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-teal-600">{{ total_completed }}</div>
-                    <div class="text-sm text-gray-500">Total Rides</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-orange-500">{{ total_unrated }}</div>
-                    <div class="text-sm text-gray-500">Pending</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-2xl font-bold text-green-500">{{ total_rated }}</div>
-                    <div class="text-sm text-gray-500">Rated</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Messages -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="mb-4 p-4 rounded-xl {% if message.tags == 'success' %}bg-green-50 border border-green-200 text-green-800{% elif message.tags == 'error' %}bg-red-50 border border-red-200 text-red-800{% else %}bg-blue-50 border border-blue-200 text-blue-800{% endif %}">
-                <div class="flex items-center">
-                    {% if message.tags == 'success' %}
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                    {% elif message.tags == 'error' %}
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01"></path>
-                        </svg>
-                    {% endif %}
-                    {{ message }}
-                </div>
-            </div>
-        {% endfor %}
-    {% endif %}
-
-    <!-- Pending Ratings Section -->
-    {% if unrated_bookings %}
-    <div class="bg-white shadow-xl rounded-2xl px-6 py-6 mb-8 border border-orange-100">
-        <div class="flex items-center mb-6">
-            <div class="bg-orange-100 p-3 rounded-lg mr-3">
-                <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-            </div>
-            <div>
-                <h2 class="text-xl font-bold text-orange-600">Pending Ratings</h2>
-                <p class="text-sm text-gray-500">{{ total_unrated }} ride{{ total_unrated|pluralize }} awaiting your rating</p>
-            </div>
-        </div>
-        
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 responsive-table">
-                <thead class="bg-orange-50">
-                    <tr>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">Passenger</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">Booking ID</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">From</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">To</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">Fare</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">Date</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">Ride Type</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">Rating</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">Feedback</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-orange-700 uppercase tracking-wider">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {% for booking in unrated_bookings %}
-                    <tr class="hover:bg-gray-50 transition-colors duration-150">
-                        <td class="px-4 py-3 whitespace-nowrap" data-label="Passenger">
-                            <div class="flex items-center">
-                                <div class="bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center mr-2">
-                                    <span class="text-gray-600 font-semibold text-xs">
-                                        {{ booking.user.first_name|first|upper }}{{ booking.user.last_name|first|upper }}
-                                    </span>
-                                </div>
-                                <div>
-                                    <div class="text-sm font-medium text-gray-900">{{ booking.user.first_name }} {{ booking.user.last_name }}</div>
-                                    <div class="text-xs text-gray-500">{{ booking.user.email }}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap" data-label="Booking ID">
-                            <span class="text-sm font-semibold text-teal-600">#{{ booking.booking_id }}</span>
-                        </td>
-                        <td class="px-4 py-3" data-label="From">
-                            <div class="flex items-center text-sm text-gray-900">
-                                <i class="fas fa-map-marker-alt text-green-600 mr-1 text-xs"></i>
-                                {{ booking.pickup_location|shorten_address }}
-                            </div>
-                        </td>
-                        <td class="px-4 py-3" data-label="To">
-                            <div class="flex items-center text-sm text-gray-900">
-                                <i class="fas fa-flag-checkered text-red-600 mr-1 text-xs"></i>
-                                {{ booking.dropoff_location|shorten_address }}
-                            </div>
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap" data-label="Fare">
-                            <span class="text-sm font-bold text-teal-600">₹{{ booking.fare }}</span>
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap" data-label="Date">
-                            <div class="text-sm text-gray-900">{{ booking.scheduled_time|date:"M d, Y" }}</div>
-                            <div class="text-xs text-gray-500">{{ booking.scheduled_time|date:"h:i A" }}</div>
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap" data-label="Ride Type">
-                            <span class="text-sm text-gray-700">{{ booking.service_type.name }}</span>
-                        </td>
-                        <td class="px-4 py-3" data-label="Rating">
-                            <div class="star-rating" data-booking-id="{{ booking.booking_id }}" style="display: flex; gap: 2px; margin: 0;">
-                                {% for i in "12345" %}
-                                <span class="star" data-rating="{{ i }}" data-booking-id="{{ booking.booking_id }}" style="font-size: 16px; cursor: pointer; color: #d1d5db; transition: all 0.2s;">
-                                    <i class="fas fa-star"></i>
-                                </span>
-                                {% endfor %}
-                            </div>
-                        </td>
-                        <td class="px-4 py-3" data-label="Feedback">
-                            <textarea 
-                                name="comments" 
-                                placeholder="Feedback..."
-                                class="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-teal-500"
-                                rows="1"
-                                data-booking-id="{{ booking.booking_id }}"
-                            ></textarea>
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap" data-label="Action">
-                            <form class="rating-form" data-booking-id="{{ booking.booking_id }}">
-                                {% csrf_token %}
-                                <input type="hidden" name="rating" class="rating-input" data-booking-id="{{ booking.booking_id }}">
-                                <button 
-                                    type="submit" 
-                                    class="submit-btn px-3 py-1 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white text-xs font-medium rounded transition-all duration-300"
-                                    data-booking-id="{{ booking.booking_id }}"
-                                >
-                                    Submit
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
+                  <div class="passenger-name" style="font-size:13px;">{{ booking.user.first_name }} {{ booking.user.last_name }}</div>
+                  <div class="rated-stars">
+                    {% for i in "12345" %}
+                      <i class="fas fa-star {% if i|add:0 <= booking.rating_obj.rating %}star-on{% else %}star-off{% endif %}"></i>
                     {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    {% endif %}
+                  </div>
+                  <div class="rated-ago">Rated {{ booking.rating_obj.created_at|timesince }} ago</div>
+                </div>
+              </div>
 
-    <!-- Previously Rated Section -->
-    {% if rated_bookings %}
-    <div class="bg-white shadow-xl rounded-2xl px-6 py-6 border border-green-100">
-        <div class="flex items-center mb-6">
-            <div class="bg-green-100 p-3 rounded-lg mr-3">
-                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
+              <div style="text-align:right;flex-shrink:0;">
+                <div class="booking-id-pill" style="margin-left:0;margin-bottom:4px;display:inline-block;">#{{ booking.booking_id }}</div>
+                <div class="meta-value fare" style="text-align:right;">₹{{ booking.fare }}</div>
+                <div class="meta-value" style="font-size:11px;">{{ booking.scheduled_time|date:"d M Y" }}</div>
+              </div>
             </div>
-            <div>
-                <h2 class="text-xl font-bold text-green-600">Previously Rated</h2>
-                <p class="text-sm text-gray-500">{{ total_rated }} completed rating{{ total_rated|pluralize }}</p>
-            </div>
-        </div>
-        
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 responsive-table">
-                <thead class="bg-green-50">
-                    <tr>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">Passenger</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">Booking ID</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">From</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">To</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">Fare</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">Date</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">Ride Type</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">Rating</th>
-                        <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-green-700 uppercase tracking-wider">Feedback</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    {% for booking in rated_bookings %}
-                    <tr class="hover:bg-green-50 transition-colors duration-150">
-                        <td class="px-4 py-3 whitespace-nowrap" data-label="Passenger">
-                            <div class="flex items-center">
-                                <div class="bg-green-100 w-8 h-8 rounded-full flex items-center justify-center mr-2">
-                                    <span class="text-green-600 font-semibold text-xs">
-                                        {{ booking.user.first_name|first|upper }}{{ booking.user.last_name|first|upper }}
-                                    </span>
-                                </div>
-                                <div>
-                                    <div class="text-sm font-medium text-gray-900">{{ booking.user.first_name }} {{ booking.user.last_name }}</div>
-                                    <div class="text-xs text-gray-500">{{ booking.user.email }}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap" data-label="Booking ID">
-                            <span class="text-sm font-semibold text-teal-600">#{{ booking.booking_id }}</span>
-                        </td>
-                        <td class="px-4 py-3" data-label="From">
-                            <div class="flex items-center text-sm text-gray-900">
-                                <i class="fas fa-map-marker-alt text-green-600 mr-1 text-xs"></i>
-                                {{ booking.pickup_location|shorten_address }}
-                            </div>
-                        </td>
-                        <td class="px-4 py-3" data-label="To">
-                            <div class="flex items-center text-sm text-gray-900">
-                                <i class="fas fa-flag-checkered text-red-600 mr-1 text-xs"></i>
-                                {{ booking.dropoff_location|shorten_address }}
-                            </div>
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap" data-label="Fare">
-                            <span class="text-sm font-bold text-teal-600">₹{{ booking.fare }}</span>
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap" data-label="Date">
-                            <div class="text-sm text-gray-900">{{ booking.scheduled_time|date:"M d, Y" }}</div>
-                            <div class="text-xs text-gray-500">{{ booking.scheduled_time|date:"h:i A" }}</div>
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap" data-label="Ride Type">
-                            <span class="text-sm text-gray-700">{{ booking.service_type.name }}</span>
-                        </td>
-                        <td class="px-4 py-3" data-label="Your Rating">
-                            <div class="flex items-center">
-                                {% for i in "12345" %}
-                                    <i class="fas fa-star text-xs {% if i|add:0 <= booking.rating_obj.rating %}text-yellow-400{% else %}text-gray-300{% endif %} mr-0.5"></i>
-                                {% endfor %}
-                                <span class="ml-2 text-sm font-semibold text-gray-700">{{ booking.rating_obj.rating }}/5</span>
-                            </div>
-                            <div class="text-xs text-gray-500 mt-1">Rated {{ booking.rating_obj.created_at|timesince }} ago</div>
-                        </td>
-                        <td class="px-4 py-3" data-label="Feedback">
-                            {% if booking.rating_obj.comments %}
-                                <div class="text-sm text-gray-700 bg-green-50 px-2 py-1 rounded">
-                                    {{ booking.rating_obj.comments|truncatechars:50 }}
-                                </div>
-                            {% else %}
-                                <span class="text-xs text-gray-400">No feedback</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    {% endif %}
 
-    <!-- No Data State -->
-    {% if not unrated_bookings and not rated_bookings %}
-    <div class="bg-white shadow-xl rounded-2xl px-8 py-12 text-center border border-gray-100">
-        <div class="bg-gray-100 p-6 rounded-full mx-auto mb-4 w-20 h-20 flex items-center justify-center">
-            <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-            </svg>
+            <!-- Route inline -->
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+              <div class="route-dot green" style="flex-shrink:0;"></div>
+              <span style="font-size:12px;font-weight:600;color:var(--text-secondary);">{{ booking.pickup_location|shorten_address }}</span>
+              <span style="color:var(--text-muted);font-size:11px;">›</span>
+              <div class="route-dot red" style="flex-shrink:0;"></div>
+              <span style="font-size:12px;font-weight:600;color:var(--text-secondary);">{{ booking.dropoff_location|shorten_address }}</span>
+            </div>
+
+            {% if booking.rating_obj.comments %}
+              <div class="rated-comment">
+                <i class="fas fa-quote-left" style="font-size:9px;opacity:0.5;margin-right:4px;"></i>{{ booking.rating_obj.comments|truncatechars:100 }}<i class="fas fa-quote-right" style="font-size:9px;opacity:0.5;margin-left:4px;"></i>
+              </div>
+            {% else %}
+              <div class="rated-comment empty">
+                <i class="fas fa-minus-circle" style="margin-right:5px;opacity:0.5;"></i>No additional feedback
+              </div>
+            {% endif %}
+
+          </div>
         </div>
-        <h3 class="text-xl font-semibold text-gray-800 mb-2">No Completed Rides</h3>
-        <p class="text-gray-600">You don't have any completed rides to rate yet.</p>
+      {% endfor %}
     </div>
-    {% endif %}
-</div>
+  {% endif %}
+
+  <!-- ══════════════════════════════════════
+       EMPTY STATE
+  ══════════════════════════════════════ -->
+  {% if not unrated_bookings and not rated_bookings %}
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+      </div>
+      <div class="empty-title">No completed rides</div>
+      <div class="empty-desc">Complete a ride to start rating passengers and building your profile.</div>
+    </div>
+  {% endif %}
+
+</div><!-- /app-shell -->
+
+{% include 'partials/mobile_nav_driver.html' %}
 
 <script>
-// Toggle collapsible sections
-function toggleSection(sectionId) {
-    const content = document.getElementById(sectionId + '-content');
-    const chevron = document.getElementById(sectionId + '-chevron');
-    
-    if (content.classList.contains('collapsed')) {
-        content.classList.remove('collapsed');
-        content.classList.add('expanded');
-        chevron.style.transform = 'rotate(180deg)';
-    } else {
-        content.classList.remove('expanded');
-        content.classList.add('collapsed');
-        chevron.style.transform = 'rotate(0deg)';
-    }
-}
+  const ratingLabels = {
+    1: '😞  Poor passenger',
+    2: '😐  Below average',
+    3: '🙂  Average',
+    4: '😊  Good passenger',
+    5: '🤩  Excellent passenger!'
+  };
 
-// Star rating functionality
-document.querySelectorAll('.star-rating').forEach(rating => {
-    const bookingId = rating.getAttribute('data-booking-id');
-    const stars = rating.querySelectorAll('.star');
+  // ── Star rating interactions ──
+  document.querySelectorAll('.star-rating').forEach(rating => {
+    const bookingId  = rating.getAttribute('data-booking-id');
+    const stars      = rating.querySelectorAll('.star');
     const hiddenInput = document.querySelector(`input.rating-input[data-booking-id="${bookingId}"]`);
-    
+    const chip        = document.getElementById('rating-chip-' + bookingId);
+
     stars.forEach((star, index) => {
-        star.addEventListener('click', () => {
-            const selectedRating = index + 1;
-            hiddenInput.value = selectedRating;
-            
-            // Update star display
-            stars.forEach((s, i) => {
-                if (i < selectedRating) {
-                    s.classList.add('filled');
-                } else {
-                    s.classList.remove('filled');
-                }
-            });
-        });
-        
-        // Hover effect
-        star.addEventListener('mouseenter', () => {
-            stars.forEach((s, i) => {
-                if (i <= index) {
-                    s.classList.add('active');
-                } else {
-                    s.classList.remove('active');
-                }
-            });
-        });
-    });
-    
-    // Reset on mouse leave
-    rating.addEventListener('mouseleave', () => {
-        stars.forEach(star => {
-            star.classList.remove('active');
-        });
-    });
-});
+      star.addEventListener('click', () => {
+        const selectedRating = index + 1;
+        hiddenInput.value = selectedRating;
 
-// Form submission handling - Updated for table layout
-document.querySelectorAll('.rating-form').forEach(form => {
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const bookingId = this.getAttribute('data-booking-id');
-        const ratingInput = this.querySelector('input[name="rating"].rating-input');
-        const rating = ratingInput ? ratingInput.value : '';
-        
-        // Get feedback from textarea in the same row
-        const row = this.closest('tr');
-        const feedbackTextarea = row ? row.querySelector('textarea[name="comments"]') : null;
-        const comments = feedbackTextarea ? feedbackTextarea.value : '';
-        
-        const submitBtn = this.querySelector('.submit-btn');
-        
-        if (!rating) {
-            alert('Please select a rating before submitting.');
-            return;
+        stars.forEach((s, i) => {
+          s.classList.toggle('filled', i < selectedRating);
+        });
+
+        if (chip) {
+          chip.textContent = ratingLabels[selectedRating] || '';
+          chip.classList.add('show');
         }
-        
-        // Disable submit button and show loading
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Submitting...';
-        
-        // Prepare form data
-        const formData = new FormData();
-        formData.append('booking_id', bookingId);
-        formData.append('rating', rating);
-        formData.append('comments', comments);
-        formData.append('csrfmiddlewaretoken', this.querySelector('[name=csrfmiddlewaretoken]').value);
-        
-        // Submit via fetch
-        fetch('{% url "submit_driver_rating" %}', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': this.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Hide the submit button
-                submitBtn.classList.add('hidden');
-                submitBtn.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Submitted';
-                submitBtn.classList.remove('bg-gradient-to-r', 'from-teal-500', 'to-teal-600');
-                submitBtn.classList.add('bg-green-500', 'cursor-not-allowed');
-                
-                // Disable the form and stars
-                const inputs = row.querySelectorAll('input, textarea, .star');
-                inputs.forEach(input => {
-                    input.style.pointerEvents = 'none';
-                    input.style.opacity = '0.6';
-                });
-                
-                // Reload the page after a delay to move the row to "rated" section
-                setTimeout(() => {
-                    location.reload();
-                }, 1500);
-                
-            } else {
-                // Show error message
-                alert(data.message || 'An error occurred while submitting the rating.');
-                
-                // Re-enable submit button
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = 'Submit';
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while submitting the rating.');
-            
-            // Re-enable submit button
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = 'Submit';
-        });
-    });
-});
+      });
 
-// Initialize collapsible sections - unrated expanded by default, rated collapsed
-document.addEventListener('DOMContentLoaded', function() {
-    // Keep unrated section expanded
-    const unratedContent = document.getElementById('unrated-content');
-    const unratedChevron = document.getElementById('unrated-chevron');
-    if (unratedContent) {
-        unratedContent.classList.add('expanded');
-        unratedChevron.style.transform = 'rotate(180deg)';
-    }
-    
-    // Keep rated section collapsed
-    const ratedContent = document.getElementById('rated-content');
-    const ratedChevron = document.getElementById('rated-chevron');
-    if (ratedContent) {
-        ratedContent.classList.add('collapsed');
-        ratedChevron.style.transform = 'rotate(0deg)';
-    }
-});
+      star.addEventListener('mouseenter', () => {
+        stars.forEach((s, i) => {
+          s.classList.toggle('active', i <= index);
+        });
+      });
+    });
+
+    rating.addEventListener('mouseleave', () => {
+      stars.forEach(star => star.classList.remove('active'));
+    });
+  });
+
+  // ── Form submission ──
+  document.querySelectorAll('.rating-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const bookingId    = this.getAttribute('data-booking-id');
+      const ratingInput  = this.querySelector('input[name="rating"].rating-input');
+      const rating       = ratingInput ? ratingInput.value : '';
+
+      // Fetch textarea from inside this form's card-body
+      const cardBody         = this.closest('.card-body');
+      const feedbackTextarea = cardBody ? cardBody.querySelector('textarea[name="comments"]') : null;
+      const comments         = feedbackTextarea ? feedbackTextarea.value : '';
+
+      const submitBtn = this.querySelector('.submit-btn');
+
+      if (!rating) {
+        alert('Please select a rating before submitting.');
+        return;
+      }
+
+      // Loading state
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>&nbsp;Submitting…';
+
+      const formData = new FormData();
+      formData.append('booking_id', bookingId);
+      formData.append('rating', rating);
+      formData.append('comments', comments);
+      formData.append('csrfmiddlewaretoken', this.querySelector('[name=csrfmiddlewaretoken]').value);
+
+      fetch('{% url "submit_driver_rating" %}', {
+        method: 'POST',
+        body: formData,
+        headers: { 'X-CSRFToken': this.querySelector('[name=csrfmiddlewaretoken]').value }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          submitBtn.classList.add('submitted');
+          submitBtn.innerHTML = '<i class="fas fa-check-circle"></i>&nbsp;Submitted!';
+
+          // Disable stars & textarea
+          const card = this.closest('.ride-card');
+          if (card) {
+            card.querySelectorAll('input, textarea, .star').forEach(el => {
+              el.style.pointerEvents = 'none';
+              el.style.opacity = '0.55';
+            });
+          }
+
+          setTimeout(() => location.reload(), 1500);
+        } else {
+          alert(data.message || 'An error occurred while submitting the rating.');
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;stroke:#fff;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg> Submit Rating';
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while submitting the rating.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Submit Rating';
+      });
+    });
+  });
 </script>
 
-    {% include 'partials/mobile_nav_driver.html' %}
-    </div>
 </body>
 </html>

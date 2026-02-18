@@ -3,246 +3,383 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Edit Profile - Hospione</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
-    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
-    <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #0f766e 0%, #14b8a6 50%, #5eead4 100%);
-        }
-        .glass-effect {
-            backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.9);
-        }
-        .form-input {
-            transition: all 0.3s ease;
-        }
-        .form-input:focus {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -5px rgba(20, 184, 166, 0.3);
-        }
-        .floating-label {
-            transition: all 0.3s ease;
-        }
-        .hover-lift:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
-        }
-        .animate-fade-in {
-            animation: fadeIn 0.6s ease-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-slide-in {
-            animation: slideIn 0.8s ease-out;
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-30px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        .profile-icon {
-            background: linear-gradient(135deg, #14b8a6, #0f766e);
-            box-shadow: 0 8px 32px rgba(20, 184, 166, 0.3);
-        }
-    </style>
-</head>
-<body class="bg-gradient-to-br from-gray-50 via-teal-50 to-cyan-50 min-h-screen">
-    <div class="app-screen">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Profile - Driver Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+  <link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
 
-  <!-- Animated Background Elements -->
-  <div class="fixed inset-0 overflow-hidden pointer-events-none">
-    <div class="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-teal-400/20 to-cyan-400/20 rounded-full blur-3xl"></div>
-    <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-teal-300/20 to-emerald-300/20 rounded-full blur-3xl"></div>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      --brand:          #00C896;
+      --brand-dark:     #00A87D;
+      --brand-light:    #E6FBF5;
+      --brand-glow:     rgba(0, 200, 150, 0.20);
+      --surface:        #FFFFFF;
+      --surface-2:      #F7FAFA;
+      --border:         #E8F0EE;
+      --border-focus:   #00C896;
+      --text-primary:   #0D2622;
+      --text-secondary: #5A7A75;
+      --text-muted:     #9BB5B0;
+      --shadow-sm:      0 2px 8px rgba(0, 40, 30, 0.06);
+      --radius-xl:      24px;
+      --radius-lg:      16px;
+      --radius-md:      12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .app-shell {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--surface-2);
+      min-height: 100vh;
+      padding-bottom: calc(80px + env(safe-area-inset-bottom));
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Sticky top bar ── */
+    .app-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-back {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      text-decoration: none;
+      flex-shrink: 0;
+      font-size: 14px;
+      transition: background 0.15s ease;
+    }
+    .btn-back:hover { background: var(--border); }
+
+    .topbar-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 3px 10px var(--brand-glow);
+    }
+    .topbar-icon svg { width: 18px; height: 18px; stroke: #fff; fill: none; }
+
+    .topbar-text { flex: 1; min-width: 0; }
+    .topbar-title { font-size: 16px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.3px; line-height: 1.2; }
+    .topbar-sub   { font-size: 11px; font-weight: 500; color: var(--text-muted); margin-top: 1px; }
+
+    /* ── Page body ── */
+    .page-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+    /* ── Toast messages ── */
+    .msg-toast {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .msg-toast.success { background: var(--brand-light); color: #006B50; border: 1px solid #9FECDA; }
+    .msg-toast.error   { background: #FFF0F0;            color: #CC3333; border: 1px solid #FFBFBF; }
+    .msg-toast.info    { background: #EFF6FF;            color: #1D4ED8; border: 1px solid #BFDBFE; }
+    .msg-toast-icon { font-size: 13px; flex-shrink: 0; }
+
+    /* ── Form card ── */
+    .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .form-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 18px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .form-card-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      background: var(--brand-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .form-card-icon svg { width: 15px; height: 15px; stroke: var(--brand-dark); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .form-card-title { font-size: 13px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.2px; }
+
+    /* ── Field groups ── */
+    .fields-body { padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+
+    .field-group { display: flex; flex-direction: column; gap: 6px; }
+
+    .field-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Applied via widget_tweaks in template */
+    .field-input {
+      width: 100%;
+      height: 48px;
+      padding: 0 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface-2);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.15s ease, background 0.15s ease;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .field-input::placeholder { color: var(--text-muted); font-weight: 500; }
+    .field-input:focus { border-color: var(--border-focus); background: var(--surface); }
+
+    /* Textarea variant */
+    .field-textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--surface-2);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      outline: none;
+      resize: vertical;
+      min-height: 80px;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    .field-textarea::placeholder { color: var(--text-muted); font-weight: 500; }
+    .field-textarea:focus { border-color: var(--border-focus); background: var(--surface); }
+
+    /* Side-by-side pair on wider screens */
+    .field-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 480px) {
+      .field-pair { grid-template-columns: 1fr; }
+    }
+
+    /* ── Divider inside card ── */
+    .fields-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 0 18px;
+    }
+
+    /* ── Submit button ── */
+    .btn-save {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: var(--brand);
+      color: #fff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 14px 20px;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background 0.15s ease;
+      box-shadow: 0 4px 14px var(--brand-glow);
+      letter-spacing: -0.1px;
+    }
+    .btn-save:hover  { background: var(--brand-dark); }
+    .btn-save:active { background: #009068; }
+
+    /* ── Tips note card ── */
+    .tips-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .tips-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      background: var(--brand-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .tips-icon svg { width: 15px; height: 15px; stroke: var(--brand-dark); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .tips-title { font-size: 12px; font-weight: 800; color: var(--text-primary); margin-bottom: 3px; }
+    .tips-desc  { font-size: 11px; font-weight: 500; color: var(--text-muted); line-height: 1.5; }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ── Top Bar ── -->
+  <div class="app-topbar">
+    <a href="{% url 'driver:driver_profile' driver.driver_id %}" class="btn-back">
+      <i class="fas fa-arrow-left"></i>
+    </a>
+
+    <div class="topbar-icon">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+    </div>
+
+    <div class="topbar-text">
+      <div class="topbar-title">Edit Profile</div>
+      <div class="topbar-sub">Update your personal information</div>
+    </div>
   </div>
 
-  <!-- Header -->
-  <header class="relative glass-effect border-b border-white/20 backdrop-blur-xl">
-    <div class="max-w-7xl mx-auto px-4 py-6">
-      <div class="flex justify-between items-center">
-        <div class="flex items-center space-x-4 animate-slide-in">
-          <div class="profile-icon w-12 h-12 rounded-xl flex items-center justify-center transform hover:scale-110 transition-all duration-300">
-            <i class="fas fa-car text-white text-xl"></i>
-          </div>
-          <div>
-            <span class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 via-teal-500 to-cyan-500">Hospione</span>
-            <p class="text-sm text-gray-600 font-medium">Driver Dashboard</p>
-          </div>
-        </div>
-        <a href="{% url 'driver:driver_profile' driver.driver_id %}" 
-           class="bg-gradient-to-r from-teal-600 to-teal-700 text-white px-6 py-3 rounded-xl hover:from-teal-700 hover:to-teal-800 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-2 group">
-          <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform duration-300"></i>
-          <span class="font-semibold">Back to Profile</span>
-        </a>
-      </div>
-    </div>
-  </header>
+  <div class="page-body">
 
-  <main class="max-w-4xl mx-auto px-4 py-12 relative z-10">
-
-    <!-- Success Banner -->
+    <!-- ── Messages ── -->
     {% if messages %}
       {% for message in messages %}
-        <div class="mb-8 animate-fade-in">
-          <div class="p-5 rounded-2xl border border-green-200 {% if message.tags == 'success' %}bg-gradient-to-r from-green-50 to-emerald-50 text-green-800{% endif %} shadow-lg">
-            <div class="flex items-center space-x-3">
-              <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                <i class="fas fa-check text-white text-sm"></i>
-              </div>
-              <span class="font-semibold">{{ message }}</span>
-            </div>
-          </div>
+        <div class="msg-toast {% if message.tags == 'success' %}success{% elif message.tags == 'error' %}error{% else %}info{% endif %}">
+          <span class="msg-toast-icon">
+            {% if message.tags == 'success' %}<i class="fas fa-check-circle"></i>
+            {% elif message.tags == 'error' %}<i class="fas fa-exclamation-circle"></i>
+            {% else %}<i class="fas fa-info-circle"></i>{% endif %}
+          </span>
+          {{ message }}
         </div>
       {% endfor %}
     {% endif %}
 
-    <!-- Edit Profile Card -->
-    <section class="glass-effect shadow-2xl rounded-3xl overflow-hidden animate-fade-in hover-lift transition-all duration-500 border border-white/20">
-      
-      <!-- Header Section -->
-      <div class="gradient-bg px-8 py-8 text-white relative overflow-hidden">
-        <div class="absolute inset-0 bg-black/10"></div>
-        <div class="relative z-10 flex items-center space-x-4">
-          <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-            <i class="fas fa-user-edit text-2xl"></i>
-          </div>
-          <div>
-            <h2 class="text-3xl font-bold mb-2">Edit Your Profile</h2>
-            <p class="text-teal-100 font-medium">Update your personal information</p>
-          </div>
+    <!-- ── Edit Form Card ── -->
+    <div class="form-card">
+
+      <div class="form-card-header">
+        <div class="form-card-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
         </div>
-        <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-        <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-12 -mb-12"></div>
+        <div class="form-card-title">Personal Details</div>
       </div>
 
-      <!-- Form Section -->
-      <div class="p-8">
-        <form method="post" class="space-y-8">
-          {% csrf_token %}
-          
-          <!-- Name Fields -->
-          <div class="grid sm:grid-cols-2 gap-8">
-            <div class="space-y-3 group">
-              <label class="block text-sm font-semibold text-gray-700 floating-label group-focus-within:text-teal-600 transition-colors duration-300">
-                <i class="fas fa-user mr-2"></i>First Name
-              </label>
-              <div class="relative">
-                {{ form.first_name|add_class:"form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-teal-500 focus:ring-0 focus:outline-none bg-gray-50 focus:bg-white font-medium placeholder-gray-400" }}
-              </div>
+      <form method="post">
+        {% csrf_token %}
+
+        <div class="fields-body">
+
+          <!-- Name row -->
+          <div class="field-pair">
+            <div class="field-group">
+              <label class="field-label">First Name</label>
+              {{ form.first_name|add_class:"field-input" }}
             </div>
-            <div class="space-y-3 group">
-              <label class="block text-sm font-semibold text-gray-700 floating-label group-focus-within:text-teal-600 transition-colors duration-300">
-                <i class="fas fa-user mr-2"></i>Last Name
-              </label>
-              <div class="relative">
-                {{ form.last_name|add_class:"form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-teal-500 focus:ring-0 focus:outline-none bg-gray-50 focus:bg-white font-medium placeholder-gray-400" }}
-              </div>
+            <div class="field-group">
+              <label class="field-label">Last Name</label>
+              {{ form.last_name|add_class:"field-input" }}
             </div>
           </div>
 
-          <!-- Phone Field -->
-          <div class="space-y-3 group">
-            <label class="block text-sm font-semibold text-gray-700 floating-label group-focus-within:text-teal-600 transition-colors duration-300">
-              <i class="fas fa-phone mr-2"></i>Phone Number
-            </label>
-            <div class="relative">
-              {{ form.phone|add_class:"form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-teal-500 focus:ring-0 focus:outline-none bg-gray-50 focus:bg-white font-medium placeholder-gray-400" }}
+          <!-- Phone -->
+          <div class="field-group">
+            <label class="field-label">Phone Number</label>
+            {{ form.phone|add_class:"field-input" }}
+          </div>
+
+          <!-- State + City -->
+          <div class="field-pair">
+            <div class="field-group">
+              <label class="field-label">State</label>
+              {{ form.state|add_class:"field-input" }}
+            </div>
+            <div class="field-group">
+              <label class="field-label">City</label>
+              {{ form.city|add_class:"field-input" }}
             </div>
           </div>
 
-          <!-- Location Fields -->
-          <div class="grid sm:grid-cols-2 gap-8">
-            <div class="space-y-3 group">
-              <label class="block text-sm font-semibold text-gray-700 floating-label group-focus-within:text-teal-600 transition-colors duration-300">
-                <i class="fas fa-map-marker-alt mr-2"></i>State
-              </label>
-              <div class="relative">
-                {{ form.state|add_class:"form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-teal-500 focus:ring-0 focus:outline-none bg-gray-50 focus:bg-white font-medium placeholder-gray-400" }}
-              </div>
-            </div>
-            <div class="space-y-3 group">
-              <label class="block text-sm font-semibold text-gray-700 floating-label group-focus-within:text-teal-600 transition-colors duration-300">
-                <i class="fas fa-city mr-2"></i>City
-              </label>
-              <div class="relative">
-                {{ form.city|add_class:"form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-teal-500 focus:ring-0 focus:outline-none bg-gray-50 focus:bg-white font-medium placeholder-gray-400" }}
-              </div>
-            </div>
+          <!-- Full Address -->
+          <div class="field-group">
+            <label class="field-label">Full Address</label>
+            {{ form.full_address|add_class:"field-textarea" }}
           </div>
 
-          <!-- Address Field -->
-          <div class="space-y-3 group">
-            <label class="block text-sm font-semibold text-gray-700 floating-label group-focus-within:text-teal-600 transition-colors duration-300">
-              <i class="fas fa-home mr-2"></i>Full Address
-            </label>
-            <div class="relative">
-              {{ form.full_address|add_class:"form-input w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-teal-500 focus:ring-0 focus:outline-none bg-gray-50 focus:bg-white font-medium placeholder-gray-400" }}
-            </div>
-          </div>
+          <!-- Submit -->
+          <button type="submit" class="btn-save">
+            <i class="fas fa-check" style="font-size:12px;"></i> Save Changes
+          </button>
 
-          <!-- Submit Button -->
-          <div class="pt-6">
-            <button type="submit" class="group w-full bg-gradient-to-r from-teal-600 via-teal-700 to-cyan-700 text-white py-5 px-8 rounded-2xl hover:from-teal-700 hover:via-teal-800 hover:to-cyan-800 font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 relative overflow-hidden">
-              <div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <span class="relative flex items-center justify-center space-x-3">
-                <i class="fas fa-save text-xl"></i>
-                <span>Save Changes</span>
-                <i class="fas fa-arrow-right group-hover:translate-x-2 transition-transform duration-300"></i>
-              </span>
-            </button>
-          </div>
-        </form>
+        </div><!-- /fields-body -->
+      </form>
+    </div><!-- /form-card -->
+
+    <!-- ── Tips note ── -->
+    <div class="tips-card">
+      <div class="tips-icon">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
       </div>
-    </section>
-
-    <!-- Additional Info Card -->
-    <div class="mt-8 glass-effect rounded-2xl p-6 border border-white/20 animate-fade-in">
-      <div class="flex items-center space-x-4">
-        <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
-          <i class="fas fa-info-circle text-white"></i>
-        </div>
-        <div>
-          <h3 class="font-bold text-gray-800 mb-1">Profile Tips</h3>
-          <p class="text-gray-600 text-sm">Keep your information up-to-date to provide the best service to your passengers.</p>
-        </div>
+      <div>
+        <div class="tips-title">Keep your details current</div>
+        <div class="tips-desc">Accurate information helps passengers reach you and ensures smooth payouts.</div>
       </div>
     </div>
 
-  </main>
+  </div><!-- /page-body -->
 
-  <!-- Enhanced Footer -->
-  <footer class="relative mt-20 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden">
-    <div class="absolute inset-0 bg-gradient-to-r from-teal-600/10 to-cyan-600/10"></div>
-    <div class="relative z-10 max-w-7xl mx-auto px-4 py-12">
-      <div class="text-center">
-        <div class="flex justify-center items-center mb-6">
-          <div class="profile-icon w-14 h-14 rounded-2xl flex items-center justify-center">
-            <i class="fas fa-car text-white text-2xl"></i>
-          </div>
-          <span class="ml-4 text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-400">Hospione</span>
-        </div>
-        <div class="flex justify-center space-x-8 mb-6">
-          <a href="#" class="text-gray-400 hover:text-teal-400 transition-colors duration-300">
-            <i class="fab fa-facebook-f text-xl"></i>
-          </a>
-          <a href="#" class="text-gray-400 hover:text-teal-400 transition-colors duration-300">
-            <i class="fab fa-twitter text-xl"></i>
-          </a>
-          <a href="#" class="text-gray-400 hover:text-teal-400 transition-colors duration-300">
-            <i class="fab fa-instagram text-xl"></i>
-          </a>
-        </div>
-        <p class="text-sm text-gray-400">&copy; 2025 Hospione. All rights reserved. | Connecting Drivers & Passengers</p>
-      </div>
-    </div>
-  </footer>
+</div><!-- /app-shell -->
 
-    {% include 'partials/mobile_nav_driver.html' %}
-    </div>
+{% include 'partials/mobile_nav_driver.html' %}
+
 </body>
 </html>

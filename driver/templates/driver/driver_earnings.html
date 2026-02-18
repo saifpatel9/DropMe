@@ -3,386 +3,464 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Earnings - Hospione</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Fonts and Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
-    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
-    <link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Earnings - Driver Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+  <link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
 
-<style>
-:root {
-    --primary-teal: #00A59E;
-    --primary-cyan: #0EB9D3;
-}
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Open Sans', sans-serif;
-    background: #f3f4f6;
-}
-
-.earnings-container {
-    min-height: 100vh;
-    padding-bottom: 20px;
-}
-
-/* Header */
-.earnings-header {
-    background: linear-gradient(135deg, #00A59E, #0EB9D3);
-    color: white;
-    padding: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.header-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.back-button {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
-}
-
-.back-button:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-.header-title {
-    font-size: 24px;
-    font-weight: 700;
-    margin: 0;
-}
-
-/* Earnings Cards */
-.earnings-cards {
-    max-width: 1200px;
-    margin: -30px auto 30px;
-    padding: 0 20px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    position: relative;
-    z-index: 10;
-}
-
-.earnings-card {
-    background: white;
-    border-radius: 20px;
-    padding: 25px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.earnings-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-}
-
-.card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 15px;
-}
-
-.card-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    color: white;
-}
-
-.card-icon.today {
-    background: linear-gradient(135deg, #10b981, #059669);
-}
-
-.card-icon.month {
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-}
-
-.card-icon.year {
-    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
-}
-
-.card-label {
-    font-size: 14px;
-    color: #6b7280;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.card-amount {
-    font-size: 32px;
-    font-weight: 700;
-    color: #1f2937;
-    margin-top: 5px;
-}
-
-.card-amount.today {
-    color: #10b981;
-}
-
-.card-amount.month {
-    color: #3b82f6;
-}
-
-.card-amount.year {
-    color: #8b5cf6;
-}
-
-/* Main Content */
-.main-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-.section-title {
-    font-size: 20px;
-    font-weight: 700;
-    color: #1f2937;
-    margin: 30px 0 20px;
-}
-
-/* Recent Rides Table */
-.rides-table-card {
-    background: white;
-    border-radius: 20px;
-    padding: 25px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    overflow-x: auto;
-}
-
-.rides-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.rides-table thead {
-    background: #f9fafb;
-    border-radius: 10px;
-}
-
-.rides-table th {
-    padding: 15px;
-    text-align: left;
-    font-size: 12px;
-    font-weight: 700;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid #e5e7eb;
-}
-
-.rides-table td {
-    padding: 20px 15px;
-    border-bottom: 1px solid #f3f4f6;
-    font-size: 14px;
-    color: #1f2937;
-}
-
-.rides-table tbody tr:hover {
-    background: #f9fafb;
-}
-
-.rides-table tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.ride-id {
-    font-weight: 600;
-    color: #00A59E;
-}
-
-.ride-location {
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.ride-fare {
-    font-weight: 700;
-    color: #00A59E;
-    font-size: 16px;
-}
-
-.ride-earning {
-    font-weight: 700;
-    color: #10b981;
-    font-size: 16px;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: #6b7280;
-}
-
-.empty-state i {
-    font-size: 64px;
-    margin-bottom: 20px;
-    opacity: 0.3;
-}
-
-.empty-state p {
-    font-size: 18px;
-    margin: 0;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .earnings-header {
-        padding: 15px;
+    :root {
+      --brand:          #00C896;
+      --brand-dark:     #00A87D;
+      --brand-light:    #E6FBF5;
+      --brand-glow:     rgba(0, 200, 150, 0.20);
+      --surface:        #FFFFFF;
+      --surface-2:      #F7FAFA;
+      --border:         #E8F0EE;
+      --text-primary:   #0D2622;
+      --text-secondary: #5A7A75;
+      --text-muted:     #9BB5B0;
+      --amber:          #F59E0B;
+      --amber-light:    #FFFBEB;
+      --amber-border:   #FDE68A;
+      --violet:         #7C3AED;
+      --violet-light:   #F5F3FF;
+      --violet-border:  #DDD6FE;
+      --blue:           #2563EB;
+      --blue-light:     #EFF6FF;
+      --blue-border:    #BFDBFE;
+      --shadow-sm:      0 2px 8px rgba(0, 40, 30, 0.06);
+      --shadow-md:      0 8px 24px rgba(0, 40, 30, 0.10);
+      --radius-xl:      24px;
+      --radius-lg:      16px;
+      --radius-md:      12px;
     }
 
-    .header-title {
-        font-size: 20px;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .app-shell {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--surface-2);
+      min-height: 100vh;
+      padding-bottom: 80px;
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
     }
 
-    .earnings-cards {
-        grid-template-columns: 1fr;
-        margin-top: -20px;
+    /* ── Sticky top bar ── */
+    .app-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
-    .card-amount {
-        font-size: 28px;
+    .btn-back {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      text-decoration: none;
+      flex-shrink: 0;
+      font-size: 14px;
+      transition: background 0.15s ease;
     }
 
-    .rides-table {
-        font-size: 12px;
+    .btn-back:hover { background: var(--border); }
+
+    .topbar-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 3px 10px var(--brand-glow);
     }
 
-    .rides-table th,
-    .rides-table td {
-        padding: 12px 8px;
+    .topbar-icon svg { width: 18px; height: 18px; stroke: #fff; fill: none; }
+
+    .topbar-text { flex: 1; min-width: 0; }
+    .topbar-title { font-size: 16px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.3px; line-height: 1.2; }
+    .topbar-sub   { font-size: 11px; font-weight: 500; color: var(--text-muted); margin-top: 1px; }
+
+    /* ── Summary strip ── */
+    .summary-strip {
+      padding: 14px 16px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
-    .ride-location {
-        max-width: 150px;
+    /* ── Summary cards ── */
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: var(--shadow-sm);
     }
-}
-</style>
+
+    .summary-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .summary-icon svg { width: 20px; height: 20px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .summary-icon.today  { background: var(--brand-light);   }
+    .summary-icon.today svg  { stroke: var(--brand-dark); }
+    .summary-icon.month  { background: var(--blue-light);    }
+    .summary-icon.month svg  { stroke: var(--blue); }
+    .summary-icon.year   { background: var(--violet-light);  }
+    .summary-icon.year svg   { stroke: var(--violet); }
+
+    .summary-info { flex: 1; min-width: 0; }
+    .summary-label  { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .summary-amount { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; margin-top: 2px; }
+
+    .summary-amount.today  { color: var(--brand-dark); }
+    .summary-amount.month  { color: var(--blue); }
+    .summary-amount.year   { color: var(--violet); }
+
+    .summary-tag {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+
+    .summary-tag.today  { background: var(--brand-light);  color: var(--brand-dark); border: 1px solid #9FECDA; }
+    .summary-tag.month  { background: var(--blue-light);   color: var(--blue);       border: 1px solid var(--blue-border); }
+    .summary-tag.year   { background: var(--violet-light); color: var(--violet);     border: 1px solid var(--violet-border); }
+
+    /* ── Section header ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 22px 16px 10px;
+    }
+
+    .section-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--brand); }
+
+    .section-title { font-size: 14px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.2px; }
+
+    .section-badge {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+      background: var(--brand-light);
+      color: var(--brand-dark);
+    }
+
+    /* ── Cards wrap ── */
+    .cards-wrap { padding: 0 16px; display: flex; flex-direction: column; gap: 12px; }
+
+    /* ── Ride earning card ── */
+    .ride-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Card header: booking ID + date */
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .booking-id-pill {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--brand-dark);
+      background: var(--brand-light);
+      border: 1px solid #9FECDA;
+      border-radius: 20px;
+      padding: 3px 10px;
+    }
+
+    .card-date {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    /* Card fare row */
+    .card-fares {
+      display: flex;
+      align-items: stretch;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .fare-block {
+      flex: 1;
+      padding: 12px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .fare-block + .fare-block {
+      border-left: 1px solid var(--border);
+    }
+
+    .fare-label  { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+    .fare-value  { font-size: 15px; font-weight: 800; color: var(--text-secondary); letter-spacing: -0.3px; }
+    .fare-value.earning { color: var(--brand-dark); font-size: 17px; }
+
+    /* Card route */
+    .card-route {
+      padding: 12px 18px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .route-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .route-icon-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      flex-shrink: 0;
+      padding-top: 2px;
+    }
+
+    .route-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .route-dot.green { background: var(--brand); box-shadow: 0 0 0 3px var(--brand-light); }
+    .route-dot.red   { background: #EF4444;      box-shadow: 0 0 0 3px #FFF5F5; }
+
+    .route-line {
+      width: 1.5px;
+      height: 16px;
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    .route-text { font-size: 12px; font-weight: 600; color: var(--text-secondary); line-height: 1.4; }
+    .route-type { font-size: 10px; font-weight: 500; color: var(--text-muted); margin-top: 1px; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      margin: 40px 16px 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 48px 24px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .empty-icon {
+      width: 72px;
+      height: 72px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    .empty-icon svg { width: 34px; height: 34px; stroke: var(--text-muted); fill: none; }
+
+    .empty-title { font-size: 17px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.3px; margin-bottom: 8px; }
+    .empty-desc  { font-size: 13px; font-weight: 500; color: var(--text-muted); line-height: 1.6; max-width: 260px; margin: 0 auto; }
+  </style>
 </head>
 <body>
-    <div class="app-screen">
-<div class="earnings-container">
-    <!-- Header -->
-    <div class="earnings-header">
-        <div class="header-content">
-            <a href="{% url 'driver_homepage' %}" class="back-button">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            <h1 class="header-title">My Earnings</h1>
-            <div style="width: 40px;"></div>
-        </div>
+<div class="app-shell">
+
+  <!-- ── Top Bar ── -->
+  <div class="app-topbar">
+    <a href="{% url 'driver_homepage' %}" class="btn-back">
+      <i class="fas fa-arrow-left"></i>
+    </a>
+
+    <div class="topbar-icon">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2M12 12v4M10 14h4"/>
+      </svg>
     </div>
 
-    <!-- Earnings Cards -->
-    <div class="earnings-cards">
-        <div class="earnings-card">
-            <div class="card-header">
-                <div>
-                    <div class="card-label">Today's Earnings</div>
-                    <div class="card-amount today">₹{{ earnings_today|floatformat:2 }}</div>
-                </div>
-                <div class="card-icon today">
-                    <i class="fas fa-sun"></i>
-                </div>
-            </div>
-        </div>
+    <div class="topbar-text">
+      <div class="topbar-title">My Earnings</div>
+      <div class="topbar-sub">Your trip earnings summary</div>
+    </div>
+  </div>
 
-        <div class="earnings-card">
-            <div class="card-header">
-                <div>
-                    <div class="card-label">This Month</div>
-                    <div class="card-amount month">₹{{ earnings_month|floatformat:2 }}</div>
-                </div>
-                <div class="card-icon month">
-                    <i class="fas fa-calendar-alt"></i>
-                </div>
-            </div>
-        </div>
+  <!-- ── Earnings Summary ── -->
+  <div class="summary-strip">
 
-        <div class="earnings-card">
-            <div class="card-header">
-                <div>
-                    <div class="card-label">This Year</div>
-                    <div class="card-amount year">₹{{ earnings_year|floatformat:2 }}</div>
-                </div>
-                <div class="card-icon year">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-            </div>
-        </div>
+    <!-- Today -->
+    <div class="summary-card">
+      <div class="summary-icon today">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+      </div>
+      <div class="summary-info">
+        <div class="summary-label">Today's Earnings</div>
+        <div class="summary-amount today">₹{{ earnings_today|floatformat:2 }}</div>
+      </div>
+      <div class="summary-tag today">Today</div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <h2 class="section-title">Recent Trip Earnings</h2>
+    <!-- Month -->
+    <div class="summary-card">
+      <div class="summary-icon month">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>
+        </svg>
+      </div>
+      <div class="summary-info">
+        <div class="summary-label">This Month</div>
+        <div class="summary-amount month">₹{{ earnings_month|floatformat:2 }}</div>
+      </div>
+      <div class="summary-tag month">Monthly</div>
+    </div>
 
-        <div class="rides-table-card">
-            {% if ride_earnings %}
-            <table class="rides-table responsive-table">
-                <thead>
-                    <tr>
-                        <th>Ride ID</th>
-                        <th>Pickup</th>
-                        <th>Dropoff</th>
-                        <th>Date & Time</th>
-                        <th>Fare</th>
-                        <th>Your Earning</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for ride in ride_earnings %}
-                    <tr>
-                        <td data-label="Ride ID"><span class="ride-id">#{{ ride.booking_id }}</span></td>
-                        <td data-label="Pickup"><span class="ride-location">{{ ride.pickup_location|shorten_address }}</span></td>
-                        <td data-label="Dropoff"><span class="ride-location">{{ ride.dropoff_location|shorten_address }}</span></td>
-                        <td data-label="Date & Time">{{ ride.scheduled_time|date:"M d, Y" }}<br>{{ ride.scheduled_time|time:"h:i A" }}</td>
-                        <td data-label="Fare"><span class="ride-fare">₹{{ ride.fare|floatformat:2 }}</span></td>
-                        <td data-label="Your Earning"><span class="ride-earning">₹{{ ride.driver_earning|floatformat:2 }}</span></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <div class="empty-state">
-                <i class="fas fa-wallet"></i>
-                <p>No completed rides yet</p>
+    <!-- Year -->
+    <div class="summary-card">
+      <div class="summary-icon year">
+        <svg viewBox="0 0 24 24">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+      </div>
+      <div class="summary-info">
+        <div class="summary-label">This Year</div>
+        <div class="summary-amount year">₹{{ earnings_year|floatformat:2 }}</div>
+      </div>
+      <div class="summary-tag year">Yearly</div>
+    </div>
+
+  </div>
+
+  <!-- ── Recent Trip Earnings ── -->
+  {% if ride_earnings %}
+
+    <div class="section-header">
+      <div class="section-dot"></div>
+      <div class="section-title">Recent Trip Earnings</div>
+      <span class="section-badge">{{ ride_earnings|length }} ride{{ ride_earnings|length|pluralize }}</span>
+    </div>
+
+    <div class="cards-wrap">
+      {% for ride in ride_earnings %}
+        <div class="ride-card">
+
+          <!-- Booking ID + Date -->
+          <div class="card-header">
+            <div class="booking-id-pill">#{{ ride.booking_id }}</div>
+            <div class="card-date">
+              {% if ride.scheduled_time %}
+                {{ ride.scheduled_time|date:"d M Y" }}<br>{{ ride.scheduled_time|time:"h:i A" }}
+              {% else %}
+                —
+              {% endif %}
             </div>
-            {% endif %}
-        </div>
+          </div>
+
+          <!-- Fare + Driver Earning -->
+          <div class="card-fares">
+            <div class="fare-block">
+              <div class="fare-label">Ride Fare</div>
+              <div class="fare-value">₹{{ ride.fare|floatformat:2 }}</div>
+            </div>
+            <div class="fare-block">
+              <div class="fare-label">Your Earning</div>
+              <div class="fare-value earning">₹{{ ride.driver_earning|floatformat:2 }}</div>
+            </div>
+          </div>
+
+          <!-- Route -->
+          <div class="card-route">
+            <div class="route-row">
+              <div class="route-icon-wrap">
+                <div class="route-dot green"></div>
+                <div class="route-line"></div>
+              </div>
+              <div>
+                <div class="route-text">{{ ride.pickup_location|shorten_address }}</div>
+                <div class="route-type">Pickup</div>
+              </div>
+            </div>
+            <div class="route-row">
+              <div class="route-icon-wrap">
+                <div class="route-dot red"></div>
+              </div>
+              <div>
+                <div class="route-text">{{ ride.dropoff_location|shorten_address }}</div>
+                <div class="route-type">Drop-off</div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /ride-card -->
+      {% endfor %}
+    </div><!-- /cards-wrap -->
+
+  {% else %}
+
+    <!-- ── Empty State ── -->
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 12V22H4V12M22 7H2v5h20V7zM12 22V7M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/>
+        </svg>
+      </div>
+      <div class="empty-title">No completed rides yet</div>
+      <div class="empty-desc">Complete your first trip to start seeing your earnings here.</div>
     </div>
-</div>
-    {% include 'partials/mobile_nav_driver.html' %}
-    </div>
+
+  {% endif %}
+
+</div><!-- /app-shell -->
+
+{% include 'partials/mobile_nav_driver.html' %}
+
 </body>
 </html>

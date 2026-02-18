@@ -2,616 +2,613 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile - Hospione</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Fonts and Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
-    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
-    <link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile - Driver Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+  <link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
 
-<style>
-:root {
-    --primary-teal: #00A59E;
-    --primary-cyan: #0EB9D3;
-}
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Open Sans', sans-serif;
-    background: #f3f4f6;
-}
-
-.app-screen {
-    min-height: 100vh;
-    padding-bottom: 0;
-}
-
-.profile-container {
-    min-height: 100vh;
-    padding-bottom: calc(104px + env(safe-area-inset-bottom));
-    box-sizing: border-box;
-}
-
-/* Header */
-.profile-header {
-    background: linear-gradient(135deg, #00A59E, #0EB9D3);
-    color: white;
-    padding: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.header-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.back-button {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
-}
-
-.back-button:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-
-.header-title {
-    font-size: 24px;
-    font-weight: 700;
-    margin: 0;
-}
-
-/* Profile Card */
-.profile-card {
-    max-width: 1200px;
-    margin: -50px auto 30px;
-    padding: 30px;
-    background: white;
-    border-radius: 25px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    position: relative;
-    z-index: 10;
-}
-
-.profile-header-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding-bottom: 30px;
-    border-bottom: 1px solid #e5e7eb;
-    margin-bottom: 30px;
-}
-
-.profile-avatar {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #00A59E, #0EB9D3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 48px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 20px rgba(0, 165, 158, 0.3);
-    border: 5px solid white;
-}
-
-.profile-name {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1f2937;
-    margin: 0 0 10px 0;
-}
-
-.profile-id {
-    font-size: 14px;
-    color: #6b7280;
-    margin-bottom: 15px;
-}
-
-.status-badges {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.badge {
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.badge.active {
-    background: #dcfce7;
-    color: #166534;
-}
-
-.badge.rating {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.edit-button {
-    margin-top: 20px;
-    padding: 12px 30px;
-    background: linear-gradient(135deg, #00A59E, #0EB9D3);
-    color: white;
-    border: none;
-    border-radius: 15px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    display: inline-block;
-}
-
-.edit-button:hover {
-    background: linear-gradient(135deg, #0EB9D3, #00A59E);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 165, 158, 0.3);
-}
-
-/* Info Sections */
-.info-section {
-    background: white;
-    border-radius: 20px;
-    padding: 25px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-.section-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: #1f2937;
-    margin: 0 0 20px 0;
-    padding-bottom: 15px;
-    border-bottom: 2px solid #e5e7eb;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.section-title i {
-    color: #00A59E;
-}
-
-.info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-}
-
-.info-item {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.info-label {
-    font-size: 12px;
-    color: #6b7280;
-    text-transform: uppercase;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-}
-
-.info-value {
-    font-size: 16px;
-    color: #1f2937;
-    font-weight: 600;
-}
-
-.info-value.empty {
-    color: #9ca3af;
-    font-style: italic;
-}
-
-/* Document Section */
-.document-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 0;
-    border-bottom: 1px solid #f3f4f6;
-}
-
-.document-item:last-child {
-    border-bottom: none;
-}
-
-.document-info {
-    flex: 1;
-}
-
-.document-name {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1f2937;
-    margin: 0 0 5px 0;
-}
-
-.document-desc {
-    font-size: 12px;
-    color: #6b7280;
-    margin: 0 0 8px 0;
-}
-
-.document-link {
-    font-size: 12px;
-    color: #00A59E;
-    text-decoration: none;
-}
-
-.document-link:hover {
-    text-decoration: underline;
-}
-
-.document-status {
-    padding: 6px 12px;
-    border-radius: 15px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    margin-right: 15px;
-}
-
-.document-status.verified {
-    background: #dcfce7;
-    color: #166534;
-}
-
-.document-status.pending {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.document-status.rejected {
-    background: #fee2e2;
-    color: #dc2626;
-}
-
-.document-upload {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.upload-input {
-    display: none;
-}
-
-.upload-label {
-    padding: 10px 20px;
-    background: linear-gradient(135deg, #00A59E, #0EB9D3);
-    color: white;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border: none;
-}
-
-.upload-label:hover {
-    background: linear-gradient(135deg, #0EB9D3, #00A59E);
-    transform: translateY(-2px);
-}
-
-/* Wallet Section */
-.wallet-section {
-    background: linear-gradient(135deg, #00A59E, #0EB9D3);
-    border-radius: 20px;
-    padding: 25px;
-    color: white;
-    margin-bottom: 20px;
-}
-
-.wallet-label {
-    font-size: 14px;
-    opacity: 0.9;
-    margin-bottom: 10px;
-}
-
-.wallet-amount {
-    font-size: 36px;
-    font-weight: 700;
-    margin: 0;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .profile-header {
-        padding: 15px;
+    :root {
+      --brand:          #00C896;
+      --brand-dark:     #00A87D;
+      --brand-light:    #E6FBF5;
+      --brand-glow:     rgba(0, 200, 150, 0.20);
+      --surface:        #FFFFFF;
+      --surface-2:      #F7FAFA;
+      --border:         #E8F0EE;
+      --text-primary:   #0D2622;
+      --text-secondary: #5A7A75;
+      --text-muted:     #9BB5B0;
+      --amber:          #F59E0B;
+      --amber-light:    #FFFBEB;
+      --amber-border:   #FDE68A;
+      --red:            #EF4444;
+      --red-light:      #FFF5F5;
+      --red-border:     #FECACA;
+      --shadow-sm:      0 2px 8px rgba(0, 40, 30, 0.06);
+      --shadow-md:      0 8px 24px rgba(0, 40, 30, 0.10);
+      --radius-xl:      24px;
+      --radius-lg:      16px;
+      --radius-md:      12px;
     }
 
-    .header-title {
-        font-size: 20px;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .app-shell {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--surface-2);
+      min-height: 100vh;
+      padding-bottom: calc(80px + env(safe-area-inset-bottom));
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
     }
 
-    .profile-card {
-        margin: -30px 15px 20px;
-        padding: 20px;
+    /* ── Sticky top bar ── */
+    .app-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-back {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      text-decoration: none;
+      flex-shrink: 0;
+      font-size: 14px;
+      transition: background 0.15s ease;
+    }
+    .btn-back:hover { background: var(--border); }
+
+    .topbar-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 3px 10px var(--brand-glow);
+    }
+    .topbar-icon svg { width: 18px; height: 18px; stroke: #fff; fill: none; }
+
+    .topbar-text { flex: 1; min-width: 0; }
+    .topbar-title { font-size: 16px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.3px; line-height: 1.2; }
+    .topbar-sub   { font-size: 11px; font-weight: 500; color: var(--text-muted); margin-top: 1px; }
+
+    /* ── Page content padding ── */
+    .page-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+    /* ── Profile identity card ── */
+    .profile-identity {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm);
+      padding: 28px 20px 22px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0;
     }
 
     .profile-avatar {
-        width: 100px;
-        height: 100px;
-        font-size: 40px;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--brand-light);
+      border: 3px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--brand-dark);
+      letter-spacing: -1px;
+      margin-bottom: 14px;
+      flex-shrink: 0;
     }
 
     .profile-name {
-        font-size: 24px;
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.4px;
+      margin-bottom: 4px;
     }
 
-    .info-grid {
-        grid-template-columns: 1fr;
+    .profile-driver-id {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 14px;
     }
 
-    .document-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 15px;
+    .profile-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 18px;
     }
 
-    .document-upload {
-        width: 100%;
-        justify-content: flex-end;
+    .badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 11px;
+      border-radius: 20px;
     }
-}
 
-@media (min-width: 769px) {
-    .profile-container {
-        padding-bottom: 30px;
+    .badge.active {
+      background: var(--brand-light);
+      color: var(--brand-dark);
+      border: 1px solid #9FECDA;
     }
-}
-</style>
+
+    .badge.rating {
+      background: var(--amber-light);
+      color: #92400E;
+      border: 1px solid var(--amber-border);
+    }
+
+    .btn-edit {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: var(--brand);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      transition: background 0.15s ease;
+      box-shadow: 0 4px 14px var(--brand-glow);
+    }
+    .btn-edit:hover { background: var(--brand-dark); }
+
+    /* ── Info section card ── */
+    .info-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .info-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 18px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .info-card-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      background: var(--brand-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .info-card-icon svg { width: 15px; height: 15px; stroke: var(--brand-dark); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .info-card-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.2px;
+    }
+
+    /* ── Info items ── */
+    .info-list { padding: 4px 0; }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      padding: 13px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .info-item:last-child { border-bottom: none; }
+
+    .info-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .info-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .info-value.empty {
+      color: var(--text-muted);
+      font-weight: 500;
+      font-style: italic;
+    }
+
+    /* ── Document cards ── */
+    .doc-item {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .doc-item:last-child { border-bottom: none; }
+
+    .doc-row-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .doc-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .doc-desc {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .doc-status {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .doc-status.verified { background: var(--brand-light); color: var(--brand-dark); border: 1px solid #9FECDA; }
+    .doc-status.pending  { background: var(--amber-light); color: #92400E;            border: 1px solid var(--amber-border); }
+    .doc-status.rejected { background: var(--red-light);   color: var(--red);         border: 1px solid var(--red-border); }
+
+    .doc-row-bottom {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .doc-view-link {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--brand-dark);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .doc-view-link:hover { text-decoration: underline; }
+
+    .doc-no-file {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    /* Hidden real file input */
+    .upload-input { display: none; }
+
+    .btn-upload {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 7px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease;
+      white-space: nowrap;
+    }
+    .btn-upload:hover {
+      background: var(--brand-light);
+      border-color: #9FECDA;
+      color: var(--brand-dark);
+    }
+  </style>
 </head>
 <body>
-    <div class="app-screen">
-<div class="profile-container">
-    <!-- Header -->
-    <div class="profile-header">
-        <div class="header-content">
-            <a href="{% url 'driver_homepage' %}" class="back-button">
-                <i class="fas fa-arrow-left"></i>
+<div class="app-shell">
+
+  <!-- ── Top Bar ── -->
+  <div class="app-topbar">
+    <a href="{% url 'driver_homepage' %}" class="btn-back">
+      <i class="fas fa-arrow-left"></i>
+    </a>
+
+    <div class="topbar-icon">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+      </svg>
+    </div>
+
+    <div class="topbar-text">
+      <div class="topbar-title">My Profile</div>
+      <div class="topbar-sub">Driver account &amp; documents</div>
+    </div>
+  </div>
+
+  <div class="page-body">
+
+    <!-- ── Profile Identity ── -->
+    <div class="profile-identity">
+      <div class="profile-avatar">
+        {{ driver.first_name|first }}{{ driver.last_name|first }}
+      </div>
+
+      <div class="profile-name">{{ driver.first_name }} {{ driver.last_name }}</div>
+      <div class="profile-driver-id">Driver ID: {{ driver.driver_id }}</div>
+
+      <div class="profile-badges">
+        <span class="badge active">
+          <i class="fas fa-check-circle" style="margin-right:4px;font-size:9px;"></i>Active
+        </span>
+        {% if driver.rating %}
+        <span class="badge rating">
+          <i class="fas fa-star" style="margin-right:4px;font-size:9px;"></i>{{ driver.rating }} Rating
+        </span>
+        {% endif %}
+      </div>
+
+      <a href="{% url 'driver:driver_edit_profile' %}" class="btn-edit">
+        <i class="fas fa-pen" style="font-size:11px;"></i> Edit Profile
+      </a>
+    </div>
+
+    <!-- ── Personal Information ── -->
+    <div class="info-card">
+      <div class="info-card-header">
+        <div class="info-card-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+        <div class="info-card-title">Personal Information</div>
+      </div>
+      <div class="info-list">
+        <div class="info-item">
+          <span class="info-label">Phone Number</span>
+          <span class="info-value {% if not driver.phone %}empty{% endif %}">{{ driver.phone|default:"Not provided" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Email Address</span>
+          <span class="info-value {% if not driver.email %}empty{% endif %}">{{ driver.email|default:"Not provided" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Gender</span>
+          <span class="info-value {% if not driver.gender %}empty{% endif %}">{{ driver.gender|default:"Not provided" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">City</span>
+          <span class="info-value {% if not driver.city %}empty{% endif %}">{{ driver.city|default:"Not provided" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">State</span>
+          <span class="info-value {% if not driver.state %}empty{% endif %}">{{ driver.state|default:"Not provided" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Address</span>
+          <span class="info-value {% if not driver.full_address %}empty{% endif %}">{{ driver.full_address|default:"Not provided" }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Vehicle Information ── -->
+    <div class="info-card">
+      <div class="info-card-header">
+        <div class="info-card-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v9a2 2 0 01-2 2h-2"/>
+            <circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>
+          </svg>
+        </div>
+        <div class="info-card-title">Vehicle Information</div>
+      </div>
+      <div class="info-list">
+        <div class="info-item">
+          <span class="info-label">Vehicle Type</span>
+          <span class="info-value {% if not driver.vehicle_type %}empty{% endif %}">{{ driver.vehicle_type|default:"Not provided" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Plate Number</span>
+          <span class="info-value {% if not driver.plate_number %}empty{% endif %}">{{ driver.plate_number|default:"Not provided" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Manufacturer</span>
+          <span class="info-value {% if not driver.manufacturer %}empty{% endif %}">{{ driver.manufacturer|default:"Not provided" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Color</span>
+          <span class="info-value {% if not driver.color %}empty{% endif %}">{{ driver.color|default:"Not provided" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Manufacturing Year</span>
+          <span class="info-value {% if not driver.manufacturing_year %}empty{% endif %}">{{ driver.manufacturing_year|default:"Not provided" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Seats</span>
+          <span class="info-value {% if not driver.seat_arrangement %}empty{% endif %}">{{ driver.seat_arrangement|default:"Not provided" }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Payment Information ── -->
+    <div class="info-card">
+      <div class="info-card-header">
+        <div class="info-card-icon">
+          <svg viewBox="0 0 24 24">
+            <rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/>
+          </svg>
+        </div>
+        <div class="info-card-title">Payment Information</div>
+      </div>
+      <div class="info-list">
+        <div class="info-item">
+          <span class="info-label">UPI ID</span>
+          <span class="info-value {% if not driver.upi_id %}empty{% endif %}">{{ driver.upi_id|default:"Not provided" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Bank Name</span>
+          <span class="info-value {% if not driver.bank_name %}empty{% endif %}">{{ driver.bank_name|default:"Not provided" }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Account Number</span>
+          <span class="info-value {% if not driver.account_number %}empty{% endif %}">{{ driver.account_number|default:"Not provided"|truncatechars:12 }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">IFSC Code</span>
+          <span class="info-value {% if not driver.ifsc_code %}empty{% endif %}">{{ driver.ifsc_code|default:"Not provided" }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Documents ── -->
+    <div class="info-card">
+      <div class="info-card-header">
+        <div class="info-card-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+          </svg>
+        </div>
+        <div class="info-card-title">Documents</div>
+      </div>
+
+      <!-- Vehicle RC -->
+      <div class="doc-item">
+        <div class="doc-row-top">
+          <div>
+            <div class="doc-name">Vehicle RC</div>
+            <div class="doc-desc">Registration Certificate</div>
+          </div>
+          <span class="doc-status {% if driver.vehicle_rc_status == 'Verified' %}verified{% elif driver.vehicle_rc_status == 'Rejected' %}rejected{% else %}pending{% endif %}">
+            {{ driver.vehicle_rc_status|default:"Pending" }}
+          </span>
+        </div>
+        <div class="doc-row-bottom">
+          {% if driver.vehicle_rc %}
+            <a href="{{ driver.vehicle_rc.url }}" target="_blank" class="doc-view-link">
+              <i class="fas fa-eye" style="font-size:11px;"></i> View
             </a>
-            <h1 class="header-title">My Profile</h1>
-            <div style="width: 40px;"></div>
+          {% else %}
+            <span class="doc-no-file">No document uploaded</span>
+          {% endif %}
+          <form method="post" enctype="multipart/form-data" style="margin-left:auto;">
+            {% csrf_token %}
+            <input type="file" name="vehicle_rc" id="vehicle_rc" class="upload-input" onchange="this.form.submit()" accept=".pdf,.jpg,.jpeg,.png">
+            <label for="vehicle_rc" class="btn-upload">
+              <i class="fas fa-upload" style="font-size:10px;"></i> Upload
+            </label>
+          </form>
         </div>
-    </div>
+      </div>
 
-    <!-- Profile Card -->
-    <div class="profile-card">
-        <div class="profile-header-section">
-            <div class="profile-avatar">
-                {{ driver.first_name|first }}{{ driver.last_name|first }}
-            </div>
-            <h2 class="profile-name">{{ driver.first_name }} {{ driver.last_name }}</h2>
-            <p class="profile-id">Driver ID: {{ driver.driver_id }}</p>
-            <div class="status-badges">
-                <span class="badge active">
-                    <i class="fas fa-check-circle"></i> Active
-                </span>
-                {% if driver.rating %}
-                <span class="badge rating">
-                    <i class="fas fa-star"></i> {{ driver.rating }} Rating
-                </span>
-                {% endif %}
-            </div>
-            <a href="{% url 'driver:driver_edit_profile' %}" class="edit-button">
-                <i class="fas fa-edit"></i> Edit Profile
+      <!-- Driving License -->
+      <div class="doc-item">
+        <div class="doc-row-top">
+          <div>
+            <div class="doc-name">Driving License</div>
+            <div class="doc-desc">Valid Driving License</div>
+          </div>
+          <span class="doc-status {% if driver.license_document_status == 'Verified' %}verified{% elif driver.license_document_status == 'Rejected' %}rejected{% else %}pending{% endif %}">
+            {{ driver.license_document_status|default:"Pending" }}
+          </span>
+        </div>
+        <div class="doc-row-bottom">
+          {% if driver.license_document %}
+            <a href="{{ driver.license_document.url }}" target="_blank" class="doc-view-link">
+              <i class="fas fa-eye" style="font-size:11px;"></i> View
             </a>
+          {% else %}
+            <span class="doc-no-file">No document uploaded</span>
+          {% endif %}
+          <form method="post" enctype="multipart/form-data" style="margin-left:auto;">
+            {% csrf_token %}
+            <input type="file" name="license_document" id="license_document" class="upload-input" onchange="this.form.submit()" accept=".pdf,.jpg,.jpeg,.png">
+            <label for="license_document" class="btn-upload">
+              <i class="fas fa-upload" style="font-size:10px;"></i> Upload
+            </label>
+          </form>
         </div>
+      </div>
 
-        <!-- Personal Information -->
-        <div class="info-section">
-            <h3 class="section-title">
-                <i class="fas fa-user"></i>
-                Personal Information
-            </h3>
-            <div class="info-grid">
-                <div class="info-item">
-                    <span class="info-label">Phone Number</span>
-                    <span class="info-value">{{ driver.phone|default:"—" }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Email Address</span>
-                    <span class="info-value">{{ driver.email|default:"—" }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Gender</span>
-                    <span class="info-value">{{ driver.gender|default:"—" }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">City</span>
-                    <span class="info-value">{{ driver.city|default:"—" }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">State</span>
-                    <span class="info-value">{{ driver.state|default:"—" }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Address</span>
-                    <span class="info-value">{{ driver.full_address|default:"—" }}</span>
-                </div>
-            </div>
+      <!-- ID Proof -->
+      <div class="doc-item">
+        <div class="doc-row-top">
+          <div>
+            <div class="doc-name">ID Proof</div>
+            <div class="doc-desc">Aadhaar, PAN, or Voter ID</div>
+          </div>
+          <span class="doc-status {% if driver.id_proof_status == 'Verified' %}verified{% elif driver.id_proof_status == 'Rejected' %}rejected{% else %}pending{% endif %}">
+            {{ driver.id_proof_status|default:"Pending" }}
+          </span>
         </div>
-
-        <!-- Vehicle Information -->
-        <div class="info-section">
-            <h3 class="section-title">
-                <i class="fas fa-car"></i>
-                Vehicle Information
-            </h3>
-            <div class="info-grid">
-                <div class="info-item">
-                    <span class="info-label">Vehicle Type</span>
-                    <span class="info-value">{{ driver.vehicle_type|default:"—" }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Plate Number</span>
-                    <span class="info-value">{{ driver.plate_number|default:"—" }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Manufacturer</span>
-                    <span class="info-value">{{ driver.manufacturer|default:"—" }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Color</span>
-                    <span class="info-value">{{ driver.color|default:"—" }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Manufacturing Year</span>
-                    <span class="info-value">{{ driver.manufacturing_year|default:"—" }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Seats</span>
-                    <span class="info-value">{{ driver.seat_arrangement|default:"—" }}</span>
-                </div>
-            </div>
+        <div class="doc-row-bottom">
+          {% if driver.id_proof %}
+            <a href="{{ driver.id_proof.url }}" target="_blank" class="doc-view-link">
+              <i class="fas fa-eye" style="font-size:11px;"></i> View
+            </a>
+          {% else %}
+            <span class="doc-no-file">No document uploaded</span>
+          {% endif %}
+          <form method="post" enctype="multipart/form-data" style="margin-left:auto;">
+            {% csrf_token %}
+            <input type="file" name="id_proof" id="id_proof" class="upload-input" onchange="this.form.submit()" accept=".pdf,.jpg,.jpeg,.png">
+            <label for="id_proof" class="btn-upload">
+              <i class="fas fa-upload" style="font-size:10px;"></i> Upload
+            </label>
+          </form>
         </div>
+      </div>
 
-        <!-- Payment Information -->
-        <div class="info-section">
-            <h3 class="section-title">
-                <i class="fas fa-credit-card"></i>
-                Payment Information
-            </h3>
-            <div class="info-grid">
-                <div class="info-item">
-                    <span class="info-label">UPI ID</span>
-                    <span class="info-value">{{ driver.upi_id|default:"—" }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Bank Name</span>
-                    <span class="info-value">{{ driver.bank_name|default:"—" }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Account Number</span>
-                    <span class="info-value">{{ driver.account_number|default:"—"|truncatechars:12 }}</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">IFSC Code</span>
-                    <span class="info-value">{{ driver.ifsc_code|default:"—" }}</span>
-                </div>
-            </div>
-        </div>
+    </div><!-- /documents card -->
 
-        <!-- Document Uploads -->
-        <div class="info-section">
-            <h3 class="section-title">
-                <i class="fas fa-file-alt"></i>
-                Documents
-            </h3>
-            
-            <!-- Vehicle RC -->
-            <div class="document-item">
-                <div class="document-info">
-                    <p class="document-name">Vehicle RC</p>
-                    <p class="document-desc">Registration Certificate</p>
-                    {% if driver.vehicle_rc %}
-                        <a href="{{ driver.vehicle_rc.url }}" target="_blank" class="document-link">
-                            <i class="fas fa-eye"></i> View Document
-                        </a>
-                    {% else %}
-                        <span class="document-link" style="color: #9ca3af;">No document uploaded</span>
-                    {% endif %}
-                </div>
-                <div class="document-upload">
-                    <span class="document-status {% if driver.vehicle_rc_status == 'Verified' %}verified{% elif driver.vehicle_rc_status == 'Rejected' %}rejected{% else %}pending{% endif %}">
-                        {{ driver.vehicle_rc_status|default:"Pending" }}
-                    </span>
-                    <form method="post" enctype="multipart/form-data" style="display: inline;">
-                        {% csrf_token %}
-                        <input type="file" name="vehicle_rc" id="vehicle_rc" class="upload-input" onchange="this.form.submit()" accept=".pdf,.jpg,.jpeg,.png">
-                        <label for="vehicle_rc" class="upload-label">
-                            <i class="fas fa-upload"></i> Upload
-                        </label>
-                    </form>
-                </div>
-            </div>
+  </div><!-- /page-body -->
 
-            <!-- Driving License -->
-            <div class="document-item">
-                <div class="document-info">
-                    <p class="document-name">Driving License</p>
-                    <p class="document-desc">Valid Driving License</p>
-                    {% if driver.license_document %}
-                        <a href="{{ driver.license_document.url }}" target="_blank" class="document-link">
-                            <i class="fas fa-eye"></i> View Document
-                        </a>
-                    {% else %}
-                        <span class="document-link" style="color: #9ca3af;">No document uploaded</span>
-                    {% endif %}
-                </div>
-                <div class="document-upload">
-                    <span class="document-status {% if driver.license_document_status == 'Verified' %}verified{% elif driver.license_document_status == 'Rejected' %}rejected{% else %}pending{% endif %}">
-                        {{ driver.license_document_status|default:"Pending" }}
-                    </span>
-                    <form method="post" enctype="multipart/form-data" style="display: inline;">
-                        {% csrf_token %}
-                        <input type="file" name="license_document" id="license_document" class="upload-input" onchange="this.form.submit()" accept=".pdf,.jpg,.jpeg,.png">
-                        <label for="license_document" class="upload-label">
-                            <i class="fas fa-upload"></i> Upload
-                        </label>
-                    </form>
-                </div>
-            </div>
+</div><!-- /app-shell -->
 
-            <!-- ID Proof -->
-            <div class="document-item">
-                <div class="document-info">
-                    <p class="document-name">ID Proof</p>
-                    <p class="document-desc">Aadhaar, PAN, or Voter ID</p>
-                    {% if driver.id_proof %}
-                        <a href="{{ driver.id_proof.url }}" target="_blank" class="document-link">
-                            <i class="fas fa-eye"></i> View Document
-                        </a>
-                    {% else %}
-                        <span class="document-link" style="color: #9ca3af;">No document uploaded</span>
-                    {% endif %}
-                </div>
-                <div class="document-upload">
-                    <span class="document-status {% if driver.id_proof_status == 'Verified' %}verified{% elif driver.id_proof_status == 'Rejected' %}rejected{% else %}pending{% endif %}">
-                        {{ driver.id_proof_status|default:"Pending" }}
-                    </span>
-                    <form method="post" enctype="multipart/form-data" style="display: inline;">
-                        {% csrf_token %}
-                        <input type="file" name="id_proof" id="id_proof" class="upload-input" onchange="this.form.submit()" accept=".pdf,.jpg,.jpeg,.png">
-                        <label for="id_proof" class="upload-label">
-                            <i class="fas fa-upload"></i> Upload
-                        </label>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-    {% include 'partials/mobile_nav_driver.html' %}
-    </div>
+{% include 'partials/mobile_nav_driver.html' %}
+
 </body>
 </html>

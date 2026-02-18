@@ -3,146 +3,443 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Rides - Completed Trips</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Fonts and Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Raleway:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'passenger/css/global.css' %}">
-    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
-    <link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
-</head>
-<body class="bg-gray-50 text-gray-800 min-h-screen">
-    <div class="app-screen">
-    <div class="container mx-auto px-4 py-6 max-w-7xl">
-        <div class="mb-4">
-            <a href="{% url 'driver_homepage' %}" 
-               class="inline-flex items-center bg-[#1BBC9B] hover:bg-[#17a589] text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-md transition duration-200 ease-in-out">
-                <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
-            </a>
-        </div>
-        
-        <!-- Header Section -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center">
-                    <div class="bg-green-100 p-3 rounded-full mr-4">
-                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-3xl font-bold text-gray-900">My Rides</h2>
-                        <p class="text-gray-600 mt-1">View your completed trips</p>
-                    </div>
-                </div>
-                {% if completed_rides %}
-                    <span class="bg-gray-200 text-gray-700 px-4 py-2 rounded-full text-sm font-medium">
-                        {{ completed_rides|length }} completed ride{{ completed_rides|length|pluralize }}
-                    </span>
-                {% endif %}
-            </div>
-        </div>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Rides - Completed Trips</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+  <link rel="stylesheet" href="{% static 'css/app-mobile.css' %}">
 
-        {% if completed_rides %}
-            <!-- Completed Rides Table -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 responsive-table">
-                        <thead class="bg-gradient-to-r from-green-500 to-green-600">
-                            <tr>
-                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                                    <i class="fas fa-hashtag mr-2"></i>Booking ID
-                                </th>
-                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                                    <i class="fas fa-user mr-2"></i>Passenger
-                                </th>
-                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                                    <i class="fas fa-map-marker-alt mr-2"></i>Pickup
-                                </th>
-                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                                    <i class="fas fa-flag-checkered mr-2"></i>Drop-off
-                                </th>
-                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                                    <i class="fas fa-rupee-sign mr-2"></i>Fare
-                                </th>
-                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider">
-                                    <i class="fas fa-clock mr-2"></i>Completed Time
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            {% for ride in completed_rides %}
-                                <tr class="hover:bg-gray-50 transition-colors duration-150">
-                                    <td class="px-6 py-4 whitespace-nowrap" data-label="Booking ID">
-                                        <div class="flex items-center">
-                                            <div class="bg-green-100 w-8 h-8 rounded-full flex items-center justify-center mr-2">
-                                                <i class="fas fa-check-circle text-green-600 text-xs"></i>
-                                            </div>
-                                            <span class="text-sm font-semibold text-gray-900">#{{ ride.booking_id }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap" data-label="Passenger">
-                                        <div class="flex items-center">
-                                            <div class="bg-blue-100 w-8 h-8 rounded-full flex items-center justify-center mr-2">
-                                                <span class="text-blue-600 font-semibold text-xs">
-                                                    {{ ride.user.first_name|first|upper }}{{ ride.user.last_name|first|upper }}
-                                                </span>
-                                            </div>
-                                            <div>
-                                                <div class="text-sm font-medium text-gray-900">{{ ride.user.first_name }} {{ ride.user.last_name }}</div>
-                                                <div class="text-xs text-gray-500">{{ ride.user.email }}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4" data-label="Pickup">
-                                        <div class="flex items-center">
-                                            <i class="fas fa-map-marker-alt text-green-600 mr-2 text-xs"></i>
-                                            <span class="text-sm text-gray-900">{{ ride.pickup_location|shorten_address }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4" data-label="Drop-off">
-                                        <div class="flex items-center">
-                                            <i class="fas fa-flag-checkered text-red-600 mr-2 text-xs"></i>
-                                            <span class="text-sm text-gray-900">{{ ride.dropoff_location|shorten_address }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap" data-label="Fare">
-                                        <span class="text-sm font-bold text-green-600">₹{{ ride.fare }}</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap" data-label="Completed Time">
-                                        {% if ride.scheduled_time %}
-                                            <div class="text-sm text-gray-900">{{ ride.scheduled_time|date:"M d, Y" }}</div>
-                                            <div class="text-xs text-gray-500">{{ ride.scheduled_time|date:"h:i A" }}</div>
-                                        {% else %}
-                                            <span class="text-sm text-gray-400">N/A</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        {% else %}
-            <!-- Empty State -->
-            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-                <div class="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-car-side text-gray-400 text-3xl"></i>
-                </div>
-                <h3 class="text-xl font-semibold text-gray-900 mb-2">No Completed Rides</h3>
-                <p class="text-gray-500 mb-6">
-                    You haven't completed any rides yet. Completed trips will appear here.
-                </p>
-                <a href="{% url 'driver_homepage' %}" 
-                   class="inline-flex items-center bg-[#1BBC9B] hover:bg-[#17a589] text-white font-semibold px-6 py-3 rounded-lg shadow-md transition duration-200 ease-in-out">
-                    <i class="fas fa-home mr-2"></i> Go to Dashboard
-                </a>
-            </div>
-        {% endif %}
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      --brand:          #00C896;
+      --brand-dark:     #00A87D;
+      --brand-light:    #E6FBF5;
+      --brand-glow:     rgba(0, 200, 150, 0.20);
+      --surface:        #FFFFFF;
+      --surface-2:      #F7FAFA;
+      --border:         #E8F0EE;
+      --text-primary:   #0D2622;
+      --text-secondary: #5A7A75;
+      --text-muted:     #9BB5B0;
+      --green-light:    #F0FDF4;
+      --green-border:   #BBF7D0;
+      --red-light:      #FFF5F5;
+      --shadow-sm:      0 2px 8px rgba(0, 40, 30, 0.06);
+      --shadow-md:      0 8px 24px rgba(0, 40, 30, 0.10);
+      --radius-xl:      24px;
+      --radius-lg:      16px;
+      --radius-md:      12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .app-shell {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--surface-2);
+      min-height: 100vh;
+      padding-bottom: 80px;
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Sticky top bar ── */
+    .app-topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-back {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      text-decoration: none;
+      flex-shrink: 0;
+      font-size: 14px;
+      transition: background 0.15s ease;
+    }
+
+    .btn-back:hover { background: var(--border); }
+
+    .topbar-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 3px 10px var(--brand-glow);
+    }
+
+    .topbar-icon svg { width: 18px; height: 18px; stroke: #fff; fill: none; }
+
+    .topbar-text { flex: 1; min-width: 0; }
+    .topbar-title { font-size: 16px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.3px; line-height: 1.2; }
+    .topbar-sub   { font-size: 11px; font-weight: 500; color: var(--text-muted); margin-top: 1px; }
+
+    /* ── Stats strip ── */
+    .stats-strip {
+      display: flex;
+      gap: 10px;
+      padding: 14px 16px 0;
+    }
+
+    .stat-chip {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 10px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-chip-value { font-size: 18px; font-weight: 800; color: var(--text-primary); line-height: 1; }
+    .stat-chip-value.green { color: var(--brand-dark); }
+    .stat-chip-label { font-size: 10px; font-weight: 600; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+    /* ── Section header ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 22px 16px 10px;
+    }
+
+    .section-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--brand); }
+
+    .section-title { font-size: 14px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.2px; }
+
+    .section-badge {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+      background: var(--brand-light);
+      color: var(--brand-dark);
+    }
+
+    /* ── Cards wrap ── */
+    .cards-wrap { padding: 0 16px; display: flex; flex-direction: column; gap: 12px; }
+
+    /* ── Ride card ── */
+    .ride-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Card header: passenger info + booking ID */
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .passenger-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      background: var(--brand-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--brand-dark);
+      flex-shrink: 0;
+      letter-spacing: -0.5px;
+    }
+
+    .passenger-name  { font-size: 14px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.1px; }
+    .passenger-sub   { font-size: 11px; font-weight: 500; color: var(--text-muted); margin-top: 2px; }
+
+    .booking-id-pill {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--brand-dark);
+      background: var(--brand-light);
+      border: 1px solid #9FECDA;
+      border-radius: 20px;
+      padding: 3px 10px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    /* Card meta row: date + fare */
+    .card-meta {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .meta-item + .meta-item {
+      margin-left: auto;
+      text-align: right;
+    }
+
+    .meta-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+    .meta-value { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+    .meta-value.fare { font-size: 15px; color: var(--brand-dark); }
+
+    /* Card route */
+    .card-route {
+      padding: 12px 18px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .route-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .route-icon-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      flex-shrink: 0;
+      padding-top: 2px;
+    }
+
+    .route-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .route-dot.green { background: var(--brand); box-shadow: 0 0 0 3px var(--brand-light); }
+    .route-dot.red   { background: #EF4444; box-shadow: 0 0 0 3px #FFF5F5; }
+
+    .route-line {
+      width: 1.5px;
+      height: 16px;
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    .route-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .route-type {
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      margin: 40px 16px 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 48px 24px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .empty-icon {
+      width: 72px;
+      height: 72px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    .empty-icon svg { width: 34px; height: 34px; stroke: var(--text-muted); fill: none; }
+
+    .empty-title { font-size: 17px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.3px; margin-bottom: 8px; }
+    .empty-desc  { font-size: 13px; font-weight: 500; color: var(--text-muted); line-height: 1.6; margin-bottom: 24px; max-width: 260px; margin-left: auto; margin-right: auto; }
+
+    .btn-dashboard {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--brand);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 12px 22px;
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      transition: background 0.15s ease;
+      box-shadow: 0 4px 14px var(--brand-glow);
+    }
+
+    .btn-dashboard:hover { background: var(--brand-dark); }
+    .btn-dashboard svg { width: 15px; height: 15px; stroke: #fff; fill: none; }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ── Top Bar ── -->
+  <div class="app-topbar">
+    <a href="{% url 'driver_homepage' %}" class="btn-back">
+      <i class="fas fa-arrow-left"></i>
+    </a>
+
+    <div class="topbar-icon">
+      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 17H7A5 5 0 017 7h2M15 7h2a5 5 0 010 10h-2M8 12h8"/>
+      </svg>
     </div>
-    {% include 'partials/mobile_nav_driver.html' %}
+
+    <div class="topbar-text">
+      <div class="topbar-title">My Rides</div>
+      <div class="topbar-sub">View your completed trips</div>
     </div>
+  </div>
+
+  {% if completed_rides %}
+
+    <!-- ── Stats Strip ── -->
+    <div class="stats-strip">
+      <div class="stat-chip">
+        <div class="stat-chip-value green">{{ completed_rides|length }}</div>
+        <div class="stat-chip-label">Completed</div>
+      </div>
+    </div>
+
+    <!-- ── Section header ── -->
+    <div class="section-header">
+      <div class="section-dot"></div>
+      <div class="section-title">Completed Trips</div>
+      <span class="section-badge">{{ completed_rides|length }} ride{{ completed_rides|length|pluralize }}</span>
+    </div>
+
+    <!-- ── Ride Cards ── -->
+    <div class="cards-wrap">
+      {% for ride in completed_rides %}
+        <div class="ride-card">
+
+          <!-- Passenger + Booking ID -->
+          <div class="card-header">
+            <div class="passenger-avatar">
+              {{ ride.user.first_name|first|upper }}{{ ride.user.last_name|first|upper }}
+            </div>
+            <div>
+              <div class="passenger-name">{{ ride.user.first_name }} {{ ride.user.last_name }}</div>
+              <div class="passenger-sub">{{ ride.user.email }}</div>
+            </div>
+            <div class="booking-id-pill">#{{ ride.booking_id }}</div>
+          </div>
+
+          <!-- Date + Fare -->
+          <div class="card-meta">
+            <div class="meta-item">
+              <div class="meta-label">Completed</div>
+              {% if ride.scheduled_time %}
+                <div class="meta-value">{{ ride.scheduled_time|date:"d M Y" }}</div>
+                <div style="font-size:11px;font-weight:500;color:var(--text-muted);">{{ ride.scheduled_time|date:"h:i A" }}</div>
+              {% else %}
+                <div class="meta-value">—</div>
+              {% endif %}
+            </div>
+            <div class="meta-item">
+              <div class="meta-label">Fare</div>
+              <div class="meta-value fare">₹{{ ride.fare }}</div>
+            </div>
+          </div>
+
+          <!-- Route -->
+          <div class="card-route">
+            <div class="route-row">
+              <div class="route-icon-wrap">
+                <div class="route-dot green"></div>
+                <div class="route-line"></div>
+              </div>
+              <div>
+                <div class="route-text">{{ ride.pickup_location|shorten_address }}</div>
+                <div class="route-type">Pickup</div>
+              </div>
+            </div>
+            <div class="route-row">
+              <div class="route-icon-wrap">
+                <div class="route-dot red"></div>
+              </div>
+              <div>
+                <div class="route-text">{{ ride.dropoff_location|shorten_address }}</div>
+                <div class="route-type">Drop-off</div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /ride-card -->
+      {% endfor %}
+    </div><!-- /cards-wrap -->
+
+  {% else %}
+
+    <!-- ── Empty State ── -->
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 6H5a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-3M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M8 6h8"/>
+        </svg>
+      </div>
+      <div class="empty-title">No completed rides</div>
+      <div class="empty-desc">You haven't completed any rides yet. Finished trips will appear here.</div>
+      <a href="{% url 'driver_homepage' %}" class="btn-dashboard">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Go to Dashboard
+      </a>
+    </div>
+
+  {% endif %}
+
+</div><!-- /app-shell -->
+
+{% include 'partials/mobile_nav_driver.html' %}
+
 </body>
 </html>
