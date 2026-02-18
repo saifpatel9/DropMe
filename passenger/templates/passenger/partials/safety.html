@@ -1,188 +1,638 @@
-<!-- Enhanced Safety Toolkit Page -->
+<!-- Safety Center — Mobile App Style -->
 <style>
-  .safety-card {
-    transition: all 0.3s ease;
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --brand:        #00C896;
+    --brand-dark:   #00A87D;
+    --brand-light:  #E6FBF5;
+    --brand-glow:   rgba(0, 200, 150, 0.20);
+    --surface:      #FFFFFF;
+    --surface-2:    #F7FAFA;
+    --border:       #E8F0EE;
+    --text-primary: #0D2622;
+    --text-secondary:#5A7A75;
+    --text-muted:   #9BB5B0;
+    --danger:       #FF5C5C;
+    --danger-light: #FFF0F0;
+    --blue:         #3B82F6;
+    --blue-light:   #EFF6FF;
+    --purple:       #8B5CF6;
+    --purple-light: #F5F3FF;
+    --green:        #22C55E;
+    --green-light:  #F0FDF4;
+    --shadow-sm:    0 2px 8px rgba(0, 40, 30, 0.06);
+    --shadow-md:    0 8px 24px rgba(0, 40, 30, 0.10);
+    --radius-xl:    24px;
+    --radius-lg:    16px;
+    --radius-md:    12px;
+    --radius-sm:    8px;
   }
-  
-  .safety-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .app-shell {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--surface-2);
+    min-height: 100vh;
+    padding-bottom: 40px;
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
   }
-  
-  .feature-card {
-    transition: all 0.3s ease;
-    position: relative;
+
+  /* ── Top bar ── */
+  .app-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 20px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .topbar-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px var(--brand-glow);
+  }
+
+  .topbar-icon svg { width: 20px; height: 20px; color: #fff; stroke: #fff; }
+
+  .topbar-title { font-size: 18px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.3px; }
+  .topbar-sub   { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-top: 1px; }
+
+  /* ── Hero banner ── */
+  .hero-banner {
+    margin: 20px 16px 0;
+    background: linear-gradient(135deg, var(--brand-dark) 0%, #007A5E 100%);
+    border-radius: var(--radius-xl);
+    padding: 28px 24px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    box-shadow: var(--shadow-md);
     overflow: hidden;
+    position: relative;
   }
-  
-  .feature-card:hover {
-    transform: translateX(5px);
-    box-shadow: 0 5px 20px rgba(20, 184, 166, 0.1);
-  }
-  
-  .feature-card::before {
+
+  .hero-banner::after {
     content: '';
     position: absolute;
-    left: 0;
+    right: -30px;
+    top: -30px;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    pointer-events: none;
+  }
+
+  .hero-shield {
+    width: 60px;
+    height: 60px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1.5px solid rgba(255,255,255,0.2);
+  }
+
+  .hero-shield svg { width: 30px; height: 30px; stroke: #fff; }
+
+  .hero-text-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.3px;
+  }
+
+  .hero-text-sub {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.72);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  /* ── Quick stats row ── */
+  .quick-stats {
+    display: flex;
+    gap: 10px;
+    padding: 16px 16px 0;
+  }
+
+  .stat-chip {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 12px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .stat-chip-value { font-size: 19px; font-weight: 800; color: var(--text-primary); }
+  .stat-chip-label { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.4px; }
+
+  /* ── Section header ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 24px 20px 12px;
+  }
+
+  .section-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--brand);
+    flex-shrink: 0;
+  }
+
+  .section-title { font-size: 15px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.2px; }
+
+  /* ── Feature list container ── */
+  .feature-list {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    margin: 0 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ── Individual feature row ── */
+  .feature-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    position: relative;
+  }
+
+  .feature-row + .feature-row::before {
+    content: '';
+    position: absolute;
     top: 0;
-    height: 100%;
-    width: 4px;
-    background: linear-gradient(to bottom, #14b8a6, #0f766e);
-    transform: scaleY(0);
-    transition: transform 0.3s ease;
+    left: 56px;
+    right: 18px;
+    height: 1px;
+    background: var(--border);
   }
-  
-  .feature-card:hover::before {
-    transform: scaleY(1);
+
+  .feature-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
-  
-  .floating-animation {
-    animation: float 3s ease-in-out infinite;
+
+  .feature-icon svg { width: 20px; height: 20px; }
+
+  .feature-icon.teal   { background: var(--brand-light); }
+  .feature-icon.teal svg   { stroke: var(--brand-dark); }
+
+  .feature-icon.red    { background: var(--danger-light); }
+  .feature-icon.red svg    { stroke: var(--danger); }
+
+  .feature-icon.blue   { background: var(--blue-light); }
+  .feature-icon.blue svg   { stroke: var(--blue); }
+
+  .feature-icon.green  { background: var(--green-light); }
+  .feature-icon.green svg  { stroke: var(--green); }
+
+  .feature-icon.purple { background: var(--purple-light); }
+  .feature-icon.purple svg { stroke: var(--purple); }
+
+  .feature-text { flex: 1; min-width: 0; }
+
+  .feature-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+    letter-spacing: -0.1px;
   }
-  
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
+
+  .feature-desc {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    line-height: 1.45;
   }
-  
-  .icon-bounce:hover {
-    animation: bounce 0.6s;
+
+  .feature-chevron {
+    color: var(--text-muted);
+    font-size: 13px;
+    flex-shrink: 0;
   }
-  
-  @keyframes bounce {
-    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-10px); }
-    60% { transform: translateY(-5px); }
+
+  /* ── SOS / Emergency accent card ── */
+  .sos-card {
+    margin: 12px 16px 0;
+    background: var(--danger-light);
+    border: 1.5px solid #FFBFBF;
+    border-radius: var(--radius-xl);
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .sos-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--danger);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(255, 92, 92, 0.30);
+  }
+
+  .sos-icon svg { width: 22px; height: 22px; stroke: #fff; }
+
+  .sos-title { font-size: 14px; font-weight: 800; color: #CC3333; margin-bottom: 2px; }
+  .sos-desc  { font-size: 12px; font-weight: 500; color: #993333; line-height: 1.4; }
+
+  .sos-badge {
+    margin-left: auto;
+    flex-shrink: 0;
+    background: var(--danger);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* ── Trust strip ── */
+  .trust-strip {
+    margin: 12px 16px 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .trust-strip-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+
+  .trust-items {
+    display: flex;
+    justify-content: space-around;
+    gap: 8px;
+  }
+
+  .trust-item {
+    flex: 1;
+    text-align: center;
+  }
+
+  .trust-item-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--brand-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 6px;
+  }
+
+  .trust-item-icon svg { width: 17px; height: 17px; stroke: var(--brand-dark); }
+
+  .trust-item-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    line-height: 1.3;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── Primary CTA button ── */
+  .cta-wrap { padding: 20px 16px 0; }
+
+  .btn-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 52px;
+    background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px var(--brand-glow);
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn-primary svg { width: 18px; height: 18px; stroke: #fff; }
+
+  .btn-secondary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 48px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn-secondary svg { width: 16px; height: 16px; stroke: var(--text-muted); }
+
+  /* ── Footer note ── */
+  .footer-note {
+    margin: 20px 16px 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .footer-note-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--brand-light);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .footer-note-icon svg { width: 17px; height: 17px; stroke: var(--brand-dark); }
+
+  .footer-note-text {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .footer-note-text strong { color: var(--text-secondary); font-weight: 700; }
+
+  /* ── Mobile responsive ── */
+  @media (max-width: 400px) {
+    .trust-item-label { font-size: 9px; }
+    .hero-text-title  { font-size: 17px; }
   }
 </style>
 
-<div class="bg-gradient-to-br from-white to-teal-50 shadow-xl rounded-2xl p-8 border border-teal-100">
-  <!-- Header Section -->
-  <div class="flex items-center mb-6">
-    <div class="bg-teal-100 p-4 rounded-full mr-4 floating-animation">
-      <svg class="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+<div class="app-shell">
+
+  <!-- Top bar -->
+  <div class="app-topbar">
+    <div class="topbar-icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
       </svg>
     </div>
     <div>
-      <h2 class="text-3xl font-bold text-[#131C44] mb-2">Safety Toolkit</h2>
-      <p class="text-teal-600 text-lg">Your safety comes first. Here are features designed to protect you.</p>
-    </div>
-  </div>
-  
-  <div class="w-full h-1 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full mb-8"></div>
-
-  <!-- Safety Feature Cards -->
-  <div class="flex space-x-6 overflow-x-auto pb-4 mb-8 scrollbar-hide">
-    <div class="safety-card min-w-[200px] bg-white rounded-xl shadow-lg p-6 text-center border border-gray-100">
-      <div class="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 icon-bounce">
-        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-      </div>
-      <div class="font-bold text-gray-800 mb-2">Active Safety Checks</div>
-      <p class="text-sm text-gray-600">Continuous monitoring for your protection</p>
-    </div>
-    
-    <div class="safety-card min-w-[200px] bg-white rounded-xl shadow-lg p-6 text-center border border-gray-100">
-      <div class="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 icon-bounce">
-        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-        </svg>
-      </div>
-      <div class="font-bold text-gray-800 mb-2">Share Live Location</div>
-      <p class="text-sm text-gray-600">Real-time tracking with loved ones</p>
-    </div>
-    
-    <div class="safety-card min-w-[200px] bg-white rounded-xl shadow-lg p-6 text-center border border-gray-100">
-      <div class="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4 icon-bounce">
-        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-        </svg>
-      </div>
-      <div class="font-bold text-gray-800 mb-2">Trusted Contacts</div>
-      <p class="text-sm text-gray-600">Connect with your emergency network</p>
+      <div class="topbar-title">Safety Center</div>
+      <div class="topbar-sub">Your safety is our priority</div>
     </div>
   </div>
 
-  <!-- Safety Features List -->
-  <div>
-    <h3 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-      <span class="bg-teal-100 w-2 h-8 rounded-full mr-3"></span>
-      Safety Features
-    </h3>
+  <!-- Hero banner -->
+  <div class="hero-banner">
+    <div class="hero-shield">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+      </svg>
+    </div>
+    <div>
+      <div class="hero-text-title">You're always protected</div>
+      <div class="hero-text-sub">Every ride is monitored with multiple safety layers so you travel with confidence.</div>
+    </div>
+  </div>
 
-    <div class="space-y-4">
-      <div class="feature-card bg-gradient-to-r from-white to-teal-50 p-6 rounded-xl shadow-md border border-gray-100">
-        <div class="flex items-start">
-          <div class="bg-teal-100 p-3 rounded-lg mr-4 mt-1">
-            <svg class="w-6 h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-            </svg>
-          </div>
-          <div>
-            <h4 class="font-bold text-gray-800 text-lg mb-2">New Trusted Contacts</h4>
-            <p class="text-gray-600">Share ride trip details with your loved ones in a single tap for instant peace of mind</p>
-          </div>
-        </div>
+  <!-- Quick stats -->
+  <div class="quick-stats">
+    <div class="stat-chip">
+      <div class="stat-chip-value">24×7</div>
+      <div class="stat-chip-label">Support</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-chip-value">100%</div>
+      <div class="stat-chip-label">Verified</div>
+    </div>
+    <div class="stat-chip">
+      <div class="stat-chip-value">Live</div>
+      <div class="stat-chip-label">Tracking</div>
+    </div>
+  </div>
+
+  <!-- SOS accent card -->
+  <div class="sos-card">
+    <div class="sos-icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+    </div>
+    <div>
+      <div class="sos-title">Emergency SOS</div>
+      <div class="sos-desc">Instantly alerts your contacts with live location if you're in danger</div>
+    </div>
+    <span class="sos-badge">Ready</span>
+  </div>
+
+  <!-- Safety features list -->
+  <div class="section-header">
+    <div class="section-dot"></div>
+    <div class="section-title">Safety Features</div>
+  </div>
+
+  <div class="feature-list">
+
+    <div class="feature-row">
+      <div class="feature-icon teal">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
       </div>
-
-      <div class="feature-card bg-gradient-to-r from-white to-red-50 p-6 rounded-xl shadow-md border border-gray-100">
-        <div class="flex items-start">
-          <div class="bg-red-100 p-3 rounded-lg mr-4 mt-1">
-            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-            </svg>
-          </div>
-          <div>
-            <h4 class="font-bold text-gray-800 text-lg mb-2">Emergency SOS</h4>
-            <p class="text-gray-600">Alert your emergency contacts instantly with real-time location in case of danger</p>
-          </div>
-        </div>
+      <div class="feature-text">
+        <div class="feature-title">Active Safety Checks</div>
+        <div class="feature-desc">Continuous monitoring throughout your ride</div>
       </div>
+      <span class="feature-chevron">›</span>
+    </div>
 
-      <div class="feature-card bg-gradient-to-r from-white to-blue-50 p-6 rounded-xl shadow-md border border-gray-100">
-        <div class="flex items-start">
-          <div class="bg-blue-100 p-3 rounded-lg mr-4 mt-1">
-            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-            </svg>
-          </div>
-          <div>
-            <h4 class="font-bold text-gray-800 text-lg mb-2">Live Ride Tracking</h4>
-            <p class="text-gray-600">Let your family track your ride in real-time for added peace of mind</p>
-          </div>
-        </div>
+    <div class="feature-row">
+      <div class="feature-icon teal">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
       </div>
-
-      <div class="feature-card bg-gradient-to-r from-white to-green-50 p-6 rounded-xl shadow-md border border-gray-100">
-        <div class="flex items-start">
-          <div class="bg-green-100 p-3 rounded-lg mr-4 mt-1">
-            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-            </svg>
-          </div>
-          <div>
-            <h4 class="font-bold text-gray-800 text-lg mb-2">Driver Verification</h4>
-            <p class="text-gray-600">All drivers undergo thorough background checks and document verification</p>
-          </div>
-        </div>
+      <div class="feature-text">
+        <div class="feature-title">Trusted Contacts</div>
+        <div class="feature-desc">Share trip details with loved ones in one tap</div>
       </div>
+      <span class="feature-chevron">›</span>
+    </div>
 
-      <div class="feature-card bg-gradient-to-r from-white to-purple-50 p-6 rounded-xl shadow-md border border-gray-100">
-        <div class="flex items-start">
-          <div class="bg-purple-100 p-3 rounded-lg mr-4 mt-1">
-            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.944l5.618 3.04A12.02 12.02 0 0118 9c0 5.591-3.824 10.29-9 11.622C3.824 19.29 0 14.591 0 9a12.02 12.02 0 01.382-3.016L6 2.944 12 2.944z"></path>
-            </svg>
-          </div>
-          <div>
-            <h4 class="font-bold text-gray-800 text-lg mb-2">24×7 Safety Support</h4>
-            <p class="text-gray-600">Reach out to our support team anytime for help with safety-related concerns</p>
-          </div>
+    <div class="feature-row">
+      <div class="feature-icon blue">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+      </div>
+      <div class="feature-text">
+        <div class="feature-title">Share Live Location</div>
+        <div class="feature-desc">Real-time tracking accessible to your network</div>
+      </div>
+      <span class="feature-chevron">›</span>
+    </div>
+
+    <div class="feature-row">
+      <div class="feature-icon blue">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+        </svg>
+      </div>
+      <div class="feature-text">
+        <div class="feature-title">Live Ride Tracking</div>
+        <div class="feature-desc">Family can follow your journey in real-time</div>
+      </div>
+      <span class="feature-chevron">›</span>
+    </div>
+
+    <div class="feature-row">
+      <div class="feature-icon green">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+      </div>
+      <div class="feature-text">
+        <div class="feature-title">Driver Verification</div>
+        <div class="feature-desc">Background checks and document verification for all drivers</div>
+      </div>
+      <span class="feature-chevron">›</span>
+    </div>
+
+    <div class="feature-row">
+      <div class="feature-icon purple">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+        </svg>
+      </div>
+      <div class="feature-text">
+        <div class="feature-title">24×7 Safety Support</div>
+        <div class="feature-desc">Our team is always available for safety concerns</div>
+      </div>
+      <span class="feature-chevron">›</span>
+    </div>
+
+  </div>
+
+  <!-- Trust strip -->
+  <div class="trust-strip">
+    <div class="trust-strip-title">Why passengers trust us</div>
+    <div class="trust-items">
+      <div class="trust-item">
+        <div class="trust-item-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
         </div>
+        <div class="trust-item-label">Secure &amp; Private</div>
+      </div>
+      <div class="trust-item">
+        <div class="trust-item-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div class="trust-item-label">Verified Drivers</div>
+      </div>
+      <div class="trust-item">
+        <div class="trust-item-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+          </svg>
+        </div>
+        <div class="trust-item-label">24×7 Support</div>
       </div>
     </div>
   </div>
-</div>
+
+  <!-- CTA buttons -->
+  <div class="cta-wrap">
+    <a href="#" class="btn-primary">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+      </svg>
+      Contact Safety Support
+    </a>
+    <a href="#" class="btn-secondary">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      Learn About Safety Policies
+    </a>
+  </div>
+
+  <!-- Footer note -->
+  <div class="footer-note">
+    <div class="footer-note-icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+      </svg>
+    </div>
+    <div class="footer-note-text">
+      <strong>Your safety is built into every ride.</strong> We continuously improve our safety systems based on rider and driver feedback.
+    </div>
+  </div>
+
+</div><!-- /app-shell -->

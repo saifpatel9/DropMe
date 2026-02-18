@@ -1,314 +1,413 @@
 {% load custom_filters %}
 
 <style>
-  .ride-card {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --brand:          #00C896;
+    --brand-dark:     #00A87D;
+    --brand-light:    #E6FBF5;
+    --brand-glow:     rgba(0, 200, 150, 0.20);
+    --surface:        #FFFFFF;
+    --surface-2:      #F7FAFA;
+    --border:         #E8F0EE;
+    --text-primary:   #0D2622;
+    --text-secondary: #5A7A75;
+    --text-muted:     #9BB5B0;
+    --shadow-sm:      0 2px 8px rgba(0, 40, 30, 0.06);
+    --shadow-md:      0 8px 24px rgba(0, 40, 30, 0.10);
+    --radius-xl:      24px;
+    --radius-lg:      16px;
+    --radius-md:      12px;
   }
-  
-  .ride-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .app-shell {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--surface-2);
+    min-height: 100vh;
+    padding-bottom: 40px;
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
   }
-  
-  .status-badge {
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-  }
-  
-  .status-completed {
-    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-    color: #065f46;
-    border: 1px solid #34d399;
-  }
-  
-  .status-pending {
-    background: linear-gradient(135deg, #fef3c7, #fde68a);
-    color: #92400e;
-    border: 1px solid #f59e0b;
-  }
-  
-  .status-cancelled {
-    background: linear-gradient(135deg, #fecaca, #fca5a5);
-    color: #991b1b;
-    border: 1px solid #ef4444;
-  }
-  
-  .status-ongoing {
-    background: linear-gradient(135deg, #dbeafe, #93c5fd);
-    color: #1e40af;
-    border: 1px solid #3b82f6;
-  }
-  
-  .empty-state {
-    animation: fadeInUp 0.6s ease-out;
-  }
-  
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  .table-hover tr:hover {
-    background: linear-gradient(90deg, rgba(20, 184, 166, 0.05), rgba(6, 182, 212, 0.05));
-    transform: scale(1.01);
-    transition: transform 0.2s ease, background 0.2s ease;
-  }
-  
-  .filter-tabs {
+
+  /* ── Sticky top bar ── */
+  .app-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 20px 14px;
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
+    align-items: center;
+    gap: 12px;
   }
-  
-  .filter-tab {
-    padding: 0.5rem 1rem;
-    border-radius: 0.75rem;
-    border: 2px solid #e5e7eb;
-    background: white;
-    color: #6b7280;
+
+  .topbar-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px var(--brand-glow);
+  }
+
+  .topbar-icon svg { width: 20px; height: 20px; stroke: #fff; }
+  .topbar-title    { font-size: 18px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.3px; }
+  .topbar-sub      { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-top: 1px; }
+
+  .topbar-count {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--brand-dark);
+    background: var(--brand-light);
+    border: 1px solid #9FECDA;
+    border-radius: 20px;
+    padding: 3px 10px;
+    flex-shrink: 0;
+  }
+
+  /* ── Filter pills ── */
+  .filter-scroll {
+    display: flex;
+    gap: 8px;
+    padding: 16px 16px 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .filter-scroll::-webkit-scrollbar { display: none; }
+
+  .filter-pill {
+    flex-shrink: 0;
+    padding: 7px 16px;
+    border-radius: 20px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
     cursor: pointer;
-    transition: transform 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-    font-weight: 500;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
   }
-  
-  .filter-tab:hover, .filter-tab.active {
-    border-color: #14b8a6;
-    background: #14b8a6;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);
+
+  .filter-pill.active,
+  .filter-pill:active {
+    background: var(--brand);
+    border-color: var(--brand);
+    color: #fff;
   }
-  
-  .ride-meta {
-    font-size: 0.875rem;
-    color: #6b7280;
+
+  /* ── Section summary ── */
+  .rides-summary {
+    padding: 14px 20px 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
-  
-  .fade-in {
-    animation: fadeIn 0.5s ease-in;
+
+  /* ── Ride card ── */
+  .ride-cards-wrap { padding: 12px 16px 0; display: flex; flex-direction: column; gap: 10px; }
+
+  .ride-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
   }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+
+  .ride-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 16px 18px 12px;
+    border-bottom: 1px solid var(--border);
   }
+
+  .ride-id-wrap { display: flex; align-items: center; gap: 8px; }
+
+  .ride-id-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: var(--brand-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .ride-id-icon svg { width: 16px; height: 16px; stroke: var(--brand-dark); }
+
+  .ride-id-text  { font-size: 14px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.1px; }
+  .ride-datetime { font-size: 11px; font-weight: 500; color: var(--text-muted); margin-top: 2px; }
+
+  /* ── Status badges — flat, no gradient ── */
+  .status-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.2px;
+    flex-shrink: 0;
+  }
+
+  .status-completed { background: #DCFCE7; color: #166534; }
+  .status-pending   { background: #FEF9C3; color: #854D0E; }
+  .status-ongoing   { background: #DBEAFE; color: #1D4ED8; }
+  .status-cancelled { background: #FEE2E2; color: #991B1B; }
+
+  /* ── Route section ── */
+  .ride-card-route {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .route-stop {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .route-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .route-dot.green { background: #22C55E; }
+  .route-dot.red   { background: #EF4444; }
+
+  .route-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
+  .route-place { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-top: 1px; line-height: 1.3; }
+
+  .route-connector {
+    width: 1px;
+    height: 10px;
+    background: var(--border);
+    margin-left: 4px;
+  }
+
+  /* ── Fare / action row ── */
+  .ride-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+  }
+
+  .ride-fare {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.3px;
+  }
+
+  .ride-fare span { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+
+  .btn-details {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--brand-dark);
+    background: var(--brand-light);
+    border: 1px solid #9FECDA;
+    border-radius: 20px;
+    padding: 6px 14px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn-details:hover { background: #C8F7EC; }
+
+  /* ── Empty state ── */
+  .empty-state {
+    text-align: center;
+    padding: 56px 24px;
+  }
+
+  .empty-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 22px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 18px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .empty-icon svg { width: 32px; height: 32px; stroke: var(--text-muted); }
+
+  .empty-title { font-size: 17px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px; }
+  .empty-desc  { font-size: 13px; font-weight: 500; color: var(--text-muted); line-height: 1.6; max-width: 260px; margin: 0 auto 24px; }
+
+  .btn-book {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--brand);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-lg);
+    padding: 14px 32px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 16px var(--brand-glow);
+    transition: background 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn-book:hover  { background: var(--brand-dark); }
+  .btn-book svg    { width: 18px; height: 18px; stroke: #fff; }
+
+  /* ── Fade transition for filter ── */
+  .ride-card { transition: opacity 0.15s ease; }
+  .ride-card[style*="none"] { opacity: 0; }
 </style>
 
-<div class="bg-gradient-to-br from-white to-teal-50 rounded-2xl shadow-xl p-8 border border-teal-100">
-  <!-- Header Section -->
-  <div class="flex items-center justify-between mb-8">
-    <div class="flex items-center">
-      <div class="bg-teal-100 p-4 rounded-full mr-4">
-        <svg class="w-8 h-8 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-        </svg>
-      </div>
-      <div>
-        <h2 class="text-3xl font-bold text-gray-800 mb-2">My Rides</h2>
-        <p class="text-teal-600 text-lg">Track your ride history and upcoming trips</p>
-      </div>
+<div class="app-shell">
+
+  <!-- Top bar -->
+  <div class="app-topbar">
+    <div class="topbar-icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+      </svg>
     </div>
-    
-    <!-- Stats Summary -->
-    <div class="hidden md:flex space-x-4">
-      <div class="text-center bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-        <div class="text-2xl font-bold text-teal-600">{{ rides|length }}</div>
-        <div class="text-sm text-gray-500">Total Rides</div>
-      </div>
+    <div>
+      <div class="topbar-title">My Rides</div>
+      <div class="topbar-sub">Track your trips and history</div>
     </div>
+    {% if rides %}
+      <div class="topbar-count">{{ rides|length }} ride{{ rides|length|pluralize }}</div>
+    {% endif %}
   </div>
-  
-  <div class="w-full h-1 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-full mb-8"></div>
 
   {% if rides %}
-    <!-- Filter Tabs -->
-    <div class="filter-tabs">
-      <div class="filter-tab active" data-filter="all" onclick="filterRides('all')">All Rides</div>
-      <div class="filter-tab" data-filter="completed" onclick="filterRides('completed')">Completed</div>
-      <div class="filter-tab" data-filter="pending" onclick="filterRides('pending')">Pending</div>
-      <div class="filter-tab" data-filter="ongoing" onclick="filterRides('ongoing')">Ongoing</div>
-      <div class="filter-tab" data-filter="cancelled" onclick="filterRides('cancelled')">Cancelled</div>
+
+    <!-- Filter pills -->
+    <div class="filter-scroll">
+      <div class="filter-pill active" data-filter="all"       onclick="filterRides('all')">All</div>
+      <div class="filter-pill"        data-filter="completed" onclick="filterRides('completed')">Completed</div>
+      <div class="filter-pill"        data-filter="pending"   onclick="filterRides('pending')">Pending</div>
+      <div class="filter-pill"        data-filter="ongoing"   onclick="filterRides('ongoing')">Ongoing</div>
+      <div class="filter-pill"        data-filter="cancelled" onclick="filterRides('cancelled')">Cancelled</div>
     </div>
 
-    <!-- Desktop Table View -->
-    <div class="hidden lg:block overflow-hidden rounded-xl border border-gray-200 shadow-lg">
-      <table class="min-w-full divide-y divide-gray-200 table-hover">
-        <thead class="bg-gradient-to-r from-teal-600 to-teal-700 text-white">
-          <tr>
-            <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wide">Ride Details</th>
-            <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wide">Route</th>
-            <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wide">Fare</th>
-            <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wide">Status</th>
-            <th class="px-6 py-4 text-left text-sm font-bold uppercase tracking-wide">Scheduled</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-100">
-          {% for ride in rides %}
-            <tr class="ride-row hover:bg-gray-50 transition-colors duration-200" data-status="{{ ride.status|lower }}">
-              <td class="px-6 py-4">
-                <div class="flex items-center">
-                  <div class="bg-teal-100 p-2 rounded-lg mr-3">
-                    <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                  </div>
-                  <div>
-                    <div class="font-bold text-gray-900">{{ ride.booking_id }}</div>
-                    <div class="text-sm text-gray-500">Booking ID</div>
-                  </div>
-                </div>
-              </td>
-              <td class="px-6 py-4">
-                <div class="space-y-2">
-                  <div class="flex items-center text-sm">
-                    <div class="w-3 h-3 bg-green-400 rounded-full mr-2"></div>
-                    <span class="font-medium text-gray-700">{{ ride.pickup_location|before_comma }}</span>
-                  </div>
-                  <div class="flex items-center text-sm">
-                    <div class="w-3 h-3 bg-red-400 rounded-full mr-2"></div>
-                    <span class="font-medium text-gray-700">{{ ride.dropoff_location|before_comma }}</span>
-                  </div>
-                </div>
-              </td>
-              <td class="px-6 py-4">
-                <div class="text-xl font-bold text-gray-900">₹{{ ride.fare }}</div>
-              </td>
-              <td class="px-6 py-4">
-                <span class="status-badge px-3 py-1 rounded-full text-xs font-semibold status-{{ ride.status|lower }}">
-                  {{ ride.status|title }}
-                </span>
-              </td>
-              <td class="px-6 py-4">
-                <div class="font-medium text-gray-900">{{ ride.scheduled_time|date:"d M Y" }}</div>
-                <div class="text-sm text-gray-500">{{ ride.scheduled_time|date:"h:i A" }}</div>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Mobile Card View -->
-    <div class="lg:hidden space-y-4">
+    <!-- Ride cards -->
+    <div class="ride-cards-wrap" id="rides-container">
       {% for ride in rides %}
-        <div class="ride-card bg-white rounded-xl shadow-lg p-6 border border-gray-100" data-status="{{ ride.status|lower }}">
-          <div class="flex justify-between items-start mb-4">
-            <div class="flex items-center">
-              <div class="bg-teal-100 p-2 rounded-lg mr-3">
-                <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        <div class="ride-card" data-status="{{ ride.status|lower }}">
+
+          <!-- Top: booking ID + status -->
+          <div class="ride-card-top">
+            <div class="ride-id-wrap">
+              <div class="ride-id-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                 </svg>
               </div>
               <div>
-                <div class="font-bold text-gray-900">{{ ride.booking_id }}</div>
-                <div class="text-sm text-gray-500">{{ ride.scheduled_time|date:"d M Y, h:i A" }}</div>
+                <div class="ride-id-text">#{{ ride.booking_id }}</div>
+                <div class="ride-datetime">{{ ride.scheduled_time|date:"d M Y · h:i A" }}</div>
               </div>
             </div>
-            <span class="status-badge px-3 py-1 rounded-full text-xs font-semibold status-{{ ride.status|lower }}">
-              {{ ride.status|title }}
-            </span>
+            <span class="status-badge status-{{ ride.status|lower }}">{{ ride.status|title }}</span>
           </div>
-          
-          <div class="space-y-3 mb-4">
-            <div class="flex items-start">
-              <div class="w-3 h-3 bg-green-400 rounded-full mr-3 mt-1"></div>
+
+          <!-- Route -->
+          <div class="ride-card-route">
+            <div class="route-stop">
+              <div class="route-dot green"></div>
               <div>
-                <div class="text-sm text-gray-500">Pickup</div>
-                <div class="font-medium text-gray-900">{{ ride.pickup_location|before_comma }}</div>
+                <div class="route-label">Pickup</div>
+                <div class="route-place">{{ ride.pickup_location|before_comma }}</div>
               </div>
             </div>
-            <div class="flex items-start">
-              <div class="w-3 h-3 bg-red-400 rounded-full mr-3 mt-1"></div>
+            <div class="route-connector" style="margin-left: 4px;"></div>
+            <div class="route-stop">
+              <div class="route-dot red"></div>
               <div>
-                <div class="text-sm text-gray-500">Dropoff</div>
-                <div class="font-medium text-gray-900">{{ ride.dropoff_location|before_comma }}</div>
+                <div class="route-label">Dropoff</div>
+                <div class="route-place">{{ ride.dropoff_location|before_comma }}</div>
               </div>
             </div>
           </div>
-          
-          <div class="flex justify-between items-center pt-4 border-t border-gray-100">
-            <div class="text-2xl font-bold text-teal-600">₹{{ ride.fare }}</div>
-            <button class="text-teal-600 text-sm font-medium hover:text-teal-700 transition-colors duration-200">
-              View Details
-            </button>
+
+          <!-- Fare + View Details -->
+          <div class="ride-card-footer">
+            <div class="ride-fare">₹{{ ride.fare }}</div>
+            <button class="btn-details">View Details</button>
           </div>
+
         </div>
       {% endfor %}
     </div>
-    
+
   {% else %}
-    <!-- Empty State -->
-    <div class="empty-state text-center py-16">
-      <div class="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
-        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+
+    <!-- Empty state -->
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
         </svg>
       </div>
-      <h3 class="text-2xl font-bold text-gray-800 mb-3">No rides yet!</h3>
-      <p class="text-gray-500 mb-8 max-w-md mx-auto">
-        You haven't booked any rides yet. Start your journey by booking your first ride with us.
-      </p>
-      <button class="bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-teal-300">
-        <span class="flex items-center">
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-          Book Your First Ride
-        </span>
+      <div class="empty-title">No rides yet</div>
+      <div class="empty-desc">You haven't booked any rides. Start your first journey with us.</div>
+      <button class="btn-book">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Book a Ride
       </button>
     </div>
+
   {% endif %}
-</div>
+
+</div><!-- /app-shell -->
 
 <script>
-  const rideFilterTabs = document.querySelectorAll('.filter-tab');
-  const rideFilterRows = document.querySelectorAll('.ride-row');
-  const rideFilterCards = document.querySelectorAll('.ride-card');
+  const rideFilterPills = document.querySelectorAll('.filter-pill');
+  const rideCards       = document.querySelectorAll('.ride-card');
 
   function filterRides(status) {
-    // Update active tab
-    rideFilterTabs.forEach(tab => {
-      tab.classList.toggle('active', tab.dataset.filter === status);
+    rideFilterPills.forEach(function(pill) {
+      pill.classList.toggle('active', pill.dataset.filter === status);
     });
-    
-    // Filter table rows
-    rideFilterRows.forEach(row => {
-      if (status === 'all' || row.dataset.status === status) {
-        row.style.display = '';
-        row.classList.add('fade-in');
-      } else {
-        row.style.display = 'none';
-        row.classList.remove('fade-in');
-      }
-    });
-    
-    // Filter cards
-    rideFilterCards.forEach(card => {
+
+    rideCards.forEach(function(card) {
       if (status === 'all' || card.dataset.status === status) {
         card.style.display = '';
-        card.classList.add('fade-in');
       } else {
         card.style.display = 'none';
-        card.classList.remove('fade-in');
       }
     });
   }
-  
-  // Add click handlers for mobile cards
-  document.addEventListener('DOMContentLoaded', function() {
-    const cardsContainer = document.querySelector('.lg\\:hidden');
-    if (!cardsContainer) return;
-
-    cardsContainer.addEventListener('click', function(e) {
-      const viewDetailsBtn = e.target.closest('.ride-card button');
-      if (!viewDetailsBtn) return;
-      e.preventDefault();
-    });
-  });
 </script>

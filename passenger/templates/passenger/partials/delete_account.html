@@ -1,401 +1,428 @@
 <!-- Enhanced Account Deletion Partial Template -->
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    
-    /* Scoped styles for delete account section */
-    .delete-account-container {
-        font-family: 'Inter', sans-serif;
-        position: relative;
-    }
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-    .delete-account-container * {
-        box-sizing: border-box;
-    }
+  :root {
+    --brand:          #00C896;
+    --brand-dark:     #00A87D;
+    --brand-light:    #E6FBF5;
+    --brand-glow:     rgba(0, 200, 150, 0.20);
+    --surface:        #FFFFFF;
+    --surface-2:      #F7FAFA;
+    --border:         #E8F0EE;
+    --text-primary:   #0D2622;
+    --text-secondary: #5A7A75;
+    --text-muted:     #9BB5B0;
+    --danger:         #EF4444;
+    --danger-dark:    #DC2626;
+    --danger-light:   #FEF2F2;
+    --danger-border:  #FECACA;
+    --shadow-sm:      0 2px 8px rgba(0, 40, 30, 0.06);
+    --radius-xl:      24px;
+    --radius-lg:      16px;
+    --radius-md:      12px;
+  }
 
-    /* Glass morphism effect */
-    .delete-glass {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 25px 45px rgba(0, 0, 0, 0.1);
-        position: relative;
-        overflow: hidden;
-    }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .delete-glass::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #ef4444, #dc2626, #b91c1c);
-        opacity: 0.8;
-    }
+  .app-shell {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--surface-2);
+    min-height: 100vh;
+    padding-bottom: 40px;
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+  }
 
-    /* Enhanced button animations */
-    .delete-btn {
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        transform: translateY(0);
-        font-weight: 500;
-        border: none;
-        cursor: pointer;
-        user-select: none;
-    }
+  /* ── Sticky top bar ── */
+  .app-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 20px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
 
-    .delete-btn:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    }
+  .topbar-icon {
+    width: 40px;
+    height: 40px;
+    background: #FEE2E2;
+    border: 1px solid var(--danger-border);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
 
-    .delete-btn::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-        transition: left 0.5s ease;
-    }
+  .topbar-icon svg { width: 20px; height: 20px; stroke: var(--danger); }
+  .topbar-title    { font-size: 18px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.3px; }
+  .topbar-sub      { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-top: 1px; }
 
-    .delete-btn:hover::before {
-        left: 100%;
-    }
+  /* ── Messages ── */
+  .messages-wrap { padding: 16px 16px 0; display: flex; flex-direction: column; gap: 8px; }
 
-    /* Specific button styles */
-    .btn-delete {
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        color: white;
-        border-radius: 12px;
-        padding: 12px 24px;
-        font-size: 14px;
-    }
+  .msg-toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 600;
+  }
 
-    .btn-delete:hover:not(:disabled) {
-        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-        box-shadow: 0 10px 25px rgba(220, 38, 38, 0.4);
-    }
+  .msg-toast.success { background: #E6FBF5; color: #006B50; border: 1px solid #9FECDA; }
+  .msg-toast.error   { background: var(--danger-light); color: var(--danger-dark); border: 1px solid var(--danger-border); }
+  .msg-toast svg     { width: 15px; height: 15px; stroke: currentColor; flex-shrink: 0; }
 
-    .btn-delete:disabled {
-        background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
-        cursor: not-allowed;
-        transform: none !important;
-        box-shadow: none !important;
-    }
+  /* ── Warning hero ── */
+  .warn-hero {
+    margin: 20px 16px 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 28px 20px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+    box-shadow: var(--shadow-sm);
+  }
 
-    .btn-cancel {
-        background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
-        color: #374151;
-        border: 1px solid #d1d5db;
-        border-radius: 12px;
-        padding: 12px 24px;
-        font-size: 14px;
-    }
+  .warn-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    background: var(--danger-light);
+    border: 1.5px solid var(--danger-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-    .btn-cancel:hover {
-        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-        border-color: #9ca3af;
-    }
+  .warn-icon svg { width: 28px; height: 28px; stroke: var(--danger); }
 
-    /* Warning icon animation */
-    .warning-icon {
-        animation: delete-pulse 2s infinite;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 48px;
-        height: 48px;
-        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-        border-radius: 50%;
-        margin-bottom: 16px;
-    }
+  .warn-title { font-size: 18px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.3px; }
+  .warn-sub   { font-size: 13px; font-weight: 500; color: var(--text-muted); line-height: 1.5; max-width: 260px; }
 
-    @keyframes delete-pulse {
-        0%, 100% {
-            transform: scale(1);
-            opacity: 1;
-        }
-        50% {
-            transform: scale(1.05);
-            opacity: 0.9;
-        }
-    }
+  /* ── Section header ── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 24px 20px 12px;
+  }
 
-    /* Fade in animation */
-    .delete-fade-in {
-        animation: deleteFadeIn 0.8s ease-out;
-    }
+  .section-dot   { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); flex-shrink: 0; }
+  .section-title { font-size: 15px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.2px; }
 
-    @keyframes deleteFadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
+  /* ── Danger card (what will be deleted) ── */
+  .danger-card {
+    background: var(--surface);
+    border: 1px solid var(--danger-border);
+    border-radius: var(--radius-xl);
+    margin: 0 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
 
-    /* Slide in animation */
-    .delete-slide-in {
-        animation: deleteSlideIn 0.6s ease-out 0.2s both;
-    }
+  .danger-card-header {
+    background: var(--danger-light);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--danger-border);
+  }
 
-    @keyframes deleteSlideIn {
-        from {
-            opacity: 0;
-            transform: translateX(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
+  .danger-card-header svg { width: 16px; height: 16px; stroke: var(--danger); flex-shrink: 0; }
 
-    /* Custom checkbox */
-    .delete-checkbox-wrapper {
-        position: relative;
-        display: flex;
-        align-items: center;
-        cursor: pointer;
-        margin: 20px 0;
-        padding: 16px;
-        background: rgba(239, 68, 68, 0.05);
-        border: 1px solid rgba(239, 68, 68, 0.1);
-        border-radius: 12px;
-        transition: all 0.3s ease;
-    }
+  .danger-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--danger-dark);
+  }
 
-    .delete-checkbox-wrapper:hover {
-        background: rgba(239, 68, 68, 0.08);
-        border-color: rgba(239, 68, 68, 0.2);
-    }
+  .danger-list { padding: 6px 0; }
 
-    .delete-checkbox-wrapper input[type="checkbox"] {
-        opacity: 0;
-        position: absolute;
-        width: 0;
-        height: 0;
-    }
+  .danger-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 18px;
+  }
 
-    .delete-checkbox-custom {
-        width: 20px;
-        height: 20px;
-        border: 2px solid #d1d5db;
-        border-radius: 6px;
-        display: inline-block;
-        position: relative;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        flex-shrink: 0;
-        margin-right: 12px;
-    }
+  .danger-item + .danger-item { border-top: 1px solid var(--border); }
 
-    .delete-checkbox-wrapper input[type="checkbox"]:checked + .delete-checkbox-custom {
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        border-color: #dc2626;
-        transform: scale(1.1);
-    }
+  .danger-item-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--danger);
+    flex-shrink: 0;
+  }
 
-    .delete-checkbox-custom::after {
-        content: '✓';
-        position: absolute;
-        top: -1px;
-        left: 3px;
-        color: white;
-        font-size: 12px;
-        font-weight: bold;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
+  .danger-item-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
 
-    .delete-checkbox-wrapper input[type="checkbox"]:checked + .delete-checkbox-custom::after {
-        opacity: 1;
-    }
+  /* ── Confirmation form card ── */
+  .confirm-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    margin: 12px 16px 0;
+    padding: 18px;
+    box-shadow: var(--shadow-sm);
+  }
 
-    /* Ripple effect */
-    .delete-ripple {
-        position: relative;
-        overflow: hidden;
-    }
+  /* ── Checkbox row ── */
+  .checkbox-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    background: var(--danger-light);
+    border: 1px solid var(--danger-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-    .delete-ripple::after {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 0;
-        height: 0;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.5);
-        transform: translate(-50%, -50%);
-        transition: width 0.6s, height 0.6s;
-        pointer-events: none;
-    }
+  .checkbox-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--danger-border);
+    border-radius: 5px;
+    accent-color: var(--danger);
+    flex-shrink: 0;
+    margin-top: 1px;
+    cursor: pointer;
+  }
 
-    .delete-ripple:active::after {
-        width: 300px;
-        height: 300px;
-    }
+  .checkbox-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #7F1D1D;
+    line-height: 1.5;
+    cursor: pointer;
+  }
 
-    /* Progress bar */
-    .delete-progress-container {
-        margin: 20px 0;
-        opacity: 0;
-        transform: translateY(-10px);
-        transition: all 0.3s ease;
-    }
+  /* ── Buttons ── */
+  .btn-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+  }
 
-    .delete-progress-container.show {
-        opacity: 1;
-        transform: translateY(0);
-    }
+  .btn-danger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 52px;
+    background: var(--danger);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+    text-decoration: none;
+  }
 
-    .delete-progress-bar {
-        width: 0%;
-        height: 6px;
-        background: linear-gradient(90deg, #ef4444, #dc2626);
-        border-radius: 3px;
-        transition: width 2s ease-in-out;
-        position: relative;
-        overflow: hidden;
-    }
+  .btn-danger:hover  { background: var(--danger-dark); }
+  .btn-danger:active { background: #B91C1C; }
+  .btn-danger svg    { width: 17px; height: 17px; stroke: #fff; }
 
-    .delete-progress-bar::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-        animation: deleteProgressShimmer 1.5s infinite;
-    }
+  .btn-cancel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    height: 48px;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
 
-    @keyframes deleteProgressShimmer {
-        0% { transform: translateX(-100%); }
-        100% { transform: translateX(100%); }
-    }
+  .btn-cancel:hover  { background: var(--surface-2); border-color: #C8DAD8; }
+  .btn-cancel:active { background: #EEF5F4; }
+  .btn-cancel svg    { width: 16px; height: 16px; stroke: var(--text-muted); }
 
-    .delete-progress-bar.active {
-        width: 100%;
-    }
+  /* ── Info note ── */
+  .info-note {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    margin: 12px 16px 0;
+    padding: 16px 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    box-shadow: var(--shadow-sm);
+  }
 
-    /* Warning message styling */
-    .delete-warning-box {
-        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-        border: 1px solid rgba(239, 68, 68, 0.2);
-        border-radius: 12px;
-        padding: 16px;
-        margin: 20px 0;
-        position: relative;
-        overflow: hidden;
-    }
+  .info-note-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
 
-    .delete-warning-box::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 4px;
-        height: 100%;
-        background: linear-gradient(180deg, #ef4444, #dc2626);
-    }
+  .info-note-icon svg { width: 17px; height: 17px; stroke: var(--text-muted); }
 
-    /* Shake animation */
-    @keyframes deleteShake {
-        0%, 100% { transform: translateX(0); }
-        10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
-        20%, 40%, 60%, 80% { transform: translateX(3px); }
-    }
-
-    .delete-shake {
-        animation: deleteShake 0.5s ease-in-out;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 640px) {
-        .delete-glass {
-            margin: 16px;
-            padding: 24px 16px;
-        }
-        
-        .delete-btn {
-            padding: 10px 16px;
-            font-size: 13px;
-        }
-    }
+  .info-note-title { font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-bottom: 3px; }
+  .info-note-desc  { font-size: 12px; font-weight: 500; color: var(--text-muted); line-height: 1.5; }
 </style>
 
-<!-- delete_account.html partial -->
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+<div class="app-shell">
 
-    .delete-account-container { font-family: 'Inter', sans-serif; position: relative; }
-    .delete-glass { background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); border:1px solid rgba(255,255,255,0.2); box-shadow:0 25px 45px rgba(0,0,0,0.1); padding:2rem; border-radius:1.5rem; max-width:600px; margin:auto; }
-    .warning-icon { display:inline-flex; align-items:center; justify-content:center; width:48px; height:48px; background:linear-gradient(135deg,#fef2f2,#fee2e2); border-radius:50%; margin-bottom:16px; }
-    .delete-btn { font-weight:500; border:none; cursor:pointer; border-radius:12px; padding:12px 24px; font-size:14px; width:100%; margin-top:12px; }
-    .btn-delete { background:linear-gradient(135deg,#ef4444,#dc2626); color:white; }
-    .btn-cancel { background:linear-gradient(135deg,#f9fafb,#f3f4f6); color:#374151; border:1px solid #d1d5db; }
-    .delete-checkbox-wrapper { display:flex; align-items:center; margin:20px 0; padding:16px; border:1px solid rgba(239,68,68,0.1); border-radius:12px; background:rgba(239,68,68,0.05); }
-    .delete-checkbox-wrapper input { margin-right:12px; }
-    .message { margin-bottom:12px; font-size:14px; }
-    .message.success { color:green; }
-    .message.error { color:red; }
-</style>
-
-<div class="delete-account-container">
-    <div class="delete-glass">
-        <!-- Header -->
-        <div class="text-center mb-6">
-            <div class="warning-icon">
-                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                </svg>
-            </div>
-            <h2 class="text-2xl font-bold text-gray-900 mb-2">Delete Your Account</h2>
-            <p class="text-gray-600 text-sm">This action cannot be undone</p>
-        </div>
-
-        <!-- Success/Error messages -->
-        {% if messages %}
-            {% for message in messages %}
-                <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-
-        <!-- Warning box -->
-        <div class="delete-warning-box mb-4" style="padding:1rem; border:1px solid rgba(239,68,68,0.2); border-radius:12px; background:#fee2e2;">
-            <p class="font-medium text-red-800 mb-2">Permanent deletion will remove:</p>
-            <ul class="text-red-700 text-sm list-disc list-inside">
-                <li>All ride history and booking data</li>
-                <li>Saved preferences and settings</li>
-                <li>Payment information and methods</li>
-                <li>Account recovery options</li>
-            </ul>
-        </div>
-
-        <!-- Delete form -->
-        <form method="post" action="{% url 'passenger_delete_account' %}">
-            {% csrf_token %}
-            
-            <!-- Confirmation checkbox -->
-            <label class="delete-checkbox-wrapper">
-                <input type="checkbox" name="confirm_delete" required>
-                <span class="text-sm text-gray-700 font-medium">
-                    I understand this action is permanent and cannot be undone
-                </span>
-            </label>
-
-            <!-- Buttons -->
-            <div class="flex space-x-2">
-                <a href="{% url 'profile_page' %}" class="delete-btn btn-cancel">Cancel</a>
-                <button type="submit" class="delete-btn btn-delete">Confirm Delete</button>
-            </div>
-        </form>
+  <!-- Top bar -->
+  <div class="app-topbar">
+    <div class="topbar-icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+      </svg>
     </div>
-</div>
+    <div>
+      <div class="topbar-title">Delete Account</div>
+      <div class="topbar-sub">This action cannot be undone</div>
+    </div>
+  </div>
+
+  <!-- Django messages -->
+  {% if messages %}
+    <div class="messages-wrap">
+      {% for message in messages %}
+        <div class="msg-toast {% if message.tags %}{{ message.tags }}{% endif %}">
+          {% if message.tags == 'success' %}
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+          {% else %}
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01"/>
+            </svg>
+          {% endif %}
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Warning hero -->
+  <div class="warn-hero">
+    <div class="warn-icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+      </svg>
+    </div>
+    <div class="warn-title">Delete Your Account?</div>
+    <div class="warn-sub">Once deleted, your account and all associated data will be permanently removed with no way to recover it.</div>
+  </div>
+
+  <!-- What gets deleted -->
+  <div class="section-header">
+    <div class="section-dot"></div>
+    <div class="section-title">What will be deleted</div>
+  </div>
+
+  <div class="danger-card">
+    <div class="danger-card-header">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+      </svg>
+      <span class="danger-card-title">Permanent deletion will remove</span>
+    </div>
+    <div class="danger-list">
+      <div class="danger-item">
+        <div class="danger-item-dot"></div>
+        <span class="danger-item-text">All ride history and booking data</span>
+      </div>
+      <div class="danger-item">
+        <div class="danger-item-dot"></div>
+        <span class="danger-item-text">Saved preferences and settings</span>
+      </div>
+      <div class="danger-item">
+        <div class="danger-item-dot"></div>
+        <span class="danger-item-text">Payment information and methods</span>
+      </div>
+      <div class="danger-item">
+        <div class="danger-item-dot"></div>
+        <span class="danger-item-text">Account recovery options</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation form -->
+  <div class="confirm-card">
+    <form method="post" action="{% url 'passenger_delete_account' %}">
+      {% csrf_token %}
+
+      <label class="checkbox-row">
+        <input type="checkbox" name="confirm_delete" required>
+        <span class="checkbox-label">I understand this action is permanent and cannot be undone</span>
+      </label>
+
+      <div class="btn-wrap">
+        <button type="submit" class="btn-danger">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+          Confirm Delete
+        </button>
+        <a href="{% url 'profile_page' %}" class="btn-cancel">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+          Cancel, Keep My Account
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Info note -->
+  <div class="info-note">
+    <div class="info-note-icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+    </div>
+    <div>
+      <div class="info-note-title">Need help instead?</div>
+      <div class="info-note-desc">If you're having trouble with your account, our support team is available 24×7 and can help resolve any issues before you delete.</div>
+    </div>
+  </div>
+
+</div><!-- /app-shell -->
