@@ -30,7 +30,8 @@
         </thead>
         <tbody class="divide-y divide-gray-200">
           {% for user in passengers %}
-          <tr>
+          {% if not user.is_staff and not user.is_admin %}
+          <tr class="passenger-row">
             <td class="py-3 px-4">{{ user.user_id }}</td>
             <td class="py-3 px-4">{{ user.first_name }} {{ user.last_name }}</td>
             <td class="py-3 px-4">{{ user.email }}</td>
@@ -83,11 +84,15 @@
               </div>
             </td>
           </tr>
+          {% endif %}
           {% empty %}
           <tr>
             <td colspan="9" class="py-6 text-gray-500 text-center">No passengers found.</td>
           </tr>
           {% endfor %}
+          <tr id="filteredNoPassengersRow" class="hidden">
+            <td colspan="9" class="py-6 text-gray-500 text-center">No passengers found.</td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -119,5 +124,13 @@
   function closeModal(id) {
     document.getElementById(id).classList.add('hidden');
   }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const visiblePassengerRows = document.querySelectorAll('tbody .passenger-row');
+    const fallbackRow = document.getElementById('filteredNoPassengersRow');
+    if (visiblePassengerRows.length === 0 && fallbackRow) {
+      fallbackRow.classList.remove('hidden');
+    }
+  });
 </script>
 {% endblock %}

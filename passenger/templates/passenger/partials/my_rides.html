@@ -172,6 +172,8 @@
   .status-pending   { background: #FEF9C3; color: #854D0E; }
   .status-ongoing   { background: #DBEAFE; color: #1D4ED8; }
   .status-cancelled { background: #FEE2E2; color: #991B1B; }
+  .status-cancelled-passenger { background: #FEE2E2; color: #991B1B; }
+  .status-cancelled-driver { background: #FFF1E8; color: #9A3412; }
 
   /* ── Route section ── */
   .ride-card-route {
@@ -246,16 +248,17 @@
     position: fixed;
     inset: 0;
     background: rgba(13, 38, 34, 0.45);
-    display: flex;
+    display: none;
     align-items: flex-end;
     justify-content: center;
-    z-index: 1200;
+    z-index: 9999;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.18s ease;
   }
 
   .ride-details-modal.is-open {
+    display: flex;
     opacity: 1;
     pointer-events: auto;
   }
@@ -271,6 +274,8 @@
     transition: transform 0.18s ease;
     max-height: 85vh;
     overflow-y: auto;
+    position: relative;
+    z-index: 1;
   }
 
   .ride-details-modal.is-open .ride-details-sheet {
@@ -465,7 +470,19 @@
                 <div class="ride-datetime">{{ ride.scheduled_time|date:"d M Y · h:i A" }}</div>
               </div>
             </div>
-            <span class="status-badge status-{{ ride.status|lower }}">{{ ride.status|title }}</span>
+            <span class="status-badge {% if ride.status == 'CancelledByPassenger' %}status-cancelled-passenger{% elif ride.status == 'CancelledByDriver' %}status-cancelled-driver{% elif ride.status and 'Cancelled' in ride.status %}status-cancelled{% else %}status-{{ ride.status|lower }}{% endif %}">
+              {% if ride.status == 'CancelledByPassenger' %}
+                Cancelled by Passenger
+              {% elif ride.status == 'CancelledByDriver' %}
+                Cancelled by Driver
+              {% elif ride.status == 'Cancelled' %}
+                Cancelled
+              {% elif ride.status %}
+                {{ ride.status|title }}
+              {% else %}
+                Unknown
+              {% endif %}
+            </span>
           </div>
 
           <!-- Route -->
@@ -502,7 +519,7 @@
               data-dropoff="{% if ride.dropoff_location %}{{ ride.dropoff_location }}{% else %}Not available{% endif %}"
               data-distance="{% if ride.distance_km %}{{ ride.distance_km|floatformat:1 }} km{% else %}Not available{% endif %}"
               data-duration="{% if ride.duration_min %}{{ ride.duration_min }} min{% else %}Not available{% endif %}"
-              data-status="{% if ride.status %}{{ ride.status|title }}{% else %}Unknown{% endif %}"
+              data-status="{% if ride.status == 'CancelledByPassenger' %}Cancelled by Passenger{% elif ride.status == 'CancelledByDriver' %}Cancelled by Driver{% elif ride.status == 'Cancelled' %}Cancelled{% elif ride.status %}{{ ride.status|title }}{% else %}Unknown{% endif %}"
               data-payment-mode="{% if ride.payment_mode %}{{ ride.payment_mode }}{% else %}Not selected{% endif %}"
               data-cancelled-by="{% if ride.cancelled_by %}{{ ride.cancelled_by }}{% endif %}"
               data-cancellation-reason="{% if ride.cancellation_reason %}{{ ride.cancellation_reason }}{% endif %}"
@@ -569,8 +586,12 @@
   const rideFilterPills = document.querySelectorAll('.filter-pill');
   const rideCards       = document.querySelectorAll('.ride-card');
   const ridesContainer  = document.getElementById('rides-container');
-  const rideDetailsModal = document.getElementById('rideDetailsModal');
+  let rideDetailsModal = document.getElementById('rideDetailsModal');
   const closeRideDetailsBtn = document.getElementById('closeRideDetails');
+
+  if (rideDetailsModal && rideDetailsModal.parentElement !== document.body) {
+    document.body.appendChild(rideDetailsModal);
+  }
 
   function filterRides(status) {
     rideFilterPills.forEach(function(pill) {
@@ -578,7 +599,10 @@
     });
 
     rideCards.forEach(function(card) {
-      if (status === 'all' || card.dataset.status === status) {
+      const cardStatus = (card.dataset.status || '').toLowerCase();
+      const isCancelledStatus = cardStatus === 'cancelled' || cardStatus === 'cancelledbypassenger' || cardStatus === 'cancelledbydriver';
+
+      if (status === 'all' || cardStatus === status || (status === 'cancelled' && isCancelledStatus)) {
         card.style.display = '';
       } else {
         card.style.display = 'none';
