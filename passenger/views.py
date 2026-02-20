@@ -606,7 +606,12 @@ def profile_section(request, section):
     elif section_key == 'my-rides':
         print("[DEBUG] Loading my-rides section")
         from booking.models import Booking
-        rides = Booking.objects.filter(user=user).order_by('-booking_id')
+        rides = (
+            Booking.objects
+            .filter(user=user)
+            .select_related('driver', 'service_type')
+            .order_by('-booking_id')
+        )
         section_template = 'passenger/partials/my_rides.html'
         context.update({'rides': rides})
 

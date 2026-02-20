@@ -241,6 +241,133 @@
 
   .btn-details:hover { background: #C8F7EC; }
 
+  /* ── Ride details modal ── */
+  .ride-details-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(13, 38, 34, 0.45);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 1200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+  }
+
+  .ride-details-modal.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .ride-details-sheet {
+    width: 100%;
+    max-width: 620px;
+    background: var(--surface);
+    border-radius: 22px 22px 0 0;
+    padding: 14px 16px 22px;
+    box-shadow: 0 -8px 30px rgba(0, 40, 30, 0.18);
+    transform: translateY(14px);
+    transition: transform 0.18s ease;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+
+  .ride-details-modal.is-open .ride-details-sheet {
+    transform: translateY(0);
+  }
+
+  .sheet-handle {
+    width: 42px;
+    height: 5px;
+    border-radius: 999px;
+    background: #d7e6e3;
+    margin: 0 auto 12px;
+  }
+
+  .sheet-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .sheet-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.2px;
+  }
+
+  .sheet-close {
+    border: 1px solid var(--border);
+    background: #f6faf9;
+    color: var(--text-secondary);
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  .sheet-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .sheet-booking {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--brand-dark);
+    background: var(--brand-light);
+    border: 1px solid #9FECDA;
+    border-radius: 20px;
+    padding: 4px 10px;
+  }
+
+  .details-list {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fcfefe;
+  }
+
+  .details-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .details-row:last-child { border-bottom: none; }
+
+  .details-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+
+  .details-value {
+    text-align: right;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+    word-break: break-word;
+  }
+
+  body.ride-modal-open { overflow: hidden; }
+
   /* ── Empty state ── */
   .empty-state {
     text-align: center;
@@ -363,11 +490,56 @@
           <!-- Fare + View Details -->
           <div class="ride-card-footer">
             <div class="ride-fare">₹{{ ride.fare }}</div>
-            <button class="btn-details">View Details</button>
+            <button
+              class="btn-details js-view-ride-details"
+              type="button"
+              data-booking-id="{{ ride.booking_id }}"
+              data-driver-name="{% if ride.driver %}{{ ride.driver.first_name|default:'' }} {{ ride.driver.last_name|default:'' }}{% else %}Not assigned{% endif %}"
+              data-ride-type="{% if ride.service_type and ride.service_type.name %}{{ ride.service_type.name }}{% else %}Not available{% endif %}"
+              data-fare="{% if ride.fare %}₹{{ ride.fare }}{% else %}Not available{% endif %}"
+              data-date-time="{% if ride.scheduled_time %}{{ ride.scheduled_time|date:'d M Y · h:i A' }}{% else %}Not scheduled{% endif %}"
+              data-pickup="{% if ride.pickup_location %}{{ ride.pickup_location }}{% else %}Not available{% endif %}"
+              data-dropoff="{% if ride.dropoff_location %}{{ ride.dropoff_location }}{% else %}Not available{% endif %}"
+              data-distance="{% if ride.distance_km %}{{ ride.distance_km|floatformat:1 }} km{% else %}Not available{% endif %}"
+              data-duration="{% if ride.duration_min %}{{ ride.duration_min }} min{% else %}Not available{% endif %}"
+              data-status="{% if ride.status %}{{ ride.status|title }}{% else %}Unknown{% endif %}"
+              data-payment-mode="{% if ride.payment_mode %}{{ ride.payment_mode }}{% else %}Not selected{% endif %}"
+              data-cancelled-by="{% if ride.cancelled_by %}{{ ride.cancelled_by }}{% endif %}"
+              data-cancellation-reason="{% if ride.cancellation_reason %}{{ ride.cancellation_reason }}{% endif %}"
+            >
+              View Details
+            </button>
           </div>
 
         </div>
       {% endfor %}
+    </div>
+
+    <div class="ride-details-modal" id="rideDetailsModal" aria-hidden="true">
+      <div class="ride-details-sheet" role="dialog" aria-modal="true" aria-labelledby="rideDetailsTitle">
+        <div class="sheet-handle"></div>
+        <div class="sheet-head">
+          <div class="sheet-title" id="rideDetailsTitle">Ride Details</div>
+          <button type="button" class="sheet-close" id="closeRideDetails" aria-label="Close">✕</button>
+        </div>
+        <div class="sheet-meta">
+          <span class="sheet-booking" id="detailBookingId">#-</span>
+          <span class="status-badge" id="detailStatusBadge">Unknown</span>
+        </div>
+        <div class="details-list">
+          <div class="details-row"><span class="details-label">Driver</span><span class="details-value" id="detailDriver">-</span></div>
+          <div class="details-row"><span class="details-label">Ride Type</span><span class="details-value" id="detailRideType">-</span></div>
+          <div class="details-row"><span class="details-label">Fare</span><span class="details-value" id="detailFare">-</span></div>
+          <div class="details-row"><span class="details-label">Date & Time</span><span class="details-value" id="detailDateTime">-</span></div>
+          <div class="details-row"><span class="details-label">Pickup</span><span class="details-value" id="detailPickup">-</span></div>
+          <div class="details-row"><span class="details-label">Drop</span><span class="details-value" id="detailDropoff">-</span></div>
+          <div class="details-row"><span class="details-label">Distance</span><span class="details-value" id="detailDistance">-</span></div>
+          <div class="details-row"><span class="details-label">Duration</span><span class="details-value" id="detailDuration">-</span></div>
+          <div class="details-row"><span class="details-label">Payment Mode</span><span class="details-value" id="detailPaymentMode">-</span></div>
+          <div class="details-row" id="detailCancelledByRow" style="display:none;"><span class="details-label">Cancelled By</span><span class="details-value" id="detailCancelledBy">-</span></div>
+          <div class="details-row" id="detailCancellationReasonRow" style="display:none;"><span class="details-label">Cancel Reason</span><span class="details-value" id="detailCancellationReason">-</span></div>
+        </div>
+      </div>
     </div>
 
   {% else %}
@@ -396,6 +568,9 @@
 <script>
   const rideFilterPills = document.querySelectorAll('.filter-pill');
   const rideCards       = document.querySelectorAll('.ride-card');
+  const ridesContainer  = document.getElementById('rides-container');
+  const rideDetailsModal = document.getElementById('rideDetailsModal');
+  const closeRideDetailsBtn = document.getElementById('closeRideDetails');
 
   function filterRides(status) {
     rideFilterPills.forEach(function(pill) {
@@ -410,4 +585,91 @@
       }
     });
   }
+
+  function setDetail(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value || '-';
+  }
+
+  function toggleDetailRow(rowId, valueId, value) {
+    const row = document.getElementById(rowId);
+    const val = document.getElementById(valueId);
+    if (!row || !val) return;
+    if (value) {
+      val.textContent = value;
+      row.style.display = 'flex';
+    } else {
+      row.style.display = 'none';
+    }
+  }
+
+  function updateStatusBadge(status) {
+    const badge = document.getElementById('detailStatusBadge');
+    if (!badge) return;
+
+    badge.textContent = status || 'Unknown';
+    badge.className = 'status-badge';
+
+    const lowered = (status || '').toLowerCase();
+    if (lowered.includes('completed')) badge.classList.add('status-completed');
+    else if (lowered.includes('pending')) badge.classList.add('status-pending');
+    else if (lowered.includes('ongoing') || lowered.includes('arrived') || lowered.includes('confirmed')) {
+      badge.classList.add('status-ongoing');
+    } else if (lowered.includes('cancelled')) {
+      badge.classList.add('status-cancelled');
+    }
+  }
+
+  function openRideDetails(button) {
+    const data = button.dataset;
+    setDetail('detailBookingId', '#' + (data.bookingId || '-'));
+    setDetail('detailDriver', data.driverName);
+    setDetail('detailRideType', data.rideType);
+    setDetail('detailFare', data.fare);
+    setDetail('detailDateTime', data.dateTime);
+    setDetail('detailPickup', data.pickup);
+    setDetail('detailDropoff', data.dropoff);
+    setDetail('detailDistance', data.distance);
+    setDetail('detailDuration', data.duration);
+    setDetail('detailPaymentMode', data.paymentMode);
+    updateStatusBadge(data.status);
+    toggleDetailRow('detailCancelledByRow', 'detailCancelledBy', data.cancelledBy);
+    toggleDetailRow('detailCancellationReasonRow', 'detailCancellationReason', data.cancellationReason);
+
+    if (rideDetailsModal) {
+      rideDetailsModal.classList.add('is-open');
+      rideDetailsModal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('ride-modal-open');
+    }
+  }
+
+  function closeRideDetails() {
+    if (rideDetailsModal) {
+      rideDetailsModal.classList.remove('is-open');
+      rideDetailsModal.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('ride-modal-open');
+    }
+  }
+
+  if (ridesContainer) {
+    ridesContainer.addEventListener('click', function(event) {
+      const trigger = event.target.closest('.js-view-ride-details');
+      if (!trigger) return;
+      openRideDetails(trigger);
+    });
+  }
+
+  if (closeRideDetailsBtn) {
+    closeRideDetailsBtn.addEventListener('click', closeRideDetails);
+  }
+
+  if (rideDetailsModal) {
+    rideDetailsModal.addEventListener('click', function(event) {
+      if (event.target === rideDetailsModal) closeRideDetails();
+    });
+  }
+
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') closeRideDetails();
+  });
 </script>
